@@ -1,0 +1,484 @@
+[
+  {
+    "id": "swift-swiftui-ios",
+    "name": "Native iOS: Swift + SwiftUI",
+    "use_cases": [
+      "iPhone and iPad products",
+      "Native Apple integrations",
+      "Accessible mobile clients for a shared service"
+    ],
+    "choose_when": [
+      "Apple-native UI and platform capabilities are requirements",
+      "A Mac/Xcode build environment and Apple distribution ownership are available"
+    ],
+    "avoid_when": [
+      "The requirement is a single shared UI across iOS and Android",
+      "There is no supported macOS/Xcode build environment"
+    ],
+    "tools": [
+      {
+        "job": "UI and state",
+        "default": "SwiftUI + Observation; small @MainActor observable presentation models; explicit services",
+        "alternatives": "UIKit for unsupported UI or existing UIKit apps; ObservableObject for older deployment targets",
+        "reason": "Native controls and platform conventions; keep domain and transport logic out of views",
+        "limits": "SwiftUI/Observation availability must match the minimum OS; Observation is not persistence or automatic thread safety",
+        "source_urls": [
+          "https://developer.apple.com/swiftui/",
+          "https://developer.apple.com/documentation/swiftui/model-data"
+        ]
+      },
+      {
+        "job": "Structured local persistence",
+        "default": "SwiftData",
+        "alternatives": "Core Data for established stores or older targets; explicit SQLite for requirements SwiftData does not meet",
+        "reason": "Framework-integrated models and persistence with a small dependency footprint",
+        "limits": "Validate migrations, relationship behavior and deployment availability; local persistence does not implement cross-platform sync",
+        "source_urls": [
+          "https://developer.apple.com/documentation/swiftdata/modelcontext"
+        ]
+      },
+      {
+        "job": "Nonsecret preferences",
+        "default": "UserDefaults",
+        "alternatives": "Existing explicit nonsecret preferences storage; structured databases have a separate persistence job",
+        "reason": "Framework-integrated models and persistence with a small dependency footprint",
+        "limits": "Validate migrations, relationship behavior and deployment availability; local persistence does not implement cross-platform sync",
+        "source_urls": [
+          "https://developer.apple.com/documentation/swiftdata/modelcontext"
+        ]
+      },
+      {
+        "job": "Networking and API contract",
+        "default": "URLSession + Codable behind an injected API client",
+        "alternatives": "Generated Swift client from a versioned API contract when its generator is proven",
+        "reason": "Native HTTP client and async APIs; share API schemas and fixtures with Android",
+        "limits": "Check status codes, cancellation, timeouts and decoding; do not put provider secrets in the client; server owns authorization",
+        "source_urls": [
+          "https://developer.apple.com/documentation/foundation/urlsession"
+        ]
+      },
+      {
+        "job": "Concurrency and background work",
+        "default": "Swift structured concurrency, cancellation and actor isolation; server for durable agent runs",
+        "alternatives": "BackgroundTasks or background URLSession for eligible OS-managed local work",
+        "reason": "Keep rendering responsive and avoid tying durable business work to a view lifetime",
+        "limits": "async does not mean CPU work runs off the main actor; OS may suspend apps and does not guarantee exact background scheduling",
+        "source_urls": [
+          "https://developer.apple.com/documentation/foundation/urlsession",
+          "https://developer.apple.com/documentation/backgroundtasks"
+        ]
+      },
+      {
+        "job": "Credentials",
+        "default": "Keychain for app credentials",
+        "alternatives": "In-memory credentials when persistence is unnecessary",
+        "reason": "Use platform secret storage rather than preferences or database fields",
+        "limits": "Define accessibility and logout/revocation behavior; backend service credentials never belong in app binaries",
+        "source_urls": [
+          "https://developer.apple.com/documentation/security/keychain-services"
+        ]
+      },
+      {
+        "job": "Unit and integration tests",
+        "default": "Swift Testing for new domain/API tests; XCTest where needed",
+        "alternatives": "Keep established XCTest suites",
+        "reason": "Test deterministic state transitions, fixtures, decoding, persistence and failures",
+        "limits": "Do not mix Swift Testing and XCTest assertions inside a single test; simulator tests do not validate all hardware behavior",
+        "source_urls": [
+          "https://developer.apple.com/documentation/xcode/testing"
+        ]
+      },
+      {
+        "job": "UI and accessibility",
+        "default": "XCTest/XCUIAutomation; per-screen accessibility audits; VoiceOver and Dynamic Type review",
+        "alternatives": "Accessibility Inspector for interactive audit",
+        "reason": "Exercise navigation, permission states, keyboard/focus, screen-reader order and large text",
+        "limits": "Automated audits cover the current screen and do not establish usability or complete accessibility; hardware checks remain necessary",
+        "source_urls": [
+          "https://developer.apple.com/documentation/xcode/testing",
+          "https://developer.apple.com/documentation/accessibility/performing-accessibility-audits-for-your-app"
+        ]
+      },
+      {
+        "job": "Build, CI and distribution",
+        "default": "Xcode + Swift Package Manager; xcodebuild on pinned macOS/Xcode CI; TestFlight before App Store",
+        "alternatives": "Xcode Cloud for managed Apple CI",
+        "reason": "One reproducible toolchain, recorded test results, signed archives and beta verification",
+        "limits": "Mac and compatible SDK/runtime required; signing team, bundle ID, profiles, capabilities, account access and store submission remain explicit handoffs; archive success is not publication",
+        "source_urls": [
+          "https://developer.apple.com/xcode-cloud/",
+          "https://developer.apple.com/library/archive/technotes/tn2339/_index.html"
+        ]
+      },
+      {
+        "job": "Navigation",
+        "default": "SwiftUI NavigationStack",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Platform navigation keeps back behavior and destinations in native UI",
+        "limits": "Use on supported OS versions; keep route identities separate from loaded objects and test deep-link/session restoration. iOS 16+ availability requires a plan for older targets.",
+        "source_urls": [
+          "https://developer.apple.com/documentation/swiftui/navigationstack"
+        ]
+      },
+      {
+        "job": "Notifications",
+        "default": "UserNotifications",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Native notifications support reminders with explicit user permission",
+        "limits": "Request authorization in context, handle denied/revoked permission and validate notification routes. Remote delivery adds APNs/server setup; delivery timing is not a durable job guarantee.",
+        "source_urls": [
+          "https://developer.apple.com/documentation/usernotifications/asking-permission-to-use-notifications"
+        ]
+      },
+      {
+        "job": "Media selection",
+        "default": "PhotosUI PhotosPicker",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Native picker lets users choose image/video assets",
+        "limits": "iOS 16+; load selected representations with cancellation/error handling and bound file size before upload. Selection is not immediate local-file availability.",
+        "source_urls": [
+          "https://developer.apple.com/documentation/photosui/photospicker"
+        ]
+      }
+    ],
+    "setup_steps": [
+      "Start in a source checkout in a local development workspace. Record minimum iOS/iPadOS versions, bundle ID, required capabilities, API schema and signing owner.",
+      "Install a compatible stable Xcode and required simulator runtimes; finish Apple license/platform setup through the accountable operator. Record xcodebuild -version and selected developer directory.",
+      "Create an iOS App in Xcode using Swift and SwiftUI, with unit and UI test targets. Share the scheme. Pin package resolution; use only dependencies justified by a requirement.",
+      "Separate views, observable presentation state, repositories and API DTOs. Add migration fixtures and versioned network fixtures; use a fake API for tests.",
+      "Run local simulator checks and CI using an actual destination ID. Then verify representative physical devices, offline/reconnect, permissions, VoiceOver and large text.",
+      "Have the account owner establish team/bundle ID/capabilities and signing access. Produce a signed archive, verify a TestFlight install, then follow the authorized release workflow. Retain result bundles and release evidence."
+    ],
+    "verification_commands": [
+      "xcodebuild -version",
+      "xcode-select -p",
+      "xcodebuild -list -project App.xcodeproj",
+      "xcodebuild -showdestinations -project App.xcodeproj -scheme App",
+      "xcodebuild -resolvePackageDependencies -project App.xcodeproj -scheme App",
+      "xcodebuild test -project App.xcodeproj -scheme App -destination \"platform=iOS Simulator,id=<installed-simulator-UUID>\" -resultBundlePath <new-result-path>.xcresult",
+      "xcodebuild archive -project App.xcodeproj -scheme App -destination \"generic/platform=iOS\" -archivePath <new-archive-path>.xcarchive",
+      "xcodebuild -exportArchive -archivePath <archive-path>.xcarchive -exportPath <export-path> -exportOptionsPlist <reviewed-export-options>.plist"
+    ],
+    "evidence_status": "documentation-reviewed",
+    "sources": [
+      {
+        "url": "https://developer.apple.com/swiftui/",
+        "title": "SwiftUI",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.apple.com/documentation/swiftui/model-data",
+        "title": "SwiftUI model data",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.apple.com/documentation/swiftdata/modelcontext",
+        "title": "SwiftData ModelContext",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.apple.com/documentation/foundation/urlsession",
+        "title": "URLSession",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.apple.com/documentation/xcode/testing",
+        "title": "Testing with Xcode",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.apple.com/documentation/accessibility/performing-accessibility-audits-for-your-app",
+        "title": "Performing accessibility audits",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.apple.com/xcode-cloud/",
+        "title": "Xcode Cloud",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.apple.com/library/archive/technotes/tn2339/_index.html",
+        "title": "Xcode command-line FAQ (archived; check local help)",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.apple.com/documentation/security/keychain-services",
+        "title": "Keychain services",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.apple.com/documentation/backgroundtasks",
+        "title": "Background Tasks",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.apple.com/documentation/swiftui/navigationstack",
+        "title": "SwiftUI NavigationStack",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.apple.com/documentation/usernotifications/asking-permission-to-use-notifications",
+        "title": "Apple notification permission",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.apple.com/documentation/photosui/photospicker",
+        "title": "PhotosPicker",
+        "checked_date": "2026-10-10"
+      }
+    ],
+    "open_questions": [
+      "What minimum OS versions, device matrix and Apple capabilities must be supported?",
+      "Which offline/sync/conflict rules and API contract apply?",
+      "Do notifications/media selection require permission-denied and degraded flows?",
+      "Who owns bundle identity, signing and beta/release distribution?"
+    ]
+  },
+  {
+    "id": "kotlin-compose-android",
+    "name": "Native Android: Kotlin + Jetpack Compose",
+    "use_cases": [
+      "Android phones, tablets and foldables",
+      "Native Android integrations",
+      "Accessible mobile clients for a shared service"
+    ],
+    "choose_when": [
+      "Android-native UI and platform behavior are requirements",
+      "The team can own an Android SDK, emulator/device and signed release pipeline"
+    ],
+    "avoid_when": [
+      "The requirement is a single shared UI for Android and iOS",
+      "No Android device or emulator verification can be performed"
+    ],
+    "tools": [
+      {
+        "job": "UI and state",
+        "default": "Jetpack Compose + Material 3; screen ViewModels exposing immutable StateFlow with lifecycle-aware collection",
+        "alternatives": "Android Views for existing apps or unsupported controls",
+        "reason": "Unidirectional data flow separates user events and rendered state; repositories own data access",
+        "limits": "ViewModels do not survive process death; persist important state and test restoration; add domain layers only for actual complexity",
+        "source_urls": [
+          "https://developer.android.com/topic/architecture/recommendations"
+        ]
+      },
+      {
+        "job": "Structured local persistence",
+        "default": "Room",
+        "alternatives": "Direct SQLite only when Room cannot satisfy measured requirements",
+        "reason": "Compile-time SQL checking, migrations and observable local data",
+        "limits": "Choose compatible Room/KSP/Kotlin versions; test upgrades; neither Room nor DataStore automatically supplies encryption or backend sync",
+        "source_urls": [
+          "https://developer.android.com/training/data-storage/room",
+          "https://developer.android.com/topic/libraries/architecture/datastore"
+        ]
+      },
+      {
+        "job": "Preferences",
+        "default": "DataStore",
+        "alternatives": "Existing supported preferences implementation with an explicit data migration",
+        "reason": "Compile-time SQL checking, migrations and observable local data",
+        "limits": "Choose compatible Room/KSP/Kotlin versions; test upgrades; neither Room nor DataStore automatically supplies encryption or backend sync",
+        "source_urls": [
+          "https://developer.android.com/training/data-storage/room",
+          "https://developer.android.com/topic/libraries/architecture/datastore"
+        ]
+      },
+      {
+        "job": "Networking and API contract",
+        "default": "Retrofit + OkHttp + kotlinx.serialization behind a repository",
+        "alternatives": "Ktor Client when deliberate multiplatform business-code sharing justifies it",
+        "reason": "Typed HTTP interfaces with explicit DTOs and a replaceable client",
+        "limits": "Pin compatible versions and converter; share schemas/fixtures with iOS rather than UI; test auth refresh, errors and cancellation",
+        "source_urls": [
+          "https://github.com/lysine-dev/retrofit"
+        ]
+      },
+      {
+        "job": "Concurrency and background work",
+        "default": "Coroutines/Flow in lifecycle-owned scopes; WorkManager for eligible persistent deferrable work",
+        "alternatives": "Server-side durable jobs for long agent runs",
+        "reason": "Cancellation follows lifecycle while scheduled local sync uses a persistent work system",
+        "limits": "WorkManager is OS-constrained and not an exact scheduler; coroutine launch alone is not durable across process death",
+        "source_urls": [
+          "https://developer.android.com/topic/architecture/recommendations",
+          "https://developer.android.com/develop/background-work/background-tasks/persistent"
+        ]
+      },
+      {
+        "job": "Credentials",
+        "default": "Android Keystore-backed cryptographic keys protecting app-private credential material",
+        "alternatives": "In-memory sessions when no persisted credentials are needed",
+        "reason": "Use OS key protection and explicitly scoped encrypted storage",
+        "limits": "Keystore stores keys, not arbitrary bearer tokens; define encryption, backup exclusions and revocation; no backend provider secrets in APKs",
+        "source_urls": [
+          "https://developer.android.com/privacy-and-security/keystore"
+        ]
+      },
+      {
+        "job": "Unit and integration tests",
+        "default": "JUnit + coroutine test utilities; fake repositories/API; Room migration tests",
+        "alternatives": "Established project test framework when compatible",
+        "reason": "Deterministically verify state, retries, decoding, migrations and process-restoration assumptions",
+        "limits": "Host unit tests cannot prove Android framework/device behavior; emulator tests supplement them",
+        "source_urls": [
+          "https://developer.android.com/topic/architecture/recommendations",
+          "https://developer.android.com/training/data-storage/room"
+        ]
+      },
+      {
+        "job": "UI and accessibility",
+        "default": "Compose UI tests + AndroidX accessibility checks; TalkBack and large-font/device review",
+        "alternatives": "Espresso for mixed Views/Compose apps",
+        "reason": "Verify semantic actions, navigation and permission flows with the actual platform UI",
+        "limits": "Automatic checks require supported test dependencies/API environment and do not replace screen-reader usability; test tablets/foldables if supported",
+        "source_urls": [
+          "https://developer.android.com/develop/ui/compose/testing",
+          "https://developer.android.com/develop/ui/compose/accessibility/testing"
+        ]
+      },
+      {
+        "job": "Build, CI and distribution",
+        "default": "Android Studio + Gradle wrapper/Kotlin DSL; pinned JDK/SDK CI; signed Android App Bundle and Play internal testing",
+        "alternatives": "Managed device or device-farm testing where the project needs a broader matrix",
+        "reason": "Reproduce build inputs and separate local tests, device tests and signed release artifacts",
+        "limits": "AGP/Gradle/JDK/Kotlin/Compose must be compatible; release requires upload-key custody and Play account access; build success is not store publication",
+        "source_urls": [
+          "https://developer.android.com/build/building-cmdline",
+          "https://developer.android.com/studio/publish/app-signing"
+        ]
+      },
+      {
+        "job": "Navigation",
+        "default": "Navigation Compose",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Navigation host/controller handle screen back stacks and deep links",
+        "limits": "Add compatible navigation-compose dependency; pass minimal route identifiers and test process recreation/back behavior. Preserve Fragment navigation during partial Compose migration.",
+        "source_urls": [
+          "https://developer.android.com/guide/navigation"
+        ]
+      },
+      {
+        "job": "Notifications",
+        "default": "Android notification channels + runtime permission",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Native notifications keep user delivery preferences under system control",
+        "limits": "Declare/request POST_NOTIFICATIONS where required; create appropriate channels, handle denial and test release API levels. Remote transport/server enrollment is a separate integration.",
+        "source_urls": [
+          "https://developer.android.com/develop/ui/compose/notifications/notification-permission"
+        ]
+      },
+      {
+        "job": "Media selection",
+        "default": "Android Photo Picker",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "System picker grants access to selected media",
+        "limits": "Use Activity result contracts; handle fallback devices, URI access lifetime and upload size limits. Prefer selected access over requesting broad media-library permissions.",
+        "source_urls": [
+          "https://developer.android.com/training/data-storage/shared/photo-picker"
+        ]
+      }
+    ],
+    "setup_steps": [
+      "Start in a source checkout in a local development workspace. Record package ID, minimum/target SDK, supported form factors, API contract, permissions and release owner.",
+      "Install Android Studio and compatible SDK/JDK; use the project Gradle wrapper. Create a Kotlin Empty Activity/Compose project. Pin Gradle/AGP/Kotlin/Compose and library versions in a version catalog.",
+      "Implement screen state/ViewModels and repositories. Add Room migrations, a typed HTTP client and deterministic fake data. Keep secrets out of version control and app resources.",
+      "Run JVM tests, lint and a debug build. Start a documented emulator or attach an authorized device, then run instrumentation/Compose checks.",
+      "Exercise process death, offline/reconnect, rotation, permission denial, TalkBack, large fonts and each supported form factor on appropriate devices.",
+      "Account owner establishes package ownership, upload key and Play App Signing. Build a signed release bundle, verify internal-track install/update, then use the authorized release workflow; retain reports and distribution receipts."
+    ],
+    "verification_commands": [
+      "./gradlew --version",
+      "./gradlew tasks --all",
+      "./gradlew :app:lintDebug :app:testDebugUnitTest :app:assembleDebug",
+      "adb devices",
+      "./gradlew :app:connectedDebugAndroidTest",
+      "./gradlew :app:bundleRelease"
+    ],
+    "evidence_status": "documentation-reviewed",
+    "sources": [
+      {
+        "url": "https://developer.android.com/topic/architecture/recommendations",
+        "title": "Android architecture recommendations",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.android.com/training/data-storage/room",
+        "title": "Room persistence",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.android.com/topic/libraries/architecture/datastore",
+        "title": "DataStore",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/lysine-dev/retrofit",
+        "title": "Retrofit maintained repository; square/retrofit redirects here",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.android.com/develop/background-work/background-tasks/persistent",
+        "title": "Persistent background work",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.android.com/develop/ui/compose/testing",
+        "title": "Compose testing",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.android.com/develop/ui/compose/accessibility/testing",
+        "title": "Compose accessibility testing",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.android.com/build/building-cmdline",
+        "title": "Android command-line build",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.android.com/studio/publish/app-signing",
+        "title": "Android app signing",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.android.com/privacy-and-security/keystore",
+        "title": "Android Keystore system",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.android.com/guide/navigation",
+        "title": "Android Navigation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.android.com/develop/ui/compose/notifications/notification-permission",
+        "title": "Android notification permission",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://developer.android.com/training/data-storage/shared/photo-picker",
+        "title": "Android Photo Picker",
+        "checked_date": "2026-10-10"
+      }
+    ],
+    "open_questions": [
+      "What minimum/target API and phone/tablet/foldable matrix must be supported?",
+      "Which offline/sync/conflict rules and API authentication contract apply?",
+      "Which notification/media features and denied-permission flows are required?",
+      "Who owns package identity, upload key and Play internal/release tracks?"
+    ]
+  }
+]

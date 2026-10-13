@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0",
+  "checked_on": "2026-10-13",
+  "original_tool_research_date": "2026-10-10",
+  "original_architecture_research_date": "2026-10-11",
+  "scope": "Core framework roles, current setup/agent documentation and cited-source availability rechecked; not a reimplementation or exhaustive semantic audit of every third-party dependency.",
+  "source_link_check": {
+    "referenced_urls": 394,
+    "successful_after_retry": 394,
+    "corrected_broken_url": {
+      "from": "https://playwright.dev/docs/intro/",
+      "to": "https://playwright.dev/docs/intro"
+    },
+    "interrupted_fetches_recovered": 13
+  },
+  "changes": [
+    "Corrected Playwright installation source URL.",
+    "Added explicit Next.js development MCP/browser inspection guidance.",
+    "Added current Ecto transact/2 version/semantics note."
+  ],
+  "integration_status": "not-qualified; setup, capacity and migration checks remain unexecuted",
+  "profiles": {
+    "elixir-phoenix-liveview": {
+      "core_guidance_checked_on": "2026-10-13",
+      "sources": [
+        "https://phoenix.hexdocs.pm/overview.html",
+        "https://phoenix.hexdocs.pm/installation.html",
+        "https://hexdocs.pm/ecto/Ecto.Repo.html#c:transact/2"
+      ]
+    },
+    "typescript-next-node": {
+      "core_guidance_checked_on": "2026-10-13",
+      "sources": [
+        "https://nextjs.org/docs/app/getting-started/installation",
+        "https://nextjs.org/docs/app/guides/mcp",
+        "https://nextjs.org/docs/app/guides/ai-agents"
+      ]
+    },
+    "typescript-react-vite-browser": {
+      "core_guidance_checked_on": "2026-10-13",
+      "sources": [
+        "https://vite.dev/guide/",
+        "https://react.dev/learn/typescript"
+      ]
+    },
+    "rails-hotwire-postgresql": {
+      "core_guidance_checked_on": "2026-10-13",
+      "sources": [
+        "https://guides.rubyonrails.org/getting_started.html",
+        "https://guides.rubyonrails.org/active_job_basics.html"
+      ]
+    },
+    "laravel-livewire-postgresql": {
+      "core_guidance_checked_on": "2026-10-13",
+      "sources": [
+        "https://laravel.com/framework/docs/13.x/installation",
+        "https://laravel.com/framework/docs/13.x/ai"
+      ]
+    },
+    "python-django": {
+      "core_guidance_checked_on": "2026-10-13",
+      "sources": [
+        "https://docs.djangoproject.com/en/stable/intro/install/"
+      ]
+    },
+    "python-fastapi": {
+      "core_guidance_checked_on": "2026-10-13",
+      "sources": [
+        "https://fastapi.tiangolo.com/tutorial/"
+      ]
+    },
+    "python-scripts-workers": {
+      "core_guidance_checked_on": "2026-10-13",
+      "sources": [
+        "https://docs.astral.sh/uv/guides/projects/",
+        "https://docs.astral.sh/uv/guides/scripts/"
+      ]
+    },
+    "go-service": {
+      "core_guidance_checked_on": "2026-10-13",
+      "sources": [
+        "https://go.dev/doc/tutorial/create-module",
+        "https://pkg.go.dev/net/http"
+      ]
+    },
+    "go-cli": {
+      "core_guidance_checked_on": "2026-10-13",
+      "sources": [
+        "https://go.dev/doc/tutorial/create-module",
+        "https://github.com/spf13/cobra"
+      ]
+    },
+    "rust-service": {
+      "core_guidance_checked_on": "2026-10-13",
+      "sources": [
+        "https://docs.rs/axum/latest/axum/"
+      ]
+    },
+    "rust-cli": {
+      "core_guidance_checked_on": "2026-10-13",
+      "sources": [
+        "https://docs.rs/clap/latest/clap/",
+        "https://ratatui.rs/"
+      ]
+    },
+    "swift-swiftui-ios": {
+      "core_guidance_checked_on": "2026-10-13",
+      "sources": [
+        "https://developer.apple.com/documentation/swiftui",
+        "https://developer.apple.com/tutorials/data/documentation/swiftui.json"
+      ]
+    },
+    "kotlin-compose-android": {
+      "core_guidance_checked_on": "2026-10-13",
+      "sources": [
+        "https://developer.android.com/compose",
+        "https://developer.android.com/topic/architecture"
+      ]
+    }
+  },
+  "source_access_notes": [
+    "Apple documentation HTML is a JavaScript shell; official DocC JSON was read for SwiftUI.",
+    "The optional Laravel /for/agents route was advertised in official installation docs but direct retrieval returned 403; the existing installation and AI/Boost sources were available."
+  ]
+}

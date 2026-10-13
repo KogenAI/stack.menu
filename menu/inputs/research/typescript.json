@@ -1,0 +1,843 @@
+[
+  {
+    "id": "typescript-next-node",
+    "name": "TypeScript full-stack web application on Node",
+    "use_cases": [
+      "Authenticated web products",
+      "Server-rendered React interfaces",
+      "Browser applications with owned APIs and relational data"
+    ],
+    "choose_when": [
+      "Shared TypeScript contracts and React UI are useful",
+      "Server rendering or a web-facing backend is required",
+      "Team accepts explicit server/client and cache boundaries"
+    ],
+    "avoid_when": [
+      "Only static editorial content is required",
+      "Existing API already owns all backend responsibilities and SSR is unnecessary",
+      "Native mobile or desktop UI is the deliverable"
+    ],
+    "tools": [
+      {
+        "job": "runtime and dependency management",
+        "default": "Node LTS + npm lockfile",
+        "alternatives": [
+          "Preserve existing pnpm",
+          "Bun after compatibility validation"
+        ],
+        "reason": "LTS production policy and reproducible dependency install",
+        "limits": "Pin resolved runtime/dependencies; latest is a scaffold-time lookup, not a CI dependency strategy",
+        "source_urls": [
+          "https://nodejs.org/en/about/previous-releases",
+          "https://nextjs.org/docs/app/getting-started/installation"
+        ]
+      },
+      {
+        "job": "application framework",
+        "default": "Next.js App Router + React + strict TypeScript",
+        "alternatives": [
+          "React/Vite for API-backed SPA",
+          "TanStack Start for typed route loaders/server functions",
+          "Astro for editorial sites"
+        ],
+        "reason": "Full-stack React with version-matched agent documentation",
+        "limits": "TanStack Start official homepage labelled RC at review; web UI is not native UI; framework does not supply business correctness",
+        "source_urls": [
+          "https://nextjs.org/docs/app/getting-started/installation",
+          "https://nextjs.org/docs/app/guides/ai-agents",
+          "https://vite.dev/guide/",
+          "https://tanstack.com/start/latest",
+          "https://docs.astro.build/en/guides/typescript/"
+        ]
+      },
+      {
+        "job": "project instructions",
+        "default": "README navigation + generated version-matched agent guidance",
+        "alternatives": [
+          "README-only workflow when the repository explicitly chooses it"
+        ],
+        "reason": "Keep repository instructions and installed framework documentation discoverable",
+        "limits": "Honor existing instruction ownership. Optional README-only policy: scaffold with --no-agents-md and set agentRules:false before next dev; neither is required by this stack.",
+        "source_urls": [
+          "https://nextjs.org/docs/app/api-reference/cli/create-next-app",
+          "https://nextjs.org/docs/app/api-reference/config/next-config-js/agentRules",
+          "https://nextjs.org/docs/app/guides/ai-agents"
+        ]
+      },
+      {
+        "job": "Agent runtime inspection",
+        "default": "Next.js development MCP endpoint with real browser inspection",
+        "alternatives": [
+          "Existing development logs and browser tooling when MCP is unavailable"
+        ],
+        "reason": "Combine version-matched framework context, compilation errors, routes and runtime logs with the actual rendered application.",
+        "limits": "Development only. Inspect the installed Next.js and next-devtools-mcp versions before configuring tools. Some runtime inspection requires an open browser session; Turbopack compilation tools have their own constraints. Framework tools do not replace authorization tests or real browser verification. Do not install optional skills or enable automatic upgrades merely to read this reference.",
+        "setup": "Follow the installed-version MCP guide to connect a selected agent client to the existing dev server; keep the endpoint and development credentials private. Use the project-selected browser verification route.",
+        "source_urls": [
+          "https://nextjs.org/docs/app/guides/mcp",
+          "https://nextjs.org/docs/app/guides/ai-agents"
+        ]
+      },
+      {
+        "job": "validation",
+        "default": "Zod",
+        "alternatives": [
+          "Existing compatible runtime schema library"
+        ],
+        "reason": "Runtime schemas with inferred TypeScript types",
+        "limits": "Validate requests/environment/external results; shape checks do not establish permission or truth",
+        "source_urls": [
+          "https://zod.dev/"
+        ]
+      },
+      {
+        "job": "database and migrations",
+        "default": "PostgreSQL + Drizzle + reviewed SQL migrations",
+        "alternatives": [
+          "Existing database/ORM conventions"
+        ],
+        "reason": "Typed schema with inspectable SQL history",
+        "limits": "Configure schema paths and target environment; apply migration once; rehearse fresh DB and forward compatibility",
+        "source_urls": [
+          "https://orm.drizzle.team/docs/get-started-postgresql",
+          "https://orm.drizzle.team/docs/migrations"
+        ]
+      },
+      {
+        "job": "identity",
+        "default": "Better Auth + Drizzle PostgreSQL adapter",
+        "alternatives": [
+          "Existing identity provider or auth library matching requirements"
+        ],
+        "reason": "Integrated session/provider support without designing password/session primitives",
+        "limits": "Auth schema generate then Drizzle migrations; direct Better Auth migrate is Kysely-only; configure origin/secrets/recovery; authorize near data",
+        "source_urls": [
+          "https://better-auth.com/docs/installation",
+          "https://better-auth.com/docs/integrations/next",
+          "https://nextjs.org/docs/app/guides/authentication"
+        ]
+      },
+      {
+        "job": "background work",
+        "default": "Inngest durable workflows when required",
+        "alternatives": [
+          "Omit for request-local work",
+          "Existing durable queue/workflow service"
+        ],
+        "reason": "Checkpointed steps, retries and waits",
+        "limits": "Idempotent effects and authorized approvals required; use outbox for DB/event consistency; avoid beta durable endpoints as default",
+        "source_urls": [
+          "https://www.inngest.com/docs/durable-execution",
+          "https://www.inngest.com/docs/durable-execution/quick-start",
+          "https://www.inngest.com/docs/durable-execution/concepts"
+        ]
+      },
+      {
+        "job": "Static typing",
+        "default": "TypeScript strict",
+        "alternatives": [
+          "Preserve an existing TypeScript configuration after checking its guarantees"
+        ],
+        "reason": "Independent deterministic checks for generated edits",
+        "limits": "Next build does not run lint; never ignore build/type errors to satisfy a check",
+        "source_urls": [
+          "https://nextjs.org/docs/app/getting-started/installation",
+          "https://nextjs.org/docs/app/api-reference/cli/next"
+        ]
+      },
+      {
+        "job": "Linting",
+        "default": "ESLint",
+        "alternatives": [
+          "Biome when project has selected it"
+        ],
+        "reason": "Independent deterministic checks for generated edits",
+        "limits": "Next build does not run lint; never ignore build/type errors to satisfy a check",
+        "source_urls": [
+          "https://nextjs.org/docs/app/getting-started/installation",
+          "https://nextjs.org/docs/app/api-reference/cli/next"
+        ]
+      },
+      {
+        "job": "Domain tests",
+        "default": "Vitest",
+        "alternatives": [
+          "Existing suitable test suite"
+        ],
+        "reason": "Run isolated domain behavior checks with a configured test environment",
+        "limits": "Install/configure Vitest and DOM environment for UI tests. Next async Server Components require browser/integration coverage instead.",
+        "source_urls": [
+          "https://vitest.dev/guide/"
+        ]
+      },
+      {
+        "job": "Component tests",
+        "default": "React Testing Library",
+        "alternatives": [
+          "Existing suitable test suite"
+        ],
+        "reason": "Test rendered components through user-visible DOM behavior",
+        "limits": "Install @testing-library/react and its @testing-library/dom peer; configure the test runner/DOM environment. This is a component utility library, not a test runner.",
+        "source_urls": [
+          "https://testing-library.com/docs/react-testing-library/intro/"
+        ]
+      },
+      {
+        "job": "Browser tests",
+        "default": "Playwright",
+        "alternatives": [
+          "Existing suitable test suite"
+        ],
+        "reason": "Exercise critical journeys in actual browser engines",
+        "limits": "Install @playwright/test and matching browsers; configure an isolated test server/data and test session expiry, routing and authorization failures.",
+        "source_urls": [
+          "https://playwright.dev/docs/intro"
+        ]
+      },
+      {
+        "job": "deploy",
+        "default": "Project-selected Node or Docker host",
+        "alternatives": [
+          "Verified adapter",
+          "Static export for compatible static subset"
+        ],
+        "reason": "Documented full Next feature support with Node/Docker",
+        "limits": "Adapters vary; verify chosen host, secrets, DB connections, sessions, migrations and restore; Cloudflare needs separate compatibility review",
+        "source_urls": [
+          "https://nextjs.org/docs/app/getting-started/deploying"
+        ]
+      },
+      {
+        "job": "Server state cache",
+        "default": "TanStack Query for client-owned remote state",
+        "alternatives": [
+          "Next server loading for server-owned data",
+          "Router loaders for simple route data"
+        ],
+        "reason": "Queries, mutations and invalidation support interactive API screens",
+        "limits": "Install @tanstack/react-query and provide QueryClient. Define tenant-aware keys, staleTime/retry policy and clear session data on sign-out; in Next prefer server loading until a client cache has a job.",
+        "source_urls": [
+          "https://tanstack.com/query/latest/docs/framework/react/guides/important-defaults"
+        ]
+      },
+      {
+        "job": "Forms",
+        "default": "React Hook Form for complex client forms",
+        "alternatives": [
+          "Native HTML forms for simple submissions"
+        ],
+        "reason": "Separates client form state and validation from page components",
+        "limits": "Install react-hook-form only where needed; wire existing runtime schemas deliberately. Render accessible labels/errors; validate and authorize submissions on the server.",
+        "source_urls": [
+          "https://github.com/react-hook-form/react-hook-form"
+        ]
+      },
+      {
+        "job": "Styling",
+        "default": "Tailwind CSS when utility styling fits the project",
+        "alternatives": [
+          "CSS Modules or existing CSS design system"
+        ],
+        "reason": "Reusable styling without a runtime component dependency",
+        "limits": "For Vite install tailwindcss and @tailwindcss/vite, add the plugin and CSS import. Use the framework-specific installation path for Next; retain established styles when present.",
+        "source_urls": [
+          "https://tailwindcss.com/docs/installation/using-vite"
+        ]
+      },
+      {
+        "job": "Accessible UI primitives",
+        "default": "Radix Primitives for complex controls",
+        "alternatives": [
+          "Semantic native HTML controls"
+        ],
+        "reason": "Provides focus and keyboard behavior for common interaction patterns",
+        "limits": "Install only used components. Authors still supply names, contrast and meaningful composition; verify keyboard and assistive-technology behavior.",
+        "source_urls": [
+          "https://www.radix-ui.com/primitives/docs/overview/accessibility"
+        ]
+      },
+      {
+        "job": "Accessibility checks",
+        "default": "axe-core through Playwright + manual keyboard review",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Automated audits identify common accessibility defects in real pages",
+        "limits": "Install @axe-core/playwright; scan representative states and use a screen reader/keyboard. Passing automated rules is not complete accessibility evidence.",
+        "source_urls": [
+          "https://playwright.dev/docs/accessibility-testing"
+        ]
+      },
+      {
+        "job": "Transactional email",
+        "default": "Nodemailer with project-selected SMTP provider",
+        "alternatives": [
+          "Provider-supported SDK when API-specific features are required"
+        ],
+        "reason": "SMTP transport avoids coupling email templates to a hosting vendor",
+        "limits": "Install nodemailer; configure server-only transport, verified sender and TLS. Test locally, queue required delivery, handle ambiguous results and bounces; SMTP acceptance is not inbox delivery. Verify the resolved Nodemailer release supports the pinned Node runtime and preserves TLS certificate validation.",
+        "source_urls": [
+          "https://github.com/nodemailer/nodemailer"
+        ]
+      },
+      {
+        "job": "Uploads and object storage",
+        "default": "AWS SDK for JavaScript v3 S3 client",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Object storage separates durable files from ephemeral application disks",
+        "limits": "Install @aws-sdk/client-s3; authorize object keys, restrict size/type and configure lifecycle. Keep credentials server-side; add presigner only for direct uploads and validate provider compatibility.",
+        "source_urls": [
+          "https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/javascript_s3_code_examples.html"
+        ]
+      },
+      {
+        "job": "Live server updates",
+        "default": "EventSource for one-way server events",
+        "alternatives": [
+          "WebSocket service for bidirectional collaboration",
+          "Polling for infrequent updates"
+        ],
+        "reason": "Browser-standard streaming suits status/progress feeds",
+        "limits": "Backend owns authenticated stream and event IDs. Test reconnect, replay and proxy buffering; EventSource is one-way and its constructor offers no arbitrary authorization-header option. Confirm long-lived connection support on host.",
+        "source_urls": [
+          "https://html.spec.whatwg.org/multipage/server-sent-events.html"
+        ]
+      }
+    ],
+    "setup_steps": [
+      "Start in an external source repository parent in a local development workspace with runtime, identity, database and host requirements documented.",
+      "Run npx create-next-app@latest my-app --ts --eslint --app --src-dir --use-npm; review prompts; enter my-app; record resolved versions. Add --no-agents-md only for a repository that explicitly opts out of generated agent files.",
+      "Preserve generated agent guidance and put purpose, commands, environment names and installed-documentation navigation in README. For an explicit README-only repository policy, set agentRules:false before next dev.",
+      "Confirm strict TypeScript. Install npm install zod drizzle-orm pg better-auth server-only and npm install -D drizzle-kit @types/pg dotenv; add inngest only for required durable work.",
+      "Configure server-only database/auth modules and Drizzle PostgreSQL schema/config, development DATABASE_URL, auth secret/base URL and Next route/client integration.",
+      "Run npx auth@latest generate; include generated schema in Drizzle paths; run npx drizzle-kit generate; review SQL; apply npx drizzle-kit migrate only to verified development DB.",
+      "Install npm install -D vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/dom vite-tsconfig-paths @playwright/test; configure unit/UI environments and production Playwright webServer; run npx playwright install.",
+      "Implement invalid-input, tenant ownership, session and critical browser tests. Register durable workflow endpoint/worker only if used; exercise retries and duplicate events.",
+      "Rehearse migrations on fresh test DB, run checks, configure chosen host and single migration job; inspect production session/browser behavior and rollback compatibility."
+    ],
+    "verification_commands": [
+      "npm ci",
+      "npx next typegen",
+      "npx tsc --noEmit",
+      "npx eslint .",
+      "npx vitest run",
+      "npm run build",
+      "npx playwright test"
+    ],
+    "evidence_status": "documentation-reviewed",
+    "sources": [
+      {
+        "url": "https://nodejs.org/en/about/previous-releases",
+        "title": "Node.js release policy",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://nextjs.org/docs/app/getting-started/installation",
+        "title": "Next.js installation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://nextjs.org/docs/app/api-reference/cli/create-next-app",
+        "title": "create-next-app CLI",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://nextjs.org/docs/app/api-reference/config/next-config-js/agentRules",
+        "title": "Next.js agentRules",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://nextjs.org/docs/app/guides/ai-agents",
+        "title": "Next.js AI coding agents",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://nextjs.org/docs/app/api-reference/cli/next",
+        "title": "Next.js CLI",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://nextjs.org/docs/app/getting-started/deploying",
+        "title": "Next.js deployment",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://vite.dev/guide/",
+        "title": "Vite getting started",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://tanstack.com/start/latest",
+        "title": "TanStack Start",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.astro.build/en/guides/typescript/",
+        "title": "Astro TypeScript",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://zod.dev/",
+        "title": "Zod",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://orm.drizzle.team/docs/get-started-postgresql",
+        "title": "Drizzle PostgreSQL",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://orm.drizzle.team/docs/migrations",
+        "title": "Drizzle migrations",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://better-auth.com/docs/installation",
+        "title": "Better Auth installation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://better-auth.com/docs/integrations/next",
+        "title": "Better Auth Next.js integration",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://nextjs.org/docs/app/guides/authentication",
+        "title": "Next.js authentication",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://www.inngest.com/docs/durable-execution",
+        "title": "Inngest durable execution",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://www.inngest.com/docs/durable-execution/quick-start",
+        "title": "Inngest quickstart",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://www.inngest.com/docs/durable-execution/concepts",
+        "title": "Inngest concepts",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://nextjs.org/docs/app/guides/testing/vitest",
+        "title": "Next.js Vitest",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://nextjs.org/docs/app/guides/testing/playwright",
+        "title": "Next.js Playwright",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://tanstack.com/query/latest/docs/framework/react/guides/important-defaults",
+        "title": "TanStack Query important defaults",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/react-hook-form/react-hook-form",
+        "title": "React Hook Form repository",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://tailwindcss.com/docs/installation/using-vite",
+        "title": "Tailwind Vite installation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://www.radix-ui.com/primitives/docs/overview/accessibility",
+        "title": "Radix accessibility",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://playwright.dev/docs/accessibility-testing",
+        "title": "Playwright accessibility testing",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/nodemailer/nodemailer",
+        "title": "Nodemailer maintainer repository",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/javascript_s3_code_examples.html",
+        "title": "AWS JavaScript S3 examples",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://html.spec.whatwg.org/multipage/server-sent-events.html",
+        "title": "HTML EventSource standard",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://vitest.dev/guide/",
+        "title": "Vitest guide",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://playwright.dev/docs/intro",
+        "title": "Playwright installation",
+        "checked_date": "2026-10-13"
+      },
+      {
+        "url": "https://testing-library.com/docs/react-testing-library/intro/",
+        "title": "React Testing Library",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://nextjs.org/docs/app/guides/mcp",
+        "title": "Next.js development MCP and runtime tools",
+        "checked_date": "2026-10-13"
+      }
+    ],
+    "open_questions": [
+      "Does the product require server-rendered routes, client-owned state, or both?",
+      "Which identity providers, account recovery and SSO requirements must be supported?",
+      "Which host, database connection budget and migration/restore process will own production?",
+      "Which workflows need retries, email, object storage or persistent realtime connections?"
+    ]
+  },
+  {
+    "id": "typescript-react-vite-browser",
+    "name": "TypeScript browser application with an existing API",
+    "use_cases": [
+      "Interactive dashboards",
+      "API-backed browser tools",
+      "Client-rendered applications"
+    ],
+    "choose_when": [
+      "Backend/identity already have owners",
+      "SSR is not a product requirement",
+      "Browser UI and API can be deployed independently"
+    ],
+    "avoid_when": [
+      "Searchable server-rendered content is central",
+      "The task requires native device UI",
+      "Team expects the frontend scaffold to supply backend auth or persistence"
+    ],
+    "tools": [
+      {
+        "job": "browser build and UI",
+        "default": "React + Vite + TypeScript",
+        "alternatives": [
+          "Next.js for full-stack/SSR",
+          "TanStack Start when routing/server integration is needed"
+        ],
+        "reason": "Focused browser development without unnecessary server framework",
+        "limits": "TypeScript compiles to JS; Vite is tooling, not a backend; keep HTML/CSS competence",
+        "source_urls": [
+          "https://vite.dev/guide/",
+          "https://tanstack.com/start/latest",
+          "https://react.dev/learn/typescript"
+        ]
+      },
+      {
+        "job": "validation",
+        "default": "Zod at API/client boundaries",
+        "alternatives": [
+          "Use the existing API's schema/code generation"
+        ],
+        "reason": "Check external values and share explicit contracts",
+        "limits": "Client checks never replace authoritative backend validation or authorization",
+        "source_urls": [
+          "https://zod.dev/"
+        ]
+      },
+      {
+        "job": "Identity ownership",
+        "default": "Existing backend owns authentication and authorization",
+        "alternatives": [
+          "Adopt full-stack Node record when backend is in scope"
+        ],
+        "reason": "Avoid duplicating external-system ownership in browser code",
+        "limits": "No database credentials/server secrets in browser; document API/session/CORS contract",
+        "source_urls": [
+          "https://nextjs.org/docs/app/guides/authentication"
+        ]
+      },
+      {
+        "job": "Database ownership",
+        "default": "Existing backend owns persistence and migrations",
+        "alternatives": [
+          "Adopt full-stack Node record when backend is in scope"
+        ],
+        "reason": "Avoid duplicating external-system ownership in browser code",
+        "limits": "No database credentials/server secrets in browser; document API/session/CORS contract",
+        "source_urls": [
+          "https://nextjs.org/docs/app/guides/authentication"
+        ]
+      },
+      {
+        "job": "Background work ownership",
+        "default": "Existing backend owns durable jobs",
+        "alternatives": [
+          "Adopt full-stack Node record when backend is in scope"
+        ],
+        "reason": "Avoid duplicating external-system ownership in browser code",
+        "limits": "No database credentials/server secrets in browser; document API/session/CORS contract",
+        "source_urls": [
+          "https://nextjs.org/docs/app/guides/authentication"
+        ]
+      },
+      {
+        "job": "Static typing",
+        "default": "Strict TypeScript; retain generated project-reference build",
+        "alternatives": [
+          "Preserve existing compatible tooling"
+        ],
+        "reason": "Static checks and user-visible browser behavior",
+        "limits": "Configure router/API failure/session expiry tests; preserve scaffold-specific build scripts",
+        "source_urls": [
+          "https://vite.dev/guide/",
+          "https://nextjs.org/docs/app/guides/testing/vitest",
+          "https://nextjs.org/docs/app/guides/testing/playwright"
+        ]
+      },
+      {
+        "job": "Linting",
+        "default": "ESLint",
+        "alternatives": [
+          "Preserve existing compatible tooling"
+        ],
+        "reason": "Static checks and user-visible browser behavior",
+        "limits": "Configure router/API failure/session expiry tests; preserve scaffold-specific build scripts",
+        "source_urls": [
+          "https://vite.dev/guide/",
+          "https://nextjs.org/docs/app/guides/testing/vitest",
+          "https://nextjs.org/docs/app/guides/testing/playwright"
+        ]
+      },
+      {
+        "job": "Domain and component tests",
+        "default": "Vitest",
+        "alternatives": [
+          "Preserve existing compatible tooling"
+        ],
+        "reason": "Run isolated domain behavior checks with a configured test environment",
+        "limits": "Install Vitest; preserve Vite plugins or add a separate test configuration. Mock only external boundaries and test failure states.",
+        "source_urls": [
+          "https://vitest.dev/guide/"
+        ]
+      },
+      {
+        "job": "Browser tests",
+        "default": "Playwright",
+        "alternatives": [
+          "Preserve existing compatible tooling"
+        ],
+        "reason": "Exercise critical journeys in actual browser engines",
+        "limits": "Install @playwright/test and matching browsers; configure an isolated test server/data and test session expiry, routing and authorization failures.",
+        "source_urls": [
+          "https://playwright.dev/docs/intro"
+        ]
+      },
+      {
+        "job": "deployment",
+        "default": "Static asset host chosen by project",
+        "alternatives": [
+          "Server-rendered framework when justified"
+        ],
+        "reason": "Browser build can be independently served",
+        "limits": "Configure deep-link fallback, API origins, cache invalidation and environment handling; preview is not production",
+        "source_urls": [
+          "https://vite.dev/guide/"
+        ]
+      },
+      {
+        "job": "Server state cache",
+        "default": "TanStack Query for client-owned remote state",
+        "alternatives": [
+          "Next server loading for server-owned data",
+          "Router loaders for simple route data"
+        ],
+        "reason": "Queries, mutations and invalidation support interactive API screens",
+        "limits": "Install @tanstack/react-query and provide QueryClient. Define tenant-aware keys, staleTime/retry policy and clear session data on sign-out; in Next prefer server loading until a client cache has a job.",
+        "source_urls": [
+          "https://tanstack.com/query/latest/docs/framework/react/guides/important-defaults"
+        ]
+      },
+      {
+        "job": "Forms",
+        "default": "React Hook Form for complex client forms",
+        "alternatives": [
+          "Native HTML forms for simple submissions"
+        ],
+        "reason": "Separates client form state and validation from page components",
+        "limits": "Install react-hook-form only where needed; wire existing runtime schemas deliberately. Render accessible labels/errors; validate and authorize submissions on the server.",
+        "source_urls": [
+          "https://github.com/react-hook-form/react-hook-form"
+        ]
+      },
+      {
+        "job": "Styling",
+        "default": "Tailwind CSS when utility styling fits the project",
+        "alternatives": [
+          "CSS Modules or existing CSS design system"
+        ],
+        "reason": "Reusable styling without a runtime component dependency",
+        "limits": "For Vite install tailwindcss and @tailwindcss/vite, add the plugin and CSS import. Use the framework-specific installation path for Next; retain established styles when present.",
+        "source_urls": [
+          "https://tailwindcss.com/docs/installation/using-vite"
+        ]
+      },
+      {
+        "job": "Accessible UI primitives",
+        "default": "Radix Primitives for complex controls",
+        "alternatives": [
+          "Semantic native HTML controls"
+        ],
+        "reason": "Provides focus and keyboard behavior for common interaction patterns",
+        "limits": "Install only used components. Authors still supply names, contrast and meaningful composition; verify keyboard and assistive-technology behavior.",
+        "source_urls": [
+          "https://www.radix-ui.com/primitives/docs/overview/accessibility"
+        ]
+      },
+      {
+        "job": "Accessibility checks",
+        "default": "axe-core through Playwright + manual keyboard review",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Automated audits identify common accessibility defects in real pages",
+        "limits": "Install @axe-core/playwright; scan representative states and use a screen reader/keyboard. Passing automated rules is not complete accessibility evidence.",
+        "source_urls": [
+          "https://playwright.dev/docs/accessibility-testing"
+        ]
+      },
+      {
+        "job": "Routing",
+        "default": "TanStack Router",
+        "alternatives": [
+          "React Router in established projects",
+          "No router for a single screen"
+        ],
+        "reason": "Typed navigation, route loading and search parameters suit application screens",
+        "limits": "Install @tanstack/react-router; configure the chosen file-based plugin or code-based routes. Test deep links, not-found routes and browser back; route guards do not replace server authorization.",
+        "source_urls": [
+          "https://tanstack.com/router/latest/docs/overview"
+        ]
+      },
+      {
+        "job": "Live server updates",
+        "default": "EventSource for one-way server events",
+        "alternatives": [
+          "WebSocket service for bidirectional collaboration",
+          "Polling for infrequent updates"
+        ],
+        "reason": "Browser-standard streaming suits status/progress feeds",
+        "limits": "Backend owns authenticated stream and event IDs. Test reconnect, replay and proxy buffering; EventSource is one-way and its constructor offers no arbitrary authorization-header option. Confirm long-lived connection support on host.",
+        "source_urls": [
+          "https://html.spec.whatwg.org/multipage/server-sent-events.html"
+        ]
+      }
+    ],
+    "setup_steps": [
+      "Start in repository parent in a local development workspace with API/session owners identified.",
+      "Run npm create vite@latest my-app -- --template react-ts; enter my-app; npm install; record resolved versions and commit lockfile.",
+      "Create README with API contract, run/check instructions and environment variable names. Configure strict TypeScript and router/query tooling only as needed.",
+      "Add Zod and test tools; configure request validation, error/loading/session-expiry states and authoritative backend authorization tests.",
+      "Build to static assets, configure chosen host deep-link behavior and API origins, then run production browser checks."
+    ],
+    "verification_commands": [
+      "npm ci",
+      "npx tsc --noEmit",
+      "npx eslint .",
+      "npx vitest run",
+      "npm run build",
+      "npx playwright test"
+    ],
+    "evidence_status": "documentation-reviewed",
+    "sources": [
+      {
+        "url": "https://vite.dev/guide/",
+        "title": "Vite getting started",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://tanstack.com/start/latest",
+        "title": "TanStack Start",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://zod.dev/",
+        "title": "Zod",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://nextjs.org/docs/app/guides/authentication",
+        "title": "Next.js authentication",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://nextjs.org/docs/app/guides/testing/vitest",
+        "title": "Next.js Vitest",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://nextjs.org/docs/app/guides/testing/playwright",
+        "title": "Next.js Playwright",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://react.dev/learn/typescript",
+        "title": "React TypeScript",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://tanstack.com/query/latest/docs/framework/react/guides/important-defaults",
+        "title": "TanStack Query important defaults",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/react-hook-form/react-hook-form",
+        "title": "React Hook Form repository",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://tailwindcss.com/docs/installation/using-vite",
+        "title": "Tailwind Vite installation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://www.radix-ui.com/primitives/docs/overview/accessibility",
+        "title": "Radix accessibility",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://playwright.dev/docs/accessibility-testing",
+        "title": "Playwright accessibility testing",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://tanstack.com/router/latest/docs/overview",
+        "title": "TanStack Router overview",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://html.spec.whatwg.org/multipage/server-sent-events.html",
+        "title": "HTML EventSource standard",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://vitest.dev/guide/",
+        "title": "Vitest guide",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://playwright.dev/docs/intro",
+        "title": "Playwright installation",
+        "checked_date": "2026-10-13"
+      }
+    ],
+    "open_questions": [
+      "Which API and identity owner defines schemas, cookies/tokens and CORS?",
+      "Do routes need shareable URLs, offline behavior or server rendering?",
+      "Which browser/device matrix and accessibility requirements must be met?",
+      "Which static host supports route fallbacks and the selected API origins?"
+    ]
+  }
+]

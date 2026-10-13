@@ -1,0 +1,12 @@
+---
+import pages from '../../.generated/pages.json';
+import Menu from '../layouts/Menu.astro';
+
+export function getStaticPaths() {
+  return Object.entries(pages).filter(([path]) => path !== '404.html').map(([path, props]) => ({
+    params: { page: path === 'index.html' ? undefined : path.replace(/\/index\.html$/, '') },
+    props,
+  }));
+}
+---
+<Menu {...Astro.props} />

@@ -1,0 +1,12 @@
+node_modules/
+.astro/
+.generated/
+dist/
+__pycache__/
+.DS_Store
+.wrangler/
+
+.env
+.env.*
+.dev.vars
+.dev.vars.*

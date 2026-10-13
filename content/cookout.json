@@ -1,0 +1,10 @@
+{
+  "example": "Cookout",
+  "requirements": "Recipes and comments with live updates, invitations, shared cooking sessions and live questions. A host wants to cook with 1,000 people.",
+  "route_context": {"goal":"choose","component":"web","realtime":true},
+  "expected_journey": "choose",
+  "nudge": "Compare Phoenix + LiveView with other feasible web profiles; qualify permissions, reconnects, bounded fanout and overload.",
+  "possible_composition": "Phoenix + LiveView and PostgreSQL for the connected application, subject to project-specific qualification.",
+  "important_unknowns": ["Is live video/audio required, and who supplies media transport?", "Which workload and simultaneous fanout must the 1,000-person prototype demonstrate?", "Do people need offline edits or native clients?"],
+  "evidence": "Illustrative requirements-to-guidance example. No Cookout capacity or deployment qualification is claimed."
+}

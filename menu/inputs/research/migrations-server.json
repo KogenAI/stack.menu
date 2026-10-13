@@ -1,0 +1,1218 @@
+{
+  "schema": "stack-menu-migration-research/1",
+  "reviewed_at": "2026-10-11",
+  "evidence": "documentation-reviewed",
+  "profiles": [
+    {
+      "id": "rails-hotwire-postgresql",
+      "version_scope": "Rails guides showing Rails 8.1 examples; current Turbo handbook. These describe target capabilities, not the source application's installed versions. Detect Gemfile.lock, Ruby version and configured adapters before choosing a move.",
+      "operating_model": "Rails supplies a conventional MVC application and Active Record persistence. Turbo Drive, Frames and Streams support a server-rendered HTML interface with incremental browser updates. Recommendation: keep domain writes on the server and introduce browser-owned state only for interactions that need it; a framework rewrite is not a prerequisite for fixing an inefficient query or incorrect queue contract.",
+      "architecture": [
+        "Recommendation: establish one authoritative domain writer and one schema migration runner per shared database during coexistence. Route a stable tenant or feature boundary, and keep the old application able to read new writes until rollback expires.",
+        "Active Job is the application interface; Solid Queue is the Rails 8 default backend. Inspect the application's actual adapter before inferring a Redis dependency. Separate workers, recurring task configuration and domain writes are distinct responsibilities.",
+        "Recommendation: treat Turbo stream DOM targets, Action Cable channel identifiers, job serialization and session cookies as separate contracts. Sharing a datastore does not prove any of their compatibility."
+      ],
+      "developer_workflow": [
+        "In an existing checkout, read Gemfile.lock and environment configuration before adapting generators. In a disposable feature prototype, bin/rails generate model Product name:string and bin/rails db:migrate demonstrate the conventional model/migration path; review generated schema changes before applying them.",
+        "bin/rails generate job guests_cleanup creates an Active Job class; configure its selected backend and worker process separately. Recipe only: use bin/jobs start for a configured Solid Queue application, then exercise enqueue, failure and recovery against its real queue database.",
+        "bin/rails console is useful for inspecting application objects. Recommendation: capture authorized and unauthorized request fixtures, mixed-version writes and browser stream behavior as acceptance checks rather than treating successful boot as migration qualification.",
+        "For a new local-account prototype, bin/rails generate authentication creates User and Session models plus login surfaces. Review account lifecycle and resource authorization separately; do not run it over an established authentication system without an intentional migration design."
+      ],
+      "avoid": [
+        "Avoid calling a queue-adapter configuration change a backlog migration: the old backend retains work and Active Job can serialize GlobalID and custom types that need the original Ruby classes and database semantics.",
+        "Avoid claiming atomic domain-write-and-enqueue from a separate Solid Queue database. After-commit enqueue prevents premature execution but is not a transaction across two stores. Recommendation: use a durable outbox when a crash between commit and delivery must be recoverable.",
+        "Avoid the Action Cable async adapter for distributed production delivery; the guide restricts it to development/testing and a single process. Avoid replacing session or lock data with a disposable cache just because both use Redis."
+      ],
+      "transitions": [
+        {
+          "capability": "data",
+          "existing_contract": "Inventory table names, primary keys, timestamps, enum values, constraints, callbacks and the application that currently owns migrations; Active Record migrations define schema evolution but do not describe all application side effects.",
+          "coexistence": "Recommendation: keep the existing writer authoritative while the target reads representative data. Add backward-readable fields first; transfer one domain boundary explicitly. Keep a single migration runner rather than allowing two framework migration histories to modify the same tables independently.",
+          "target": "Rails Active Record over the selected PostgreSQL schema, with reviewed database constraints and migrations. Recommendation: remove legacy fields only after old code and rollback readers have retired.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: conventional migrations and model access can concentrate schema work in one maintained application.",
+              "prerequisites": "A named schema owner, compatible value semantics and staged writer transfer.",
+              "tradeoffs": "Shared tables constrain both deployments; deleting or rewriting data may require reconciliation rather than migration reversal."
+            }
+          ],
+          "checks": [
+            "Create in the old application and read in Rails, then reverse the direction after writer transfer; compare IDs, timestamps and nullable values.",
+            "Run the proposed migration against a disposable copy; verify both deployed versions can still read and update a fixture, including unique and foreign-key failures."
+          ],
+          "rollback": "Recommendation: route writes back only while the old reader understands new records. Preserve additive schema changes; rehearse reversible migrations separately and reconcile irreversible data changes.",
+          "sources": [
+            "https://guides.rubyonrails.org/active_record_migrations.html",
+            "https://guides.rubyonrails.org/getting_started.html"
+          ],
+          "id": "data-1"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Record adapter, job class, argument serializers/GlobalIDs, queue names, retries, scheduled work, failed work and running leases. Rails exposes these through Active Job while each backend supplies execution behavior.",
+          "coexistence": "Recommendation: retain old consumers for old payloads; route a new job category to a new queue/backend. Transfer its producers and recurring-task owner together. Drain or deliberately transform ready, scheduled, retry, failed and in-flight work; do not run both schedulers for the same business operation.",
+          "target": "Active Job with configured Solid Queue or the retained qualified adapter. Same-database enqueue may join a domain transaction; a separate queue database needs an explicit delivery design. Recommendation: require business idempotency even when job uniqueness exists.",
+          "benefits": [
+            {
+              "benefit": "SQL-backed job persistence may allow retirement of a dedicated broker.",
+              "prerequisites": "All broker uses inventoried and retired; workers, queue schema, failure monitoring and backlog reconciliation in place.",
+              "tradeoffs": "Database work and queue operations remain operational responsibilities; retaining Redis for another capability yields no service-count reduction."
+            }
+          ],
+          "checks": [
+            "Replay captured old serializer fixtures using the retained consumer; a deleted GlobalID target must follow the intended failure policy.",
+            "Rollback a domain transaction and confirm no executable job escapes it; kill after an external effect before acknowledgement and verify a retry cannot repeat the business effect.",
+            "Account for every backlog state and observe only one scheduled enqueue for the transferred category."
+          ],
+          "rollback": "Recommendation: stop new producers before restoring old routing; retain both consumers through the rollback window and reconcile completed external effects before re-enqueueing.",
+          "sources": [
+            "https://guides.rubyonrails.org/active_job_basics.html",
+            "https://github.com/sidekiq/sidekiq/wiki/Best-Practices"
+          ],
+          "id": "jobs-1"
+        },
+        {
+          "capability": "identity",
+          "existing_contract": "Distinguish the application's generated Session model from Rails session storage. Capture cookie name, serializer, signing/encryption configuration, expiration, account IDs, logout/revocation and per-resource authorization.",
+          "coexistence": "Recommendation: keep a shared identity authority or a documented session exchange endpoint. If cookies are shared, qualify the complete cookie format and rotation rules; route stable users and retain the old decoder for the agreed window.",
+          "target": "An intentionally selected Rails authentication implementation with application authorization. CookieStore stores session data on the client; account/session lifecycle rules must be designed separately.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: coherent account and session ownership can preserve login continuity during feature migration.",
+              "prerequisites": "Verified identity mapping, cookie/exchange fixtures and shared revocation behavior.",
+              "tradeoffs": "Compatibility code and key rotation increase maintenance; planned reauthentication is an alternative when continuity is unnecessary."
+            }
+          ],
+          "checks": [
+            "Authenticate through the old path and visit the new route; then logout, expire or revoke the session and confirm both paths deny access.",
+            "Replay a modified cookie, a stale cookie and a valid session from another tenant against a protected resource; each unauthorized operation must be rejected."
+          ],
+          "rollback": "Recommendation: preserve old account IDs and accepted session formats until routing stabilizes; coordinate revocation and key rotation so restoring traffic cannot revive invalidated sessions.",
+          "sources": [
+            "https://guides.rubyonrails.org/security.html",
+            "https://guides.rubyonrails.org/getting_started.html"
+          ],
+          "id": "identity-1"
+        },
+        {
+          "capability": "realtime",
+          "existing_contract": "Capture channel names, connection authentication, subscription commands, DOM target IDs, Turbo stream actions and reconnect behavior. Turbo Streams can arrive over WebSockets, SSE or request responses; Action Cable owns its own client/server protocol.",
+          "coexistence": "Recommendation: keep the current realtime endpoint for old clients; bridge versioned domain events to the selected target renderer. Assign one event publisher per committed change and route a room/user cohort including reconnects, rather than randomly splitting individual socket requests.",
+          "target": "Turbo streams over the selected transport, with Action Cable using a configured shared adapter when multiple server processes must communicate. Solid Cable is database-backed; Redis remains a documented alternative.",
+          "benefits": [
+            {
+              "benefit": "HTML updates can reuse server-rendered partials.",
+              "prerequisites": "Stable DOM targets, authorized subscriptions and compatible event-to-view rendering.",
+              "tradeoffs": "A new socket protocol still needs client changes or a bridge; reconnection recovery is an application acceptance requirement."
+            }
+          ],
+          "checks": [
+            "Place old and new clients on different server processes; commit one change and verify both authorized clients display it once.",
+            "Disconnect during a write, reconnect and verify the UI converges to the persisted state; unauthorized origins and subscriptions must fail."
+          ],
+          "rollback": "Recommendation: preserve the old event renderer/endpoint and backward-readable stream payloads until the cohort can reconnect there; reconcile already-delivered state rather than blindly rebroadcasting.",
+          "sources": [
+            "https://guides.rubyonrails.org/action_cable_overview.html",
+            "https://turbo.hotwired.dev/handbook/streams"
+          ],
+          "id": "realtime-1"
+        },
+        {
+          "capability": "cache",
+          "existing_contract": "List reconstructible values separately from sessions, counters and locks. Capture key namespaces, serialized values, TTLs and invalidation triggers; Rails.cache and request-local SQL query caching have different lifetimes.",
+          "coexistence": "Recommendation: use a new cache namespace when representations differ, read through to the authoritative data and maintain invalidation for both deployed readers. Keep shared coordination uses on their qualified store while moving only disposable values.",
+          "target": "A deliberately selected Rails cache store; Solid Cache is database-backed and new Rails 8 applications include it. MemoryStore and RedisCacheStore remain choices with different process/service boundaries.",
+          "benefits": [
+            {
+              "benefit": "Database-backed caching can remove a dedicated cache service when it is the last use.",
+              "prerequisites": "Reconstructible contents, tested expiration/invalidation, adequate database capacity and retirement of all other service uses.",
+              "tradeoffs": "Cache traffic moves to the database; cache durability does not make it the authoritative domain store."
+            }
+          ],
+          "checks": [
+            "Warm both versions, update the source record and verify neither version serves the prior value after its specified invalidation boundary.",
+            "Restart the application or empty only the dedicated cache namespace; requests must rebuild correctly without losing identity or coordination state."
+          ],
+          "rollback": "Recommendation: switch to the previous namespace/store and repopulate from domain data; retain the old backend while any coordination capability still depends on it.",
+          "sources": [
+            "https://guides.rubyonrails.org/caching_with_rails.html"
+          ],
+          "id": "cache-1"
+        },
+        {
+          "capability": "operations",
+          "existing_contract": "Record deployed web and Cable processes, configured workers/dispatchers, recurring.yml tasks and database connections. A web deployment alone does not establish that workers or broadcasts are running.",
+          "coexistence": "Recommendation: give each process a named operational owner; keep existing backups and queue monitoring while deploying the new cohort. Transfer recurring schedule ownership once, after checking overlapping old and new schedules.",
+          "target": "An explicit Rails process inventory with worker lifecycle, queue failure inspection and the chosen realtime adapter. Recommendation: document separate domain, queue and cache database restore ordering where applicable.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: visible process and schedule ownership makes failures and recovery boundaries reviewable.",
+              "prerequisites": "A deployment recipe for the selected adapters and an exercised restore/restart procedure.",
+              "tradeoffs": "Coexistence temporarily operates both systems; one healthy HTTP endpoint cannot certify all processes."
+            }
+          ],
+          "checks": [
+            "Stop a worker, enqueue a representative task and verify monitoring identifies its growing age; restart and observe the intended completion/failure policy.",
+            "Restore a disposable backup and prove domain records, delayed tasks and session behavior are accounted for before promoting traffic."
+          ],
+          "rollback": "Recommendation: freeze producers and scheduler ownership transfers, restore the previous process configuration, then reconcile work accepted by the new deployment.",
+          "sources": [
+            "https://guides.rubyonrails.org/active_job_basics.html",
+            "https://guides.rubyonrails.org/action_cable_overview.html"
+          ],
+          "id": "operations-1"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://guides.rubyonrails.org/getting_started.html",
+          "title": "Getting Started with Rails",
+          "claim": "Rails 8.1 examples, MVC/Active Record, model and authentication generators, migration and console commands."
+        },
+        {
+          "url": "https://guides.rubyonrails.org/active_record_migrations.html",
+          "title": "Active Record Migrations",
+          "claim": "Schema migration files, database constraints, reversal and rollback semantics."
+        },
+        {
+          "url": "https://guides.rubyonrails.org/active_job_basics.html",
+          "title": "Active Job Basics",
+          "claim": "Active Job serialization, Solid Queue default and process roles, bin/jobs, separate database default, enqueue timing, recurring tasks and retry handling."
+        },
+        {
+          "url": "https://guides.rubyonrails.org/security.html",
+          "title": "Securing Rails Applications",
+          "claim": "CookieStore, signing/encryption rotation, replay/fixation and session expiration considerations."
+        },
+        {
+          "url": "https://guides.rubyonrails.org/action_cable_overview.html",
+          "title": "Action Cable Overview",
+          "claim": "Cable connections/channels, adapter configuration, async locality, Solid Cable, origins and server deployment."
+        },
+        {
+          "url": "https://guides.rubyonrails.org/caching_with_rails.html",
+          "title": "Caching with Rails",
+          "claim": "Rails cache interfaces, SQL cache lifetime, Solid Cache and alternative stores."
+        },
+        {
+          "url": "https://turbo.hotwired.dev/handbook/introduction",
+          "title": "Turbo introduction",
+          "claim": "Drive, Frames and Streams extend server-rendered HTML navigation and updates."
+        },
+        {
+          "url": "https://turbo.hotwired.dev/handbook/streams",
+          "title": "Turbo Streams",
+          "claim": "DOM target operations and stream transport options."
+        },
+        {
+          "url": "https://github.com/sidekiq/sidekiq/wiki/Best-Practices",
+          "title": "Sidekiq Best Practices",
+          "claim": "Jobs must be idempotent; execution is at least once rather than exactly once."
+        }
+      ]
+    },
+    {
+      "id": "elixir-phoenix-liveview",
+      "version_scope": "Fetched documentation: Phoenix 1.8.15, LiveView 1.2.12, PubSub 2.4.1, Plug 1.20.3, Ecto 3.14.2 / Ecto SQL 3.14.0, Oban 2.24.1, Exq 0.25.0 and OTP 29.1.1 ETS. Installed dependency compatibility is unqualified; pin the actual application before using version-specific APIs.",
+      "operating_model": "Phoenix web modules call application contexts; Ecto supplies persistence boundaries. LiveView maintains connected server-side interaction, while Channels expose a client-facing realtime protocol. Recommendation: model domain operations through contexts and supervised responsibilities rather than translating every old controller, global singleton or database serialization bottleneck literally.",
+      "architecture": [
+        "Recommendation: contexts own business operations, Ecto Repo owns database access and explicit transactions join related writes. A single GenServer around all queries is an application choice, not a Phoenix requirement.",
+        "Phoenix PubSub has a distributed-Elixir adapter and a Redis adapter. Redis can remain appropriate when deployment or interoperability requires it. Recommendation: identify the required delivery boundary before selecting the topology.",
+        "Oban requires an Ecto-backed supported SQL engine. Its installation documents PostgreSQL, SQLite and MySQL; selecting PostgreSQL is this catalogue's target composition, not a universal Oban prerequisite. Recommendation: preserve durable external effects through idempotency and recovery checks."
+      ],
+      "developer_workflow": [
+        "For a disposable target, mix phx.new PATH generates a Phoenix application with selectable database and HTML/LiveView options. In an existing project, inspect mix.lock, generated modules and maintained conventions before regenerating anything.",
+        "When manually installing the selected Oban version, adapt mix ecto.gen.migration add_oban_jobs_table and mix ecto.migrate from its installation guide; configure the engine, Repo and supervised Oban child. Do not copy PostgreSQL settings into a SQLite or MySQL target.",
+        "Use mix test for application tests and the generated Phoenix connection/channel fixtures. Recommendation: add mixed-version payload, authorization and restart scenarios; a passing formatter or compiler does not establish those contracts.",
+        "For a release build, adapt MIX_ENV=prod mix assets.deploy and mix release from the Phoenix deployment workflow; runtime.exs owns runtime configuration. Recommendation: verify database migrations, job supervision and cluster/PubSub connectivity separately from HTTP startup."
+      ],
+      "avoid": [
+        "Avoid replacing a durable queue with spawned tasks or an in-memory notification list while calling the change equivalent. Recommendation: explicitly accept the changed crash and retry behavior or retain a persistent queue.",
+        "Avoid treating Exq's Resque/Sidekiq-compatible transport format as proof that Ruby Active Job wrappers, classes and serializers execute in Elixir. The exact consumer and payload contract still needs qualification.",
+        "Avoid assuming Plug cookies decode Rails cookies: Plug exposes its own serializer, salts and cryptographic options. Avoid relying only on HTTP plugs for LiveView authorization; mount and events require checks.",
+        "Avoid using ETS as a shared session or global lock store. Tables are local to their node and normally disappear with their owner unless an heir takes ownership. Recommendation: reserve ETS for explicitly reconstructible local state."
+      ],
+      "transitions": [
+        {
+          "capability": "data",
+          "existing_contract": "Inventory schema, constraints, record identifiers and callbacks previously triggered by writes. Ecto schemas and changesets must preserve the intended domain semantics, not simply the old table shapes.",
+          "coexistence": "Recommendation: keep the source application as the authoritative writer while Phoenix contexts read fixtures; move a tenant or domain operation with one named writer. Use additive schema changes and a single migration runner during shared-table operation.",
+          "target": "Contexts calling Ecto Repo with explicit validation and transaction boundaries. Ecto.Multi composes related Repo operations in one database transaction; cross-store side effects require a separate delivery design.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: a context boundary can expose one reusable domain operation to LiveView, controllers and workers.",
+              "prerequisites": "Resource authorization, constraints and side effects moved with that operation.",
+              "tradeoffs": "Shared-schema coexistence limits schema changes; external effects do not become part of a database transaction."
+            }
+          ],
+          "checks": [
+            "Write a fixture through each allowed writer and read it from both runtimes; compare IDs, enum/null values, timestamps and constraint failures.",
+            "Fail the second operation in an Ecto.Multi and verify the first database operation is absent; prove old readers still accept successful new writes."
+          ],
+          "rollback": "Recommendation: return the domain writer to the source while preserving additive schema and reconciling accepted new writes; delay destructive contractions until the rollback window closes.",
+          "sources": [
+            "https://hexdocs.pm/phoenix/contexts.html",
+            "https://hexdocs.pm/ecto/Ecto.Multi.html",
+            "https://hexdocs.pm/ecto_sql/Ecto.Migrator.html"
+          ],
+          "id": "data-1"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Rails workers currently own Ruby job execution, including Active Job/GlobalID serializers and backend retry/scheduling behavior. Record the actual Redis-backed backend and every backlog state rather than inferring it from the word Rails.",
+          "coexistence": "Recommendation, retain/wrap path: keep Ruby workers and their broker; expose a narrow producer endpoint or durable outbox relay for Phoenix. Ruby remains the only consumer and scheduler for retained categories, and the interface names payload version, business idempotency key and enqueue acknowledgement.",
+          "target": "Phoenix web/domain code with retained Ruby worker ownership is a valid permanent composition when queue interoperability or Ruby libraries remain necessary.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: the web layer can transfer before job execution without transforming the old backlog.",
+              "prerequisites": "Defined producer interface, monitored delivery and retained worker deployment.",
+              "tradeoffs": "Two runtimes and the broker remain operated; domain write plus broker enqueue is not a shared SQL transaction."
+            }
+          ],
+          "checks": [
+            "Submit a captured serializer/GlobalID case through the interface and confirm the intended Ruby class executes with its normal failure policy.",
+            "Interrupt delivery after domain commit; recover it without duplicating a business effect. Verify only the Ruby scheduler owns the retained category."
+          ],
+          "rollback": "Recommendation: restore the old web producer while retaining the same workers; reconcile accepted interface/outbox entries before disabling the relay.",
+          "sources": [
+            "https://guides.rubyonrails.org/active_job_basics.html",
+            "https://github.com/sidekiq/sidekiq/wiki/Job-Format",
+            "https://github.com/sidekiq/sidekiq/wiki/Best-Practices"
+          ],
+          "id": "jobs-1",
+          "option_title": "Retain Ruby workers behind an interface"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "A retained Redis broker may carry Sidekiq/Resque-shaped jobs; framework wrappers, class names, serializer tags and version-sensitive timestamps are still part of the execution contract.",
+          "coexistence": "Recommendation, broker-retaining replacement path: qualify Exq for selected job types on isolated queues. Keep unsupported Ruby types on Ruby consumers; map only deliberately supported payload versions, and give each category one consumer family and schedule owner.",
+          "target": "Selected Elixir workers using Exq's documented Redis-backed Resque/Sidekiq-compatible format. This is a candidate for qualification, not a claim that arbitrary Active Job payloads are interoperable.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: selected job execution can move to Elixir while preserving the broker boundary.",
+              "prerequisites": "Fixture-tested serialization, queue isolation, retry mapping and scheduler ownership.",
+              "tradeoffs": "Redis remains; compatibility and unsupported Ruby argument types require explicit maintenance."
+            }
+          ],
+          "checks": [
+            "Replay ordinary arguments, an Active Job wrapper, serializer edge cases and scheduled/retry payloads; reject unsupported cases without consuming them silently.",
+            "Crash after a business effect before acknowledgement and verify replay safety; confirm old and new consumers never race for an unqualified category."
+          ],
+          "rollback": "Recommendation: stop new consumption and return only backward-readable queued work to Ruby; preserve both consumers for payloads accepted during the transition.",
+          "sources": [
+            "https://exq.hexdocs.pm/readme.html",
+            "https://github.com/sidekiq/sidekiq/wiki/Job-Format",
+            "https://guides.rubyonrails.org/active_job_basics.html"
+          ],
+          "id": "jobs-2",
+          "option_title": "Keep Redis and qualify Exq consumers"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Legacy Redis jobs and a proposed SQL queue have distinct payload/storage formats and retry/schedule state. A backend change does not copy the backlog or the recurring schedule.",
+          "coexistence": "Recommendation, SQL replacement path: run Oban alongside the legacy broker and route selected categories exclusively to one system. Keep old ready, retry, delayed, failed and running work accounted for. Transfer each schedule once; use a recoverable relay/outbox while domain data and queue insertion span stores.",
+          "target": "Oban workers on the chosen supported SQL engine. With the same Repo/transaction, Oban.insert in Ecto.Multi can join domain changes; a separate database cannot gain that atomicity merely from both databases being SQL.",
+          "benefits": [
+            {
+              "benefit": "Atomic domain-write-and-job-insert is available within a shared transaction.",
+              "prerequisites": "One supported database transaction/Repo for both writes and business idempotency for execution.",
+              "tradeoffs": "Queue load shares the database; SQL atomic insertion does not guarantee exactly-once external effects."
+            },
+            {
+              "benefit": "Recommendation: broker retirement can reduce the operated service inventory.",
+              "prerequisites": "All Redis uses transferred, all backlog states reconciled and recovery/rollback checks passed.",
+              "tradeoffs": "Redis plus SQL coexistence temporarily adds operational work; no service reduction occurs while Redis remains needed."
+            }
+          ],
+          "checks": [
+            "Rollback the combined transaction and confirm neither domain change nor executable Oban job remains.",
+            "Pause a selected Oban queue, reconcile running work and inspect retained backlog; resume without duplicated effects.",
+            "Restart during a job and validate the selected engine's configured recovery policy, including a failure after an external side effect."
+          ],
+          "rollback": "Recommendation: pause new producers/consumption, keep accepted Oban payloads executable, and reconcile effects before moving routing back. Do not blindly copy all rows into the old broker.",
+          "sources": [
+            "https://oban.hexdocs.pm/installation.html",
+            "https://oban.hexdocs.pm/Oban.html",
+            "https://hexdocs.pm/ecto/Ecto.Multi.html"
+          ],
+          "id": "jobs-3",
+          "option_title": "Run Oban SQL workers alongside legacy queues"
+        },
+        {
+          "capability": "identity",
+          "existing_contract": "Record old cookie encoding, serializer, keys/salts, expiration and session revocation; shared account IDs alone do not establish cookie compatibility. Plug COOKIE defaults its serializer to external_term_format and exposes rotating cryptographic options.",
+          "coexistence": "Recommendation: retain the existing identity authority through a qualified session exchange or compatibility decoder. Map authorization rules into Phoenix contexts and LiveView mount/events; keep account and revocation ownership explicit.",
+          "target": "Phoenix identity with the selected session store and LiveView authorization in mount/on_mount and actions. Recommendation: choose planned reauthentication when cookie compatibility is not worth maintaining.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: users can preserve access while a connected feature moves.",
+              "prerequisites": "Qualified decoder/exchange, shared revocation and event-level authorization.",
+              "tradeoffs": "Long-lived sockets need explicit disconnect/recheck behavior when access changes; sharing secrets alone is insufficient."
+            }
+          ],
+          "checks": [
+            "Login through the old runtime, access the target feature, revoke the account/session and confirm HTTP plus existing/reconnected LiveView access follows the required policy.",
+            "Send a forged delete event for another tenant despite a hidden UI control; confirm the server rejects it."
+          ],
+          "rollback": "Recommendation: retain the old decoder/exchange until routing can return; never reverse revocation merely to restore traffic.",
+          "sources": [
+            "https://hexdocs.pm/plug/Plug.Session.COOKIE.html",
+            "https://hexdocs.pm/phoenix_live_view/security-model.html",
+            "https://guides.rubyonrails.org/security.html"
+          ],
+          "id": "identity-1"
+        },
+        {
+          "capability": "realtime",
+          "existing_contract": "Action Cable, Phoenix Channels and LiveView are different protocols. Capture subscription identity, event envelope, authorization, ordering and missed-message recovery. Channels documents at-most-once client delivery without server persistence.",
+          "coexistence": "Recommendation: retain old client endpoints and bridge versioned domain events into each renderer. A room/tenant cohort owns its subscriptions and reconnects. Choose Redis PubSub or a qualified distributed-Elixir cluster deliberately; sharing Redis does not translate the wire protocol.",
+          "target": "LiveView for connected server-owned screens or Channels for explicit realtime clients, with durable domain state and an application catch-up mechanism when missed events matter.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: connected UI and domain operations can share Phoenix contexts.",
+              "prerequisites": "Authorized subscriptions, working multi-node fanout and persisted state/cursors for recovery requirements.",
+              "tradeoffs": "Live protocol/client changes and cluster operations remain; PubSub does not supply a durable user-message history."
+            }
+          ],
+          "checks": [
+            "Place old/new subscribers on separate nodes; commit through either permitted path and verify every authorized recipient converges once.",
+            "Disconnect before an event, restart a node, reconnect with the chosen cursor/state mechanism and verify missed domain changes recover; test revocation while connected."
+          ],
+          "rollback": "Recommendation: preserve the old endpoint/event envelope and cohort routing through reconnects; rebuild UI from persisted state instead of duplicating broadcasts.",
+          "sources": [
+            "https://hexdocs.pm/phoenix/channels.html",
+            "https://hexdocs.pm/phoenix_pubsub/Phoenix.PubSub.html",
+            "https://hexdocs.pm/phoenix_live_view/security-model.html"
+          ],
+          "id": "realtime-1"
+        },
+        {
+          "capability": "cache",
+          "existing_contract": "Classify every Redis use as cache, session, limiter, lock, job or PubSub. ETS tables are node-local and their ownership lifetime matters; they do not provide Redis's cross-node boundary.",
+          "coexistence": "Recommendation: move only reconstructible cache entries into supervised local ownership, with explicit TTL/invalidation and bounded memory. Keep shared identity, coordination, queues and broadcast infrastructure until their own transitions qualify.",
+          "target": "ETS for deliberately local reconstructed values, or a retained shared cache where consistency across nodes is required. Recommendation: state stale-read tolerance and rebuilding behavior in the application contract.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: a local cache can remove a remote dependency from selected reads.",
+              "prerequisites": "Acceptable node-local semantics, bounded memory and verified invalidation/rebuild behavior.",
+              "tradeoffs": "Each node maintains separate contents; owner/node failure loses local state. Performance benefit requires measurement."
+            }
+          ],
+          "checks": [
+            "Warm two nodes, update the authoritative record and verify their documented staleness/invalidation policy.",
+            "Terminate the table owner or restart the node; verify the application rebuilds and no durable job/session/lock state was stored there."
+          ],
+          "rollback": "Recommendation: switch those reads back to the qualified shared store or authoritative data; retain Redis until every remaining capability is reconciled.",
+          "sources": [
+            "https://www.erlang.org/doc/apps/stdlib/ets.html",
+            "https://hexdocs.pm/phoenix_pubsub/Phoenix.PubSub.html"
+          ],
+          "id": "cache-1"
+        },
+        {
+          "capability": "operations",
+          "existing_contract": "Record endpoint, worker, scheduler, Repo, assets and cluster/PubSub ownership. Phoenix runtime configuration, release build and schema migrations have distinct deployment steps.",
+          "coexistence": "Recommendation: maintain both releases with stable cohort routing and a single schedule/writer owner per responsibility. Monitor queue age, retry effects, node connectivity and authorization failures against application-specific promotion thresholds.",
+          "target": "A Phoenix release with runtime.exs configuration, built assets, named migration runner and supervised workers. Recommendation: make cluster formation, backups and restore ordering explicit instead of assuming VM startup establishes them.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: explicit supervised roles and release inputs make restart behavior reviewable.",
+              "prerequisites": "Configured children, deployment inventory and exercised recovery procedures.",
+              "tradeoffs": "Durable recovery still depends on the chosen databases/queues; supervision alone cannot recreate lost external state."
+            }
+          ],
+          "checks": [
+            "Start the actual release with a disposable restored database and confirm assets, authenticated routes, a queued job and cross-node broadcast work.",
+            "Stop a worker/node, observe detection and recovery, and verify no second schedule owner activates during rollback."
+          ],
+          "rollback": "Recommendation: retain the previous release and compatible database reads; return cohort routing and role ownership separately, reconciling new jobs and external effects.",
+          "sources": [
+            "https://hexdocs.pm/phoenix/deployment.html",
+            "https://oban.hexdocs.pm/installation.html",
+            "https://hexdocs.pm/phoenix_pubsub/Phoenix.PubSub.html"
+          ],
+          "id": "operations-1"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://hexdocs.pm/phoenix/contexts.html",
+          "title": "Phoenix Intro to Contexts",
+          "claim": "Contexts separate web features from application operations."
+        },
+        {
+          "url": "https://hexdocs.pm/phoenix/Mix.Tasks.Phx.New.html",
+          "title": "mix phx.new",
+          "claim": "Phoenix generator syntax and selectable target options."
+        },
+        {
+          "url": "https://hexdocs.pm/ecto/Ecto.Multi.html",
+          "title": "Ecto.Multi",
+          "claim": "Composes related database operations within a transaction."
+        },
+        {
+          "url": "https://hexdocs.pm/ecto_sql/Ecto.Migrator.html",
+          "title": "Ecto.Migrator",
+          "claim": "Migration execution, repository connection and release migration concerns."
+        },
+        {
+          "url": "https://oban.hexdocs.pm/installation.html",
+          "title": "Oban Installation",
+          "claim": "PostgreSQL, SQLite and MySQL engine setup; migrations, configuration and supervision."
+        },
+        {
+          "url": "https://oban.hexdocs.pm/Oban.html",
+          "title": "Oban API",
+          "claim": "Transactional Ecto.Multi insertion and queue pause/resume APIs; uniqueness is an enqueue feature."
+        },
+        {
+          "url": "https://exq.hexdocs.pm/readme.html",
+          "title": "Exq README",
+          "claim": "Redis persistence, retrying and Resque/Sidekiq-format compatibility."
+        },
+        {
+          "url": "https://github.com/sidekiq/sidekiq/wiki/Job-Format",
+          "title": "Sidekiq Job Format",
+          "claim": "Job envelopes and Active Job wrapper/version-sensitive payload details."
+        },
+        {
+          "url": "https://github.com/sidekiq/sidekiq/wiki/Best-Practices",
+          "title": "Sidekiq Best Practices",
+          "claim": "Idempotent jobs and at-least-once execution."
+        },
+        {
+          "url": "https://guides.rubyonrails.org/active_job_basics.html",
+          "title": "Rails Active Job Basics",
+          "claim": "Active Job serializers/GlobalID, adapter abstraction and scheduled/retry execution."
+        },
+        {
+          "url": "https://guides.rubyonrails.org/security.html",
+          "title": "Rails Security",
+          "claim": "Rails cookie/session contract and rotation considerations."
+        },
+        {
+          "url": "https://hexdocs.pm/plug/Plug.Session.COOKIE.html",
+          "title": "Plug cookie session store",
+          "claim": "Cookie serializer, signing/encryption configuration and rotating options."
+        },
+        {
+          "url": "https://hexdocs.pm/phoenix_live_view/security-model.html",
+          "title": "LiveView Security",
+          "claim": "Authorization on mount/events and stateful connection revocation."
+        },
+        {
+          "url": "https://hexdocs.pm/phoenix/channels.html",
+          "title": "Phoenix Channels",
+          "claim": "Channel protocol, joins and at-most-once non-persistent client delivery with application catch-up options."
+        },
+        {
+          "url": "https://hexdocs.pm/phoenix_pubsub/Phoenix.PubSub.html",
+          "title": "Phoenix PubSub",
+          "claim": "Distributed-Elixir and Redis adapters, pool configuration and migration."
+        },
+        {
+          "url": "https://www.erlang.org/doc/apps/stdlib/ets.html",
+          "title": "OTP ETS",
+          "claim": "Node-local tables, owner/heir lifetime and table options."
+        },
+        {
+          "url": "https://hexdocs.pm/phoenix/testing.html",
+          "title": "Phoenix Testing",
+          "claim": "mix test and generated web test helpers."
+        },
+        {
+          "url": "https://hexdocs.pm/phoenix/deployment.html",
+          "title": "Phoenix Deployment",
+          "claim": "Runtime configuration, assets.deploy, release and production build responsibilities."
+        }
+      ]
+    },
+    {
+      "id": "laravel-livewire-postgresql",
+      "version_scope": "Laravel 13.x and Livewire 4.x documentation fetched 11 October 2026. These are documentation scopes, not proof of installed compatibility; inspect composer.lock, PHP version, queue/session/cache drivers and current Livewire component format before implementation.",
+      "operating_model": "Laravel combines conventional routes, middleware, authentication guards/providers and database migrations. Livewire components combine PHP behavior with Blade rendering. Recommendation: use these conventions for connected forms and business screens; keep server authorization and domain writes explicit instead of treating public component properties as trusted state.",
+      "architecture": [
+        "Recommendation: keep a single domain writer and migration owner during shared-schema coexistence; let controllers, Livewire actions and queued workers call the same application operation with its authorization and transaction rules.",
+        "Queue connections select backends while queue names select work categories. The documented choices include relational storage, Redis and SQS. Recommendation: choose a backend from recovery and operation requirements rather than assuming every Laravel application needs Redis.",
+        "Recommendation: list HTTP PHP execution, queue workers, the scheduler and a selected broadcast server separately. Livewire component interactivity does not by itself establish multi-client event delivery; broadcasting has its own backend/client and queue configuration."
+      ],
+      "developer_workflow": [
+        "In a configured local Laravel project, php artisan make:livewire post.create creates a Livewire 4 component; --class retains the established class-based style and --mfc creates a multi-file component. Inspect existing conventions before choosing a format.",
+        "php artisan make:job ProcessPodcast creates a queued job. Configure the selected connection and run php artisan queue:work --queue=high,default only after those queues and priorities match the application; supervise the production worker separately.",
+        "php artisan migrate applies reviewed migrations. For missing database session/queue tables, the selected-version docs provide php artisan make:session-table and php artisan make:queue-table; check existing migrations first to avoid duplicate tables.",
+        "Recommendation: verify behavior with real driver instances in a disposable environment, including timeout/retry interaction, denied Livewire actions, concurrent session writes and private broadcast authorization. Faking queue submission alone cannot exercise worker serialization or crash recovery."
+      ],
+      "avoid": [
+        "Avoid switching queue consumers solely because both use Redis: Laravel payloads and Eloquent identifier rehydration are framework execution contracts. Recommendation: preserve old consumers or translate deliberately versioned payloads.",
+        "Avoid worker timeout values longer than retry_after; Laravel warns this can allow the job to be processed twice. Avoid assuming unique-job locks make external effects exactly once; recommendation: use business idempotency.",
+        "Avoid calling onOneServer a cross-stack scheduler lock. It uses a shared supported Laravel cache store; recommendation: explicitly retire the old scheduler for the transferred business category.",
+        "Avoid trusting client-editable Livewire properties or hidden buttons for authorization. Avoid Cache::flush on a backend shared with other applications; the documented flush ignores the configured prefix."
+      ],
+      "transitions": [
+        {
+          "capability": "data",
+          "existing_contract": "Inventory table identifiers, casts/nullability, timestamps, constraints and side effects currently attached to writes. Migrations evolve the schema; Eloquent models do not automatically reproduce another runtime’s callbacks.",
+          "coexistence": "Recommendation: keep the existing writer authoritative, add compatible fields and move one domain operation at a time. Let one named migration runner own shared tables and keep old readers functional during the rollback window.",
+          "target": "Laravel database migrations and the selected PostgreSQL schema, with application operations reused by controllers/Livewire/workers. Recommendation: delay destructive schema contraction until all old readers retire.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: conventional schema and application ownership can make changes reviewable in one maintained application.",
+              "prerequisites": "Explicit writer transfer, tested value mappings and a single schema owner.",
+              "tradeoffs": "Both runtimes remain constrained by the shared schema; reversal does not recreate deleted business data."
+            }
+          ],
+          "checks": [
+            "Create and update a representative fixture through both allowed paths; compare IDs, nulls, timezone handling and unique/foreign-key failures.",
+            "Apply the reviewed migration to a disposable restored copy and confirm both deployed versions still understand new writes."
+          ],
+          "rollback": "Recommendation: restore the old writer before contracting fields; preserve additive schema and reconcile writes accepted by Laravel.",
+          "sources": [
+            "https://laravel.com/docs/13.x/migrations"
+          ],
+          "id": "data-1"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Record connection, queue, PHP job class, serialized model identifiers/relationships, timeout, retry_after, failures and delayed/running work. Model arguments may be re-fetched when the worker executes.",
+          "coexistence": "Recommendation: keep old consumers for old payloads; route new categories to isolated Laravel queues. Transfer producers and each schedule owner together. Account for ready, delayed, failed, retry and in-flight work before retiring the old backend.",
+          "target": "ShouldQueue jobs on an intentionally selected database/Redis/SQS connection, with supervised workers and explicit attempts/timeouts. after_commit or afterCommit delays dispatch until commit; recommendation: use a durable outbox for a required recoverable commit-to-broker handoff.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: a job category can move without rebuilding the entire backlog.",
+              "prerequisites": "Versioned payload fixtures, isolated queues and retained old consumers.",
+              "tradeoffs": "Two queue systems may remain temporarily; serialized framework objects are not a portable cross-runtime API."
+            }
+          ],
+          "checks": [
+            "Enqueue a model, alter/delete it before execution and verify the intended rehydration/failure behavior.",
+            "Roll back the domain transaction and verify after-commit dispatch produces no job; kill after an external effect and prove retry cannot duplicate the business effect.",
+            "Set worker timeout below the applicable retry/visibility boundary and verify a long job cannot have two concurrent effects."
+          ],
+          "rollback": "Recommendation: stop the new producer, keep consumers for accepted payload versions and reconcile external effects before restoring old queue routing.",
+          "sources": [
+            "https://laravel.com/docs/13.x/queues"
+          ],
+          "id": "jobs-1"
+        },
+        {
+          "capability": "identity",
+          "existing_contract": "Capture guard/provider, account mapping, session driver, cookie/encryption configuration, remember-me behavior, expiry and logout. The current docs default to database sessions; the application may use another driver.",
+          "coexistence": "Recommendation: retain a named identity authority or qualified session exchange; share cookies only after full-format fixtures pass. Map old per-resource permissions into every Livewire/server action and keep concurrent session semantics explicit.",
+          "target": "Laravel authentication guard/provider plus a selected session store and resource authorization. Session blocking needs a supported atomic-lock cache driver and is unavailable with cookie sessions.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: explicit session/account ownership can preserve user continuity during feature migration.",
+              "prerequisites": "Qualified identity/session mapping and common revocation rules.",
+              "tradeoffs": "Lock-capable session coordination adds a store dependency; a shared database alone does not prove cookie compatibility."
+            }
+          ],
+          "checks": [
+            "Login through the old application, access the Laravel feature and revoke/logout; both paths must deny future operations.",
+            "Run concurrent requests that modify one session and verify required data is not lost.",
+            "Modify a Livewire public identifier to another tenant’s record and directly invoke the action; the server must reject it."
+          ],
+          "rollback": "Recommendation: retain old session/exchange support until the cohort can return, while preserving every revocation and account mapping.",
+          "sources": [
+            "https://laravel.com/docs/13.x/authentication",
+            "https://laravel.com/docs/13.x/session",
+            "https://livewire.laravel.com/docs/4.x/security"
+          ],
+          "id": "identity-1"
+        },
+        {
+          "capability": "realtime",
+          "existing_contract": "Capture client protocol, event name/payload, private/presence channel identity, authorization endpoint and queue connection. ShouldBroadcast dispatches broadcast work; event production and broadcast execution are separate concerns.",
+          "coexistence": "Recommendation: retain the old endpoint for old clients and bridge versioned domain events to the selected Laravel broadcaster. Route a stable room/user cohort including reconnects; designate one publisher per committed domain change.",
+          "target": "Laravel broadcasting with an explicitly chosen supported driver and client integration, plus working queue workers when required. Defer transactional events until commit with the documented mechanism; recommendation: persist domain state for reconnect recovery.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: backend events can update multiple authorized clients.",
+              "prerequisites": "Configured broadcaster, workers and matching event/client contracts.",
+              "tradeoffs": "Livewire alone does not remove those operational pieces; changing the broadcaster protocol may require a bridge or client rollout."
+            }
+          ],
+          "checks": [
+            "Put clients on separate server instances and verify one committed event reaches all authorized recipients.",
+            "Rollback the domain write and confirm no premature broadcast occurs.",
+            "Revoke private-channel access, disconnect/reconnect and verify unauthorized delivery fails and the UI catches up from source state."
+          ],
+          "rollback": "Recommendation: preserve old event names/endpoints and stop new publication before restoring the old publisher; reconcile already-visible state.",
+          "sources": [
+            "https://laravel.com/docs/13.x/broadcasting",
+            "https://laravel.com/docs/13.x/queues"
+          ],
+          "id": "realtime-1"
+        },
+        {
+          "capability": "cache",
+          "existing_contract": "Inventory cached values, serialization, TTLs and invalidation separately from locks, unique jobs, scheduler coordination and sessions. Laravel supports several cache stores with different capabilities.",
+          "coexistence": "Recommendation: version namespaces for changed representations and keep coordination on the same qualified central store. Move reconstructible values separately; never globally flush a shared backend during cutover.",
+          "target": "Selected Laravel cache driver for disposable cached data; a supported central store for atomic locks across servers. Recommendation: use explicit dedicated stores/namespaces for distinct ownership boundaries.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: a cache backend can change independently of domain storage when contents are reconstructible.",
+              "prerequisites": "Verified invalidation, serialization and coordination inventory.",
+              "tradeoffs": "Lock owners and dependent scheduler/session features may still prevent retiring the old backend."
+            }
+          ],
+          "checks": [
+            "Warm both application versions, update authoritative data and verify both observe the required invalidation/TTL rule.",
+            "Contend for a lock from two servers; only the intended owner may act.",
+            "Clear only the migration’s disposable cache and verify other applications and coordination keys survive."
+          ],
+          "rollback": "Recommendation: restore previous cache routing and rebuild from domain data; preserve lock/session store ownership until a separate qualified transition.",
+          "sources": [
+            "https://laravel.com/docs/13.x/cache"
+          ],
+          "id": "cache-1"
+        },
+        {
+          "capability": "operations",
+          "existing_contract": "List scheduler definitions, timezones, overlapping task prevention, worker lifecycle and cache-backed coordination. Laravel schedules and old cron/Celery/Rails schedules may describe the same business action.",
+          "coexistence": "Recommendation: give each scheduled action one logical owner. Transfer it at an explicit boundary; Laravel onOneServer coordinates Laravel instances using a shared supported store and does not retire an external scheduler.",
+          "target": "A documented Laravel scheduler invocation and supervised queue workers. Use withoutOverlapping/onOneServer only with their selected store and intended lock scope; recommendation: document missed-run and business idempotency policies separately.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: explicit schedule and worker ownership can prevent accidental duplicate production during rollout.",
+              "prerequisites": "Schedule inventory, shared supported locking when needed and a coordinated old-scheduler retirement.",
+              "tradeoffs": "A lock prevents concurrent starts within its scope, not every replayed business effect; coexistence still needs two operational inventories."
+            }
+          ],
+          "checks": [
+            "Run the scheduled fixture across two Laravel servers and verify one enqueue, then confirm the old scheduler stays disabled for that category.",
+            "Exercise timezone and long-running/overlap cases; restart the worker and scheduler and verify intended missed-run behavior."
+          ],
+          "rollback": "Recommendation: stop the Laravel schedule before restoring the old owner; reconcile accepted jobs and completed effects before replay.",
+          "sources": [
+            "https://laravel.com/docs/13.x/scheduling",
+            "https://laravel.com/docs/13.x/queues"
+          ],
+          "id": "operations-1"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://laravel.com/docs/13.x/migrations",
+          "title": "Laravel 13 Database Migrations",
+          "claim": "Schema migration and rollback commands."
+        },
+        {
+          "url": "https://laravel.com/docs/13.x/queues",
+          "title": "Laravel 13 Queues",
+          "claim": "Connections versus queues, model serialization, after-commit dispatch, workers and timeout/retry_after interaction."
+        },
+        {
+          "url": "https://laravel.com/docs/13.x/session",
+          "title": "Laravel 13 HTTP Session",
+          "claim": "Database session default, driver/table prerequisites and session-blocking requirements."
+        },
+        {
+          "url": "https://laravel.com/docs/13.x/authentication",
+          "title": "Laravel 13 Authentication",
+          "claim": "Guard/provider architecture, sessions, logout and authentication configuration."
+        },
+        {
+          "url": "https://laravel.com/docs/13.x/broadcasting",
+          "title": "Laravel 13 Broadcasting",
+          "claim": "Broadcast drivers, ShouldBroadcast/queue execution, private authorization and after-commit dispatch."
+        },
+        {
+          "url": "https://laravel.com/docs/13.x/cache",
+          "title": "Laravel 13 Cache",
+          "claim": "Backend capabilities, atomic lock prerequisites and prefix-independent cache flush."
+        },
+        {
+          "url": "https://laravel.com/docs/13.x/scheduling",
+          "title": "Laravel 13 Scheduling",
+          "claim": "Scheduler operation, timezones, overlap prevention and shared-store onOneServer locking."
+        },
+        {
+          "url": "https://livewire.laravel.com/docs/4.x/components",
+          "title": "Livewire 4 Components",
+          "claim": "PHP/Blade components and make:livewire format options."
+        },
+        {
+          "url": "https://livewire.laravel.com/docs/4.x/security",
+          "title": "Livewire 4 Security",
+          "claim": "Client-controlled properties/actions require validation and authorization."
+        }
+      ]
+    },
+    {
+      "id": "python-django",
+      "version_scope": "Django 6.0 versioned docs; Celery 5.6.3 and Channels 4.3.2 current docs fetched 11 October 2026. The Django 6 Tasks API is version-specific and does not imply an existing Django 5.2 project should upgrade or abandon Celery. Pin actual Python/package versions before qualifying composition.",
+      "operating_model": "Django organizes projects into applications, with conventional URL/view/model boundaries and integrated authentication. Recommendation: keep domain operations and permissions reusable across HTTP views, admin actions and workers. Optional Celery and Channels are separate execution/messaging systems rather than core Django features.",
+      "architecture": [
+        "Django defaults to database autocommit; transaction.atomic defines an explicit transaction boundary. Recommendation: keep transactions around the domain operation and do external delivery after commit through a recoverable design when required.",
+        "Django 6 Tasks defines and enqueues tasks but supplies no worker mechanism. A production backend/worker must be evaluated; Celery remains a separate established candidate. Recommendation: do not equate an API-level task declaration with durable execution.",
+        "Channels channel layers exchange high-level application events. channels_redis is the official production-supported layer; the in-memory layer cannot communicate across processes. Recommendation: persist business state separately from transient fanout."
+      ],
+      "developer_workflow": [
+        "In a disposable target, django-admin startproject mysite creates the project and python manage.py startapp polls creates an application. Preserve the existing project/application structure when migrating a feature.",
+        "Use python manage.py makemigrations to prepare reviewed migration files, python manage.py migrate to apply them and python manage.py showmigrations to inspect recorded state. Recommendation: nominate one deployment migration runner for shared tables.",
+        "For a configured Celery application, adapt celery -A tasks worker --loglevel=INFO from the official first-steps recipe, replacing tasks with the actual application module. Broker and optional result backend are separate configuration choices.",
+        "Before a production target, adapt python manage.py check --deploy to its production settings as the checklist instructs. Recommendation: exercise real database, session, task worker and Channels topology; the development runserver is not a production deployment."
+      ],
+      "avoid": [
+        "Avoid deploying Django 6 ImmediateBackend/DummyBackend as a substitute for a durable production queue; the Tasks framework requires an external executing backend and documents built-in development/test backends.",
+        "Avoid treating transaction.on_commit as durable cross-store delivery: callbacks run after commit and their failures cannot roll back the transaction. Recommendation: use an outbox when lost dispatch after commit is unacceptable.",
+        "Avoid using LocMemCache or Channels in-memory layers as shared multi-process state; both are process-local. Avoid using cache-only session storage when eviction/restart logout violates the product contract.",
+        "Avoid running two Celery beat schedulers for the same schedule; Celery documents duplicate task production. Recommendation: transfer ownership across frameworks as well as within Celery."
+      ],
+      "transitions": [
+        {
+          "capability": "data",
+          "existing_contract": "Capture schema, account IDs, database constraints and model/write side effects. Migration history is framework-owned metadata and must be reconciled deliberately when an existing schema changes owner.",
+          "coexistence": "Recommendation: retain one domain writer and schema runner; add compatible fields and move one application/domain boundary while old code still reads new records. Use historical models for Django data migrations as documented.",
+          "target": "Django models/migrations with explicit transaction.atomic boundaries for related database writes. Recommendation: delay field deletion until the rollback reader retires.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: coherent model and migration ownership makes a domain boundary reviewable.",
+              "prerequisites": "Tested schema mapping and explicit writer transfer.",
+              "tradeoffs": "Database reversal may be irreversible for data operations; application objects/cache state also need reconciliation."
+            }
+          ],
+          "checks": [
+            "Create in each permitted writer and read in both runtimes; compare identifiers, null values, timestamps and constraint failures.",
+            "Fail inside transaction.atomic and verify database writes roll back; inspect whether in-memory/cache state requires explicit restoration."
+          ],
+          "rollback": "Recommendation: restore the old writer while retaining additive fields; rehearse reverse migrations on a disposable copy and reconcile non-reversible data operations.",
+          "sources": [
+            "https://docs.djangoproject.com/en/6.0/topics/migrations/",
+            "https://docs.djangoproject.com/en/6.0/topics/db/transactions/"
+          ],
+          "id": "data-1"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Inventory task names, argument serializer, broker/result backend, retry/acknowledgement policy, periodic schedule and ready/delayed/failed/running work. Django 6 Tasks and Celery payloads are distinct contracts.",
+          "coexistence": "Recommendation: keep old consumers for old tasks; isolate new categories and route producers deliberately. Retain the existing scheduler until an explicit one-owner transfer. Qualify any Django Tasks backend separately from the task API.",
+          "target": "Celery with a selected broker/optional result backend, or a qualified Django 6 executing backend. Schedule dispatch after database commit; recommendation: add recoverable outbox delivery when a crash can occur before broker acceptance.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: execution can migrate by task category while the old backlog remains executable.",
+              "prerequisites": "Qualified payload fixtures, retained consumers and one schedule owner.",
+              "tradeoffs": "Two task systems may be operated; a framework API switch does not translate backlog or broker guarantees."
+            }
+          ],
+          "checks": [
+            "Capture a task envelope and run it through its intended consumer, including argument conversion and missing-record behavior.",
+            "Rollback the domain transaction and verify no dispatch; kill after an external effect and validate replay-safe completion.",
+            "Account for delayed/retry/failed/in-flight tasks and confirm one periodic enqueue for each transferred schedule."
+          ],
+          "rollback": "Recommendation: pause new producers, retain consumers for accepted payloads and reconcile completed effects before switching categories back.",
+          "sources": [
+            "https://docs.djangoproject.com/en/6.0/topics/tasks/",
+            "https://docs.djangoproject.com/en/6.0/topics/db/transactions/",
+            "https://docs.celeryq.dev/en/stable/userguide/tasks.html",
+            "https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html"
+          ],
+          "id": "jobs-1"
+        },
+        {
+          "capability": "identity",
+          "existing_contract": "Record authentication backend, user mapping, session engine/cookie name, serializer, expiry and revocation. Django database, cached_db, cache-only and signed-cookie sessions have different persistence/failure behavior.",
+          "coexistence": "Recommendation: retain a shared identity authority or qualified exchange; do not treat Redis key sharing as session-format compatibility. Keep every resource permission enforced in the target view/operation.",
+          "target": "Django authentication with a selected session backend. cached_db writes through to database/cache and reads the database on cache misses; recommendation: prefer it over cache-only sessions when eviction logout is unacceptable.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: a durable session authority can preserve access through cache eviction.",
+              "prerequisites": "Configured database sessions, compatible account mapping and tested revocation.",
+              "tradeoffs": "Write-through caching adds operations; cookie continuity across runtimes still requires a decoder/exchange or planned reauthentication."
+            }
+          ],
+          "checks": [
+            "Login in the old system, access the Django feature, then logout/expire/revoke and verify both deny unauthorized operations.",
+            "Evict the selected session cache and confirm behavior matches the chosen engine; test another tenant’s identifier with a valid login."
+          ],
+          "rollback": "Recommendation: preserve previous identity/session contracts through the rollback window and retain revocation state during traffic reversal.",
+          "sources": [
+            "https://docs.djangoproject.com/en/6.0/topics/http/sessions/",
+            "https://docs.djangoproject.com/en/6.0/topics/auth/default/"
+          ],
+          "id": "identity-1"
+        },
+        {
+          "capability": "realtime",
+          "existing_contract": "Capture WebSocket protocol, group/event names, authentication and required missed-event behavior. Channels channel layers carry application-level events, not a universal client protocol.",
+          "coexistence": "Recommendation: keep old client endpoints, bridge versioned domain events and route room/user cohorts including reconnects. Designate one committed-change publisher; use the configured shared layer for multiple processes.",
+          "target": "Channels with channels_redis when using the documented official production channel layer. Recommendation: reconstruct/replay from persistent domain state when missed broadcasts matter.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: a shared channel layer enables cross-process fanout.",
+              "prerequisites": "Configured Redis layer, matching consumers/events and authorized subscriptions.",
+              "tradeoffs": "Redis remains operated; transient fanout alone does not provide durable business-message recovery."
+            }
+          ],
+          "checks": [
+            "Connect subscribers to separate processes and verify one committed change reaches both authorized groups.",
+            "Restart/disconnect during an event and verify reconnect obtains missing domain state; revoke access and confirm rejected subscriptions."
+          ],
+          "rollback": "Recommendation: retain the previous endpoint/event envelope and route cohorts back including their reconnects; avoid replaying already-applied effects.",
+          "sources": [
+            "https://channels.readthedocs.io/en/stable/topics/channel_layers.html"
+          ],
+          "id": "realtime-1"
+        },
+        {
+          "capability": "cache",
+          "existing_contract": "Inventory key versions/prefixes, serializers, TTLs and invalidation, separating disposable values from session/coordination ownership. Django local-memory cache is per-process even though it is thread-safe.",
+          "coexistence": "Recommendation: use separate namespaces for changed representations and invalidate both old/new readers. Retain shared storage for cross-process requirements; move only reconstructible local data to LocMemCache.",
+          "target": "A deliberately selected Django cache backend with configured timeout/key version. Recommendation: use local caches only where node/process staleness is accepted and rebuilding is safe.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: reconstructible caching can change independently of domain writes.",
+              "prerequisites": "Defined staleness, invalidation and data ownership.",
+              "tradeoffs": "Per-process caches duplicate state; sensitive filesystem cache locations/serialization require care as the docs explain."
+            }
+          ],
+          "checks": [
+            "Warm two processes, commit a source update and verify both readers meet the stated staleness policy.",
+            "Restart or empty only the dedicated cache and verify reconstruction; session/permission correctness must remain intact."
+          ],
+          "rollback": "Recommendation: restore old namespace/backend routing and repopulate from authoritative data without treating cache contents as business records.",
+          "sources": [
+            "https://docs.djangoproject.com/en/6.0/topics/cache/",
+            "https://docs.djangoproject.com/en/6.0/topics/db/transactions/"
+          ],
+          "id": "cache-1"
+        },
+        {
+          "capability": "operations",
+          "existing_contract": "List production application server, settings/secrets, migrations, static/media handling, Celery worker/beat and Channels processes. Celery requires only one scheduler for a schedule at a time.",
+          "coexistence": "Recommendation: keep both process inventories and one named migration/schedule owner during coexistence. Define promotion thresholds for outcomes, queue age and denied access rather than promoting from a clean startup alone.",
+          "target": "An explicitly configured deployment following Django’s checklist, plus independently supervised selected workers and scheduler. Recommendation: document restored database/session/queue consistency.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: production checks and role ownership make recovery responsibilities visible.",
+              "prerequisites": "Actual production settings and a rehearsed restore/restart.",
+              "tradeoffs": "check --deploy detects configuration issues, not end-to-end job, permission or restore correctness."
+            }
+          ],
+          "checks": [
+            "Run the deployment checks against intended settings and exercise an authorized/denied request after a disposable restore.",
+            "Stop a worker and verify queued work is visible; restart it, then verify one scheduler and intended recovery behavior."
+          ],
+          "rollback": "Recommendation: restore old routing/settings and schedule ownership explicitly; preserve accepted tasks and reconcile effects before replay.",
+          "sources": [
+            "https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/",
+            "https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html"
+          ],
+          "id": "operations-1"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.djangoproject.com/en/6.0/intro/tutorial01/",
+          "title": "Django first application",
+          "claim": "Project/application generator commands and development server boundary."
+        },
+        {
+          "url": "https://docs.djangoproject.com/en/6.0/topics/migrations/",
+          "title": "Django Migrations",
+          "claim": "Migration commands, history, data migrations and reversibility."
+        },
+        {
+          "url": "https://docs.djangoproject.com/en/6.0/topics/db/transactions/",
+          "title": "Django Transactions",
+          "claim": "Autocommit, atomic, on_commit timing/failure and application-state rollback limitations."
+        },
+        {
+          "url": "https://docs.djangoproject.com/en/6.0/topics/tasks/",
+          "title": "Django 6 Tasks",
+          "claim": "Task API, no built-in worker, backend requirements, argument conversion and commit timing."
+        },
+        {
+          "url": "https://docs.djangoproject.com/en/6.0/topics/http/sessions/",
+          "title": "Django Sessions",
+          "claim": "Database/cache/cached_db/cookie choices, persistence, eviction and serialization."
+        },
+        {
+          "url": "https://docs.djangoproject.com/en/6.0/topics/auth/default/",
+          "title": "Django Authentication",
+          "claim": "Authentication, login/logout and permissions."
+        },
+        {
+          "url": "https://docs.djangoproject.com/en/6.0/topics/cache/",
+          "title": "Django Cache",
+          "claim": "Backend setup, key versions, per-process local memory and filesystem security concerns."
+        },
+        {
+          "url": "https://channels.readthedocs.io/en/stable/topics/channel_layers.html",
+          "title": "Channels Channel Layers",
+          "claim": "Official production channels_redis and lack of cross-process delivery in memory."
+        },
+        {
+          "url": "https://docs.celeryq.dev/en/stable/userguide/tasks.html",
+          "title": "Celery Tasks",
+          "claim": "Task naming/serialization, retries, acknowledgement and idempotency concerns."
+        },
+        {
+          "url": "https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html",
+          "title": "Celery Periodic Tasks",
+          "claim": "Single scheduler ownership, schedule timezone and overlap concerns."
+        },
+        {
+          "url": "https://docs.celeryq.dev/en/stable/getting-started/first-steps-with-celery.html",
+          "title": "Celery First Steps",
+          "claim": "Worker command and distinction between broker and result backend."
+        },
+        {
+          "url": "https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/",
+          "title": "Django Deployment Checklist",
+          "claim": "Production settings, check --deploy and deployment responsibilities."
+        }
+      ]
+    },
+    {
+      "id": "python-fastapi",
+      "version_scope": "Current FastAPI online guides fetched 11 October 2026; these pages do not pin an application package release. SQLAlchemy 2.0 documentation, Alembic 1.20.0 documentation and Celery 5.6.3 reviewed. Pin actual Python/FastAPI/Pydantic/Starlette/database-driver versions before implementation.",
+      "operating_model": "FastAPI exposes Python type-annotated HTTP operations and dependency boundaries. It supports synchronous and async handlers; the choice depends on whether called libraries support await. Recommendation: keep request models distinct from persistence operations and explicitly select identity, durable jobs, database migrations and distributed messaging instead of assuming the API framework provides an integrated monolith.",
+      "architecture": [
+        "Use async handlers with awaitable I/O, or normal def handlers for blocking libraries as the guide explains. Recommendation: keep CPU-heavy or durable work behind a deliberate worker boundary; adding async syntax does not change its durability or CPU execution model.",
+        "SQLAlchemy Sessions are mutable transaction state and cannot be shared across concurrent tasks/threads. Recommendation: scope a Session to its operation, keep the engine/pool separate and use reviewed Alembic revisions for schema evolution.",
+        "FastAPI lifespan manages startup/shutdown resources. Multiple worker processes are a deployment choice; recommendation: treat in-memory connections/caches as worker-local and keep one external scheduler and migration owner."
+      ],
+      "developer_workflow": [
+        "For a configured application, adapt fastapi run --workers 4 main.py or uvicorn main:app --workers 4 from the deployment guide; replace module and worker count for the actual host/container topology. The example is a recipe, not a capacity recommendation.",
+        "For a configured SQLAlchemy/Alembic application, use alembic revision -m \"Add a column\", review upgrade/downgrade operations, then alembic upgrade head in a disposable database; alembic current and alembic history show recorded state.",
+        "Use FastAPI TestClient and pytest for HTTP contract tests. Recommendation: add real database/worker tests for transaction and retry boundaries, plus WebSocket tests across the intended multi-process topology.",
+        "Recommendation: initialize shared process resources through the lifespan context and create independent database sessions for concurrent operations. Validate selected sync/async client usage and cleanup on shutdown before rollout."
+      ],
+      "avoid": [
+        "Avoid using BackgroundTasks as a durable queue replacement: it executes work associated with the application process, while the guide recommends larger worker tools such as Celery for work that belongs in multiple processes/servers. Recommendation: qualify crash/retry behavior explicitly.",
+        "Avoid copying the tutorial’s in-memory WebSocket connection list into a multi-worker product; the docs explicitly say it works only in one running process.",
+        "Avoid sharing one SQLAlchemy Session among requests/tasks or moving blocking library calls unchanged inside async handlers; the documented concurrency boundaries differ.",
+        "Avoid treating a JWT tutorial as a complete identity migration. Recommendation: retain existing identity authority until issuer, account mapping, validation, expiry and revocation are designed. Starlette SessionMiddleware signs readable cookie contents; signing is not confidentiality."
+      ],
+      "transitions": [
+        {
+          "capability": "data",
+          "existing_contract": "Inventory schema, primary IDs, SQL value/constraint semantics and existing transaction ownership. The old application may use an ORM with callbacks absent from the target service.",
+          "coexistence": "Recommendation: keep one writer and migration runner; start with read-only target endpoints or a bounded domain operation. Preserve additive schema and qualify ORM/session behavior before transferring writes.",
+          "target": "SQLAlchemy 2.0 Sessions scoped to operations, with reviewed Alembic upgrade/downgrade revisions and the selected PostgreSQL driver. Recommendation: keep transaction and external delivery boundaries explicit.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: explicit sessions and migrations expose the persistence boundary to review.",
+              "prerequisites": "Qualified schema mapping, operation-scoped sessions and one writer owner.",
+              "tradeoffs": "FastAPI does not remove ORM/migration choices; deleting data cannot be undone by traffic rollback."
+            }
+          ],
+          "checks": [
+            "Create through each allowed writer and read through both runtimes; compare IDs, timestamps/null values and constraint failures.",
+            "Run concurrent requests with separate sessions and fail one transaction; no other request’s changes or Session state may leak.",
+            "Apply a reviewed revision to a disposable restored database and verify both deployed versions still read new writes."
+          ],
+          "rollback": "Recommendation: restore the old writer while preserving backward-readable schema; use downgrade only for a rehearsed reversible change and reconcile accepted new data.",
+          "sources": [
+            "https://fastapi.tiangolo.com/tutorial/sql-databases/",
+            "https://docs.sqlalchemy.org/en/20/orm/session_basics.html",
+            "https://alembic.sqlalchemy.org/en/latest/tutorial.html"
+          ],
+          "id": "data-1"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Record old task name/class, serialized arguments, broker, retries/acknowledgements, schedule ownership and every backlog state. BackgroundTasks and a broker-backed worker are different execution contracts.",
+          "coexistence": "Recommendation: retain old consumers and isolate new categories behind a versioned task interface. Use configured Celery or another separately qualified persistent system when restart recovery matters; keep one schedule owner and a recoverable domain-to-broker handoff.",
+          "target": "An explicitly selected durable worker/broker composition with business idempotency. Small best-effort same-process tasks may use BackgroundTasks only when their documented process boundary fits the requirement.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: durable work can move independently of the HTTP service.",
+              "prerequisites": "Selected broker/worker configuration, tested payloads and explicit idempotency/recovery policy.",
+              "tradeoffs": "The broker and worker add operated components; returning HTTP success before enqueue acceptance must have a deliberate contract."
+            }
+          ],
+          "checks": [
+            "Enqueue while the worker is stopped, restart it and verify the intended completion/failure result.",
+            "Crash after an external effect before acknowledgement and verify retry is safe; test broker outage during a domain write.",
+            "Reconcile delayed/retry/failed/running tasks and verify the old and new schedulers never both produce the category."
+          ],
+          "rollback": "Recommendation: stop new task production, retain consumers for accepted payload versions and reconcile external effects before restoring old routing.",
+          "sources": [
+            "https://fastapi.tiangolo.com/tutorial/background-tasks/",
+            "https://docs.celeryq.dev/en/stable/userguide/tasks.html",
+            "https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html",
+            "https://docs.celeryq.dev/en/stable/getting-started/first-steps-with-celery.html"
+          ],
+          "id": "jobs-1"
+        },
+        {
+          "capability": "identity",
+          "existing_contract": "Capture the source identity authority, token/cookie format, issuer/audience rules, account IDs, expiration and revocation. The FastAPI OAuth2/JWT guide is a concrete example, not proof of compatibility with existing sessions.",
+          "coexistence": "Recommendation: retain the existing identity authority through qualified token verification or session exchange. Move resource authorization with the domain operation, and keep cookie scope/CSRF behavior explicit when using browser cookies.",
+          "target": "Selected OAuth2/token or browser-session implementation with deliberate account mapping and authorization. If using Starlette SessionMiddleware, cookie data is signed and readable; use https_only and appropriate scope settings for the selected deployment.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: a shared identity authority can preserve access across service boundaries.",
+              "prerequisites": "Qualified token/session validation and common revocation policy.",
+              "tradeoffs": "Bearer expiry and server-side revocation are distinct design choices; readable signed cookies must not contain secrets."
+            }
+          ],
+          "checks": [
+            "Accept a valid source credential and reject modified/expired credentials and a valid credential for another tenant’s protected record.",
+            "Logout/revoke and confirm both old/new paths follow the agreed policy, including an existing WebSocket connection.",
+            "Inspect the selected cookie contents and transport flags; no secret should be exposed by a signed-but-readable session."
+          ],
+          "rollback": "Recommendation: preserve account mapping and old credential/exchange support without reversing revocations; return routing only when validation remains compatible.",
+          "sources": [
+            "https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/",
+            "https://starlette.dev/middleware/",
+            "https://fastapi.tiangolo.com/advanced/websockets/"
+          ],
+          "id": "identity-1"
+        },
+        {
+          "capability": "realtime",
+          "existing_contract": "Capture the old client protocol, message envelope, connection authentication, subscription scopes and recovery requirements. FastAPI provides WebSocket handlers; its in-memory chat example is explicitly single-process.",
+          "coexistence": "Recommendation: retain the old endpoint for old clients, bridge versioned domain events and route a stable user/room cohort including reconnects. Keep fanout in a separately qualified shared system when multiple worker processes must reach the same recipients.",
+          "target": "FastAPI WebSocket handlers with explicit shared fanout and persisted domain-state/cursor recovery when required. No specific broker/client combination is integration-qualified by this research.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: an API service can take ownership of a realtime boundary incrementally.",
+              "prerequisites": "Matching message/client protocol, subscription authorization and a tested multi-worker fanout implementation.",
+              "tradeoffs": "Connection lists remain worker-local; selecting a shared broker does not itself provide catch-up or protocol compatibility."
+            }
+          ],
+          "checks": [
+            "Connect clients to different workers, commit one domain event and verify all authorized recipients converge.",
+            "Restart the worker containing a connection, reconnect and recover missed state; test a revoked identity attempting to rejoin."
+          ],
+          "rollback": "Recommendation: preserve old endpoint/message compatibility through reconnects; return the cohort and reconcile current domain state instead of reissuing effects.",
+          "sources": [
+            "https://fastapi.tiangolo.com/advanced/websockets/",
+            "https://fastapi.tiangolo.com/deployment/server-workers/"
+          ],
+          "id": "realtime-1"
+        },
+        {
+          "capability": "cache",
+          "existing_contract": "List reconstructible values and representation/TTL/invalidation separately from identities, jobs, counters and locks. Multiple application workers have distinct in-memory resource ownership.",
+          "coexistence": "Recommendation: keep the existing shared store for coordination; use versioned keys for new representations. Move only disposable values to local caching when per-worker staleness and rebuilding are explicitly accepted.",
+          "target": "A selected shared cache accessed with a qualified client such as redis-py, or an explicitly bounded local cache. Recommendation: match sync/async client usage to the handler and manage process resource lifetime deliberately.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: cache choices can evolve without transferring domain ownership.",
+              "prerequisites": "Reconstructible values, explicit invalidation and a complete list of shared-store uses.",
+              "tradeoffs": "Local values diverge across workers; removing Redis requires separately retiring sessions/queues/coordination, not merely replacing cached reads."
+            }
+          ],
+          "checks": [
+            "Warm two workers, update the source and verify required invalidation/staleness across both.",
+            "Restart one worker or evict its dedicated cache and verify reconstruction without losing identity or queued work.",
+            "Make the shared cache unavailable and verify the agreed failure/fallback behavior rather than silently accepting stale authorization."
+          ],
+          "rollback": "Recommendation: restore old key/backend routing and repopulate from domain data; preserve shared coordination ownership throughout.",
+          "sources": [
+            "https://redis.io/docs/latest/develop/clients/redis-py/",
+            "https://fastapi.tiangolo.com/deployment/server-workers/",
+            "https://fastapi.tiangolo.com/advanced/events/"
+          ],
+          "id": "cache-1"
+        },
+        {
+          "capability": "operations",
+          "existing_contract": "Inventory API workers, startup resources, database migration runner, durable workers, external scheduler and shared fanout/cache. Worker replication and lifespan resources are not a singleton schedule mechanism.",
+          "coexistence": "Recommendation: keep one schema runner and logical schedule owner while both services operate. Initialize per-process resources deliberately and transfer traffic by a stable domain/user cohort.",
+          "target": "An explicit FastAPI/Uvicorn process/container deployment, lifespan cleanup, separate durable workers and monitored dependency boundaries. Recommendation: record actual worker count and deployment settings instead of inheriting tutorial values.",
+          "benefits": [
+            {
+              "benefit": "Recommendation: process/resource ownership makes multi-worker behavior reviewable.",
+              "prerequisites": "Named migration/schedule owners, configured shutdown and tested dependency failure behavior.",
+              "tradeoffs": "More workers multiply process-local resources; successful HTTP startup cannot qualify broker, identity or restore behavior."
+            }
+          ],
+          "checks": [
+            "Start the intended multi-worker deployment against disposable restored data; exercise authenticated HTTP, one task and cross-worker realtime delivery.",
+            "Terminate a worker during active work, verify shutdown/restart behavior and confirm no extra scheduler or migration runner starts."
+          ],
+          "rollback": "Recommendation: preserve the old release and compatible schema, transfer role ownership before restoring traffic, and reconcile work accepted by the new service.",
+          "sources": [
+            "https://fastapi.tiangolo.com/advanced/events/",
+            "https://fastapi.tiangolo.com/deployment/server-workers/",
+            "https://alembic.sqlalchemy.org/en/latest/tutorial.html",
+            "https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html"
+          ],
+          "id": "operations-1"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://fastapi.tiangolo.com/async/",
+          "title": "FastAPI Concurrency",
+          "claim": "Choice of async handlers versus normal def for awaitable/blocking libraries."
+        },
+        {
+          "url": "https://fastapi.tiangolo.com/tutorial/sql-databases/",
+          "title": "FastAPI SQL Databases",
+          "claim": "Request-scoped database dependency examples and external SQL library choice."
+        },
+        {
+          "url": "https://docs.sqlalchemy.org/en/20/orm/session_basics.html",
+          "title": "SQLAlchemy Session Basics",
+          "claim": "Mutable transaction/session lifecycle and prohibition on sharing across concurrent threads/tasks."
+        },
+        {
+          "url": "https://alembic.sqlalchemy.org/en/latest/tutorial.html",
+          "title": "Alembic Tutorial",
+          "claim": "Revision, upgrade/downgrade, current/history commands and schema revision ownership."
+        },
+        {
+          "url": "https://fastapi.tiangolo.com/tutorial/background-tasks/",
+          "title": "FastAPI Background Tasks",
+          "claim": "Same-process task examples and separate Celery/queue recommendation for larger execution boundaries."
+        },
+        {
+          "url": "https://docs.celeryq.dev/en/stable/userguide/tasks.html",
+          "title": "Celery Tasks",
+          "claim": "Task serialization, retry/acknowledgement and idempotency concerns."
+        },
+        {
+          "url": "https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html",
+          "title": "Celery Periodic Tasks",
+          "claim": "Only one scheduler per schedule to prevent duplicate production."
+        },
+        {
+          "url": "https://docs.celeryq.dev/en/stable/getting-started/first-steps-with-celery.html",
+          "title": "Celery First Steps",
+          "claim": "Broker, worker and optional result backend are separate roles."
+        },
+        {
+          "url": "https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/",
+          "title": "FastAPI OAuth2/JWT example",
+          "claim": "Token/password validation and expiry example, not cross-framework session interoperability."
+        },
+        {
+          "url": "https://starlette.dev/middleware/",
+          "title": "Starlette Middleware",
+          "claim": "Signed readable sessions, session cookie configuration and secure transport option."
+        },
+        {
+          "url": "https://fastapi.tiangolo.com/advanced/websockets/",
+          "title": "FastAPI WebSockets",
+          "claim": "Handler authentication/dependencies and explicit single-process limitation of in-memory connection list."
+        },
+        {
+          "url": "https://fastapi.tiangolo.com/advanced/events/",
+          "title": "FastAPI Lifespan",
+          "claim": "Startup/shutdown resource ownership through lifespan."
+        },
+        {
+          "url": "https://fastapi.tiangolo.com/deployment/server-workers/",
+          "title": "FastAPI Server Workers",
+          "claim": "FastAPI/Uvicorn worker commands and deployment process topology choices."
+        },
+        {
+          "url": "https://fastapi.tiangolo.com/tutorial/testing/",
+          "title": "FastAPI Testing",
+          "claim": "TestClient and pytest request checks."
+        },
+        {
+          "url": "https://redis.io/docs/latest/develop/clients/redis-py/",
+          "title": "Redis redis-py guide",
+          "claim": "Maintained Python client for Redis with sync/async documentation links."
+        }
+      ]
+    }
+  ]
+}

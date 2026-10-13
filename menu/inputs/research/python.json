@@ -1,0 +1,972 @@
+[
+  {
+    "id": "python-django",
+    "name": "Django product applications",
+    "use_cases": [
+      "CRUD-heavy SaaS",
+      "Internal products and admin tools",
+      "Server-rendered business applications"
+    ],
+    "choose_when": [
+      "Accounts, forms, admin and database workflows are central",
+      "A cohesive conventional monolith reduces integration decisions"
+    ],
+    "avoid_when": [
+      "Only a small stateless endpoint is needed",
+      "The core workload needs a different runtime or hard real-time guarantees"
+    ],
+    "tools": [
+      {
+        "job": "Packaging and environments",
+        "default": "uv + pyproject.toml + committed uv.lock",
+        "alternatives": [
+          "Preserve an existing maintained packaging workflow"
+        ],
+        "reason": "One project entry point for dependencies, Python selection, execution and reproducible sync.",
+        "limits": "Pin a compatible Python minor and resolve actual package versions at implementation; do not hand-edit uv.lock. Keep environments and caches in a local development workspace.",
+        "source_urls": [
+          "https://docs.astral.sh/uv/guides/projects/"
+        ]
+      },
+      {
+        "job": "Lint and format",
+        "default": "Ruff",
+        "alternatives": [
+          "Preserve existing configured formatter/linter"
+        ],
+        "reason": "Fast lint and formatting feedback with one configuration.",
+        "limits": "Ruff does not replace static typing, tests, authorization checks or runtime validation.",
+        "source_urls": [
+          "https://docs.astral.sh/ruff/installation/"
+        ]
+      },
+      {
+        "job": "Static typing",
+        "default": "mypy + django-stubs plugin",
+        "alternatives": [
+          "ty for isolated plain-Python modules after validation"
+        ],
+        "reason": "Django-aware stubs and plugin improve checks around ORM and settings.",
+        "limits": "Check the django-stubs compatibility table for the selected Django/Python/mypy combination; plugin imports application settings.",
+        "source_urls": [
+          "https://github.com/typeddjango/django-stubs",
+          "https://mypy.readthedocs.io/en/stable/getting_started.html"
+        ]
+      },
+      {
+        "job": "Testing",
+        "default": "pytest + pytest-django",
+        "alternatives": [
+          "Django built-in test runner"
+        ],
+        "reason": "Database fixtures and Django integration while retaining pytest conventions.",
+        "limits": "Set DJANGO_SETTINGS_MODULE; use isolated PostgreSQL tests for constraints and transactions. Unit tests alone miss request and migration behavior.",
+        "source_urls": [
+          "https://docs.pytest.org/en/stable/getting-started.html",
+          "https://pytest-django.readthedocs.io/en/latest/"
+        ]
+      },
+      {
+        "job": "Database and migrations",
+        "default": "PostgreSQL + Django ORM/migrations + Psycopg",
+        "alternatives": [
+          "SQLite for low-concurrency local products"
+        ],
+        "reason": "Use the framework's existing data layer and schema history.",
+        "limits": "Review schema/data migrations and query counts; run production-relevant DB tests. Do not introduce SQLAlchemy as a second default ORM.",
+        "source_urls": [
+          "https://docs.djangoproject.com/en/6.0/topics/migrations/"
+        ]
+      },
+      {
+        "job": "Validation",
+        "default": "Django Forms/ModelForms plus domain checks and DB constraints",
+        "alternatives": [
+          "Pydantic at external JSON/tool boundaries"
+        ],
+        "reason": "Form lifecycle handles submitted values and field errors.",
+        "limits": "Model saving is not a substitute for form/domain validation; enforce invariants at the appropriate transaction boundary.",
+        "source_urls": [
+          "https://docs.djangoproject.com/en/6.0/ref/forms/validation/",
+          "https://pydantic.dev/docs/validation/latest/concepts/strict_mode/"
+        ]
+      },
+      {
+        "job": "Authentication",
+        "default": "Django auth, sessions, permissions and CSRF protection",
+        "alternatives": [
+          "OIDC integration when an existing identity provider owns login"
+        ],
+        "reason": "Built-in accounts and session conventions fit browser products.",
+        "limits": "Object/tenant permissions still need explicit implementation and tests; do not expose the admin as the product UI by default.",
+        "source_urls": [
+          "https://docs.djangoproject.com/en/6.0/topics/auth/",
+          "https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/"
+        ]
+      },
+      {
+        "job": "Background jobs",
+        "default": "Celery + a configured durable broker",
+        "alternatives": [
+          "Django Tasks plus a reviewed production backend",
+          "Temporal for durable orchestration"
+        ],
+        "reason": "Documented Django integration for off-request work.",
+        "limits": "Broker required; enqueue after commit, retry only safe effects. Django Tasks built-in backends do not supply production workers or durable queues. Celery is a separate integration, not automatically a django.tasks backend.",
+        "source_urls": [
+          "https://docs.celeryq.dev/en/stable/django/first-steps-with-django.html",
+          "https://docs.celeryq.dev/en/stable/userguide/tasks.html",
+          "https://docs.djangoproject.com/en/6.0/topics/tasks/"
+        ]
+      },
+      {
+        "job": "Long-running durable agents",
+        "default": "Temporal Python SDK when recovery across restarts is required",
+        "alternatives": [
+          "Celery for independent queued jobs; direct function for bounded work"
+        ],
+        "reason": "Persisted workflow orchestration and separate worker processes suit retries, pauses and human waits.",
+        "limits": "Adds a service and operational cost. Keep external I/O in activities, make side effects idempotent, test replay and cancellation; no end-to-end integration was run.",
+        "source_urls": [
+          "https://docs.temporal.io/develop/python",
+          "https://docs.celeryq.dev/en/stable/userguide/tasks.html"
+        ]
+      },
+      {
+        "job": "Deployment",
+        "default": "Container or managed Python service; WSGI for sync applications, ASGI when justified",
+        "alternatives": [
+          "Existing organization deployment platform"
+        ],
+        "reason": "Use the Django production deployment interface and checklist.",
+        "limits": "Choose/pin a compatible application server at implementation; never deploy runserver. Configure secrets, HTTPS, static assets, health checks and backups.",
+        "source_urls": [
+          "https://docs.djangoproject.com/en/6.0/howto/deployment/",
+          "https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/",
+          "https://docs.astral.sh/uv/guides/integration/docker/"
+        ]
+      },
+      {
+        "job": "Application logging",
+        "default": "Python logging with configured handlers",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Shared standard logging captures application and dependency diagnostics",
+        "limits": "Configure logging at entry point, redact credentials and add request/job IDs, duration and failure context. Persist logs on the execution platform; metrics/tracing backend is a separate operational choice.",
+        "source_urls": [
+          "https://docs.python.org/3/library/logging.html"
+        ]
+      },
+      {
+        "job": "Bounded external-call retries",
+        "default": "Tenacity only for retryable transient failures",
+        "alternatives": [
+          "Provider SDK retry policy when sufficient"
+        ],
+        "reason": "Explicit stop/wait/filter rules support controlled retries",
+        "limits": "Install tenacity; set attempt/deadline limits, jitter and exception filters. The bare decorator retries forever without delay; do not stack retries with SDK/worker retries or repeat non-idempotent effects without keys.",
+        "source_urls": [
+          "https://tenacity.readthedocs.io/en/latest/"
+        ]
+      },
+      {
+        "job": "Transactional email",
+        "default": "django.core.mail + selected SMTP backend",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Built-in mail wrappers and test backends fit account/product messages",
+        "limits": "Configure TLS, sender and backend; test HTML/text content and enqueue required delivery. Delivery and bounce monitoring remain provider responsibilities.",
+        "source_urls": [
+          "https://docs.djangoproject.com/en/6.0/topics/email/"
+        ]
+      },
+      {
+        "job": "Uploads and file storage",
+        "default": "Django FileField + configured storage backend",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Framework file APIs separate model metadata from storage",
+        "limits": "Configure storage for the selected host; validate upload size/type and authorize serving. Local MEDIA_ROOT is unsuitable for unshared ephemeral replicas; choose an external backend when required.",
+        "source_urls": [
+          "https://docs.djangoproject.com/en/6.0/topics/files/"
+        ]
+      }
+    ],
+    "setup_steps": [
+      "In a new local source directory in a local development workspace: uv init; choose and pin a supported Python minor, then uv add django 'psycopg[binary]'. Resolve compatible versions and commit uv.lock.",
+      "uv add --dev ruff mypy django-stubs pytest pytest-django",
+      "uv run django-admin startproject config . ; then uv run python manage.py startapp core",
+      "Configure installed apps, PostgreSQL credentials from the environment, auth/session settings, pytest DJANGO_SETTINGS_MODULE and the django-stubs mypy plugin/settings module.",
+      "Implement one authorized vertical slice; generate migrations with uv run python manage.py makemigrations, review them, then uv run python manage.py migrate against a disposable development DB.",
+      "Add Celery only for actual queued work; configure broker, worker and after-commit enqueueing. Add Temporal only when durable multi-step recovery is required.",
+      "Document application server, static asset collection, migration release ordering, worker start/restart and rollback. Run verification below before deployment."
+    ],
+    "verification_commands": [
+      "uv sync --locked",
+      "uv run ruff check .",
+      "uv run ruff format --check .",
+      "uv run mypy core config",
+      "uv run pytest",
+      "uv run python manage.py check",
+      "uv run python manage.py makemigrations --check --dry-run",
+      "uv run python manage.py migrate --check",
+      "uv run python manage.py check --deploy --settings=config.production"
+    ],
+    "open_questions": [
+      "Which supported Python/Django versions and third-party packages are required?",
+      "Which host owns HTTPS, static/media serving and deployment settings?",
+      "Which identity, email/storage, broker and job-delivery guarantees are required?"
+    ],
+    "evidence_status": "documentation-reviewed",
+    "sources": [
+      {
+        "url": "https://docs.astral.sh/uv/guides/projects/",
+        "title": "uv projects",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.astral.sh/ruff/installation/",
+        "title": "Ruff installation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/typeddjango/django-stubs",
+        "title": "django-stubs",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://mypy.readthedocs.io/en/stable/getting_started.html",
+        "title": "mypy getting started",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.pytest.org/en/stable/getting-started.html",
+        "title": "pytest getting started",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pytest-django.readthedocs.io/en/latest/",
+        "title": "pytest-django",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.djangoproject.com/en/6.0/topics/migrations/",
+        "title": "Django migrations",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.djangoproject.com/en/6.0/ref/forms/validation/",
+        "title": "Django form validation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pydantic.dev/docs/validation/latest/concepts/strict_mode/",
+        "title": "Pydantic strict mode",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.djangoproject.com/en/6.0/topics/auth/",
+        "title": "Django authentication",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/",
+        "title": "Django deployment checklist",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.celeryq.dev/en/stable/django/first-steps-with-django.html",
+        "title": "Celery Django integration",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.celeryq.dev/en/stable/userguide/tasks.html",
+        "title": "Celery tasks",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.djangoproject.com/en/6.0/topics/tasks/",
+        "title": "Django Tasks",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.temporal.io/develop/python",
+        "title": "Temporal Python SDK",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.djangoproject.com/en/6.0/howto/deployment/",
+        "title": "Django deployment",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.astral.sh/uv/guides/integration/docker/",
+        "title": "uv Docker",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.python.org/3/library/logging.html",
+        "title": "Python logging",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://tenacity.readthedocs.io/en/latest/",
+        "title": "Tenacity documentation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.djangoproject.com/en/6.0/topics/email/",
+        "title": "Django sending email",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.djangoproject.com/en/6.0/topics/files/",
+        "title": "Django files",
+        "checked_date": "2026-10-10"
+      }
+    ]
+  },
+  {
+    "id": "python-fastapi",
+    "name": "FastAPI service APIs",
+    "use_cases": [
+      "Typed JSON APIs",
+      "Integration services",
+      "HTTP endpoints for model or worker products"
+    ],
+    "choose_when": [
+      "API contracts and Python integrations matter more than built-in product/admin UI",
+      "A separate frontend or service boundary already exists"
+    ],
+    "avoid_when": [
+      "The team mostly needs accounts, admin, forms and CRUD that Django supplies",
+      "Blocking or CPU-intensive jobs would be run inside request event loops"
+    ],
+    "tools": [
+      {
+        "job": "Packaging and environments",
+        "default": "uv + pyproject.toml + committed uv.lock",
+        "alternatives": [
+          "Preserve an existing maintained packaging workflow"
+        ],
+        "reason": "One project entry point for dependencies, Python selection, execution and reproducible sync.",
+        "limits": "Pin a compatible Python minor and resolve actual package versions at implementation; do not hand-edit uv.lock. Keep environments and caches in a local development workspace.",
+        "source_urls": [
+          "https://docs.astral.sh/uv/guides/projects/"
+        ]
+      },
+      {
+        "job": "Lint and format",
+        "default": "Ruff",
+        "alternatives": [
+          "Preserve existing configured formatter/linter"
+        ],
+        "reason": "Fast lint and formatting feedback with one configuration.",
+        "limits": "Ruff does not replace static typing, tests, authorization checks or runtime validation.",
+        "source_urls": [
+          "https://docs.astral.sh/ruff/installation/"
+        ]
+      },
+      {
+        "job": "Static typing",
+        "default": "mypy",
+        "alternatives": [
+          "ty after project-specific compatibility trial"
+        ],
+        "reason": "Explicit checks on application boundaries with a conservative established checker.",
+        "limits": "Configure strictness and third-party stubs; unchecked Any and untyped functions reduce coverage. No checker performance comparison was run.",
+        "source_urls": [
+          "https://mypy.readthedocs.io/en/stable/getting_started.html",
+          "https://docs.astral.sh/ty/type-checking/"
+        ]
+      },
+      {
+        "job": "Testing",
+        "default": "pytest + HTTPX / FastAPI TestClient",
+        "alternatives": [
+          "Async client tests for async application lifecycles"
+        ],
+        "reason": "Test contract failures, auth and integration boundaries.",
+        "limits": "Run startup/shutdown lifespan when relevant; include PostgreSQL and external-service fault tests.",
+        "source_urls": [
+          "https://docs.pytest.org/en/stable/getting-started.html",
+          "https://fastapi.tiangolo.com/deployment/docker/"
+        ]
+      },
+      {
+        "job": "Database and migrations",
+        "default": "PostgreSQL + SQLAlchemy + Psycopg + Alembic",
+        "alternatives": [
+          "SQLite for local single-user work; no DB for stateless services"
+        ],
+        "reason": "Explicit transactions and versioned relational changes.",
+        "limits": "Session per thread / AsyncSession per task. Review generated migrations, especially renames and data changes; a passing migration check does not prove production lock safety.",
+        "source_urls": [
+          "https://docs.sqlalchemy.org/en/21/orm/session_basics.html",
+          "https://alembic.sqlalchemy.org/en/latest/autogenerate.html"
+        ]
+      },
+      {
+        "job": "Validation",
+        "default": "Pydantic request/response models; strict validation where coercion is unsafe",
+        "alternatives": [
+          "Explicit domain validation functions"
+        ],
+        "reason": "Typed schemas clarify external contracts and generated documentation.",
+        "limits": "Coercion is configurable; schema validity is not authorization or business correctness. Avoid returning unrestricted ORM objects.",
+        "source_urls": [
+          "https://pydantic.dev/docs/validation/latest/concepts/strict_mode/"
+        ]
+      },
+      {
+        "job": "Authentication",
+        "default": "Existing OIDC provider; validate access tokens and authorization in dependencies",
+        "alternatives": [
+          "Authlib for browser OIDC client flow",
+          "First-party session authentication if architecture requires it"
+        ],
+        "reason": "Keep identity lifecycle with its owner while enforcing permissions at the API.",
+        "limits": "Choose and verify token-validation integration at implementation. FastAPI's JWT tutorial is not a complete identity system; issuer, audience, expiry and permissions need tests.",
+        "source_urls": [
+          "https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/",
+          "https://docs.authlib.org/en/v1.7.0/oauth2/client/web/index.html"
+        ]
+      },
+      {
+        "job": "Jobs",
+        "default": "Separate Celery workers for queued jobs",
+        "alternatives": [
+          "Temporal for restart-safe multi-step workflows",
+          "BackgroundTasks for small best-effort post-response work"
+        ],
+        "reason": "Separate request latency from heavy or retried work.",
+        "limits": "BackgroundTasks does not establish durable execution. Make job effects idempotent and set retry/deadline limits.",
+        "source_urls": [
+          "https://fastapi.tiangolo.com/tutorial/background-tasks/",
+          "https://docs.celeryq.dev/en/stable/userguide/tasks.html",
+          "https://docs.temporal.io/develop/python"
+        ]
+      },
+      {
+        "job": "Long-running durable agents",
+        "default": "Temporal Python SDK when recovery across restarts is required",
+        "alternatives": [
+          "Celery for independent queued jobs; direct function for bounded work"
+        ],
+        "reason": "Persisted workflow orchestration and separate worker processes suit retries, pauses and human waits.",
+        "limits": "Adds a service and operational cost. Keep external I/O in activities, make side effects idempotent, test replay and cancellation; no end-to-end integration was run.",
+        "source_urls": [
+          "https://docs.temporal.io/develop/python",
+          "https://docs.celeryq.dev/en/stable/userguide/tasks.html"
+        ]
+      },
+      {
+        "job": "Serving and deployment",
+        "default": "FastAPI standard CLI / Uvicorn in a container",
+        "alternatives": [
+          "Managed ASGI platform"
+        ],
+        "reason": "Official deployment path with explicit process and container choices.",
+        "limits": "Build from a supported base rather than deprecated framework images; choose process count to match deployment/memory, and run schema migration once per release.",
+        "source_urls": [
+          "https://fastapi.tiangolo.com/deployment/docker/",
+          "https://docs.astral.sh/uv/guides/integration/docker/",
+          "https://fastapi.tiangolo.com/async/"
+        ]
+      },
+      {
+        "job": "Application logging",
+        "default": "Python logging with configured handlers",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Shared standard logging captures application and dependency diagnostics",
+        "limits": "Configure logging at entry point, redact credentials and add request/job IDs, duration and failure context. Persist logs on the execution platform; metrics/tracing backend is a separate operational choice.",
+        "source_urls": [
+          "https://docs.python.org/3/library/logging.html"
+        ]
+      },
+      {
+        "job": "Bounded external-call retries",
+        "default": "Tenacity only for retryable transient failures",
+        "alternatives": [
+          "Provider SDK retry policy when sufficient"
+        ],
+        "reason": "Explicit stop/wait/filter rules support controlled retries",
+        "limits": "Install tenacity; set attempt/deadline limits, jitter and exception filters. The bare decorator retries forever without delay; do not stack retries with SDK/worker retries or repeat non-idempotent effects without keys.",
+        "source_urls": [
+          "https://tenacity.readthedocs.io/en/latest/"
+        ]
+      },
+      {
+        "job": "Uploads",
+        "default": "FastAPI UploadFile",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Spooling file interface avoids eagerly materializing all content in application memory",
+        "limits": "Install python-multipart; enforce request/file limits and authorization, stream to durable storage and clean partial writes. Multipart parsing does not establish file safety.",
+        "source_urls": [
+          "https://fastapi.tiangolo.com/tutorial/request-files/"
+        ]
+      },
+      {
+        "job": "Realtime transport",
+        "default": "FastAPI WebSocket endpoints",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Native ASGI endpoint support fits connected API clients",
+        "limits": "Authorize handshake/messages; bound per-client queues, handle disconnect and share state through an external service for replicas. In-memory tutorial connection lists are not multi-process state.",
+        "source_urls": [
+          "https://fastapi.tiangolo.com/advanced/websockets/"
+        ]
+      },
+      {
+        "job": "Object storage",
+        "default": "Boto3 S3 client when durable objects are required",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Official SDK supports file transfer to S3",
+        "limits": "Install boto3 only for S3-backed work; use platform credentials, private keys and bounded transfers. Boto3 is synchronous: keep blocking transfers out of an async event loop; verify alternative provider compatibility.",
+        "source_urls": [
+          "https://docs.aws.amazon.com/boto3/latest/guide/s3-uploading-files.html"
+        ]
+      }
+    ],
+    "setup_steps": [
+      "In a new local source directory: uv init; pin a compatible Python minor; uv add 'fastapi[standard]' sqlalchemy 'psycopg[binary]' alembic pydantic-settings",
+      "uv add --dev ruff mypy pytest httpx",
+      "Create an importable app package with app/main.py exporting app = FastAPI(), request/response models and a health endpoint.",
+      "uv run alembic init migrations; configure environment-based connection URL and target_metadata. Implement per-request/task sessions and domain transaction boundaries.",
+      "uv run alembic revision --autogenerate -m 'initial schema'; manually review, then uv run alembic upgrade head against the development DB.",
+      "Configure the selected identity provider and token verification; implement tenant/object authorization before adding protected endpoints.",
+      "Develop with uv run fastapi dev app/main.py. Package a release with uv sync --locked --no-dev and an explicit production start command; add workers separately when needed."
+    ],
+    "verification_commands": [
+      "uv sync --locked",
+      "uv run ruff check .",
+      "uv run ruff format --check .",
+      "uv run mypy app",
+      "uv run pytest",
+      "uv run alembic check",
+      "uv run alembic current"
+    ],
+    "open_questions": [
+      "Which identity provider, token validation and tenant authorization model apply?",
+      "Does workload justify async database access, or is synchronous I/O simpler?",
+      "Which host/replica model, upload storage, realtime and worker guarantees apply?"
+    ],
+    "evidence_status": "documentation-reviewed",
+    "sources": [
+      {
+        "url": "https://docs.astral.sh/uv/guides/projects/",
+        "title": "uv projects",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.astral.sh/ruff/installation/",
+        "title": "Ruff installation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://mypy.readthedocs.io/en/stable/getting_started.html",
+        "title": "mypy getting started",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.astral.sh/ty/type-checking/",
+        "title": "ty type checking",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.pytest.org/en/stable/getting-started.html",
+        "title": "pytest getting started",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://fastapi.tiangolo.com/deployment/docker/",
+        "title": "FastAPI containers",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.sqlalchemy.org/en/21/orm/session_basics.html",
+        "title": "SQLAlchemy session basics",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://alembic.sqlalchemy.org/en/latest/autogenerate.html",
+        "title": "Alembic autogeneration",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pydantic.dev/docs/validation/latest/concepts/strict_mode/",
+        "title": "Pydantic strict mode",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/",
+        "title": "FastAPI JWT tutorial",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.authlib.org/en/v1.7.0/oauth2/client/web/index.html",
+        "title": "Authlib OAuth web clients",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://fastapi.tiangolo.com/tutorial/background-tasks/",
+        "title": "FastAPI background tasks",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.celeryq.dev/en/stable/userguide/tasks.html",
+        "title": "Celery tasks",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.temporal.io/develop/python",
+        "title": "Temporal Python SDK",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.astral.sh/uv/guides/integration/docker/",
+        "title": "uv Docker",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://fastapi.tiangolo.com/async/",
+        "title": "FastAPI concurrency",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.python.org/3/library/logging.html",
+        "title": "Python logging",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://tenacity.readthedocs.io/en/latest/",
+        "title": "Tenacity documentation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://fastapi.tiangolo.com/tutorial/request-files/",
+        "title": "FastAPI request files",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://fastapi.tiangolo.com/advanced/websockets/",
+        "title": "FastAPI WebSockets",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.aws.amazon.com/boto3/latest/guide/s3-uploading-files.html",
+        "title": "Boto3 uploads",
+        "checked_date": "2026-10-10"
+      }
+    ]
+  },
+  {
+    "id": "python-scripts-workers",
+    "name": "Python scripts and AI workers",
+    "use_cases": [
+      "Reusable automation scripts",
+      "Scheduled imports and transformations",
+      "Model/tool orchestration workers"
+    ],
+    "choose_when": [
+      "The deliverable is a bounded task or worker rather than a web product",
+      "Python SDKs or data libraries materially simplify integrations"
+    ],
+    "avoid_when": [
+      "A one-off script is being expanded into an undocumented product backend",
+      "Hard real-time deadlines or a native deployment requirement dominate"
+    ],
+    "tools": [
+      {
+        "job": "Packaging and environments",
+        "default": "uv + pyproject.toml + committed uv.lock",
+        "alternatives": [
+          "Preserve an existing maintained packaging workflow"
+        ],
+        "reason": "One project entry point for dependencies, Python selection, execution and reproducible sync.",
+        "limits": "Pin a compatible Python minor and resolve actual package versions at implementation; do not hand-edit uv.lock. Keep environments and caches in a local development workspace.",
+        "source_urls": [
+          "https://docs.astral.sh/uv/guides/projects/"
+        ]
+      },
+      {
+        "job": "Lint and format",
+        "default": "Ruff",
+        "alternatives": [
+          "Preserve existing configured formatter/linter"
+        ],
+        "reason": "Fast lint and formatting feedback with one configuration.",
+        "limits": "Ruff does not replace static typing, tests, authorization checks or runtime validation.",
+        "source_urls": [
+          "https://docs.astral.sh/ruff/installation/"
+        ]
+      },
+      {
+        "job": "Static typing",
+        "default": "mypy",
+        "alternatives": [
+          "ty after project-specific compatibility trial"
+        ],
+        "reason": "Explicit checks on application boundaries with a conservative established checker.",
+        "limits": "Configure strictness and third-party stubs; unchecked Any and untyped functions reduce coverage. No checker performance comparison was run.",
+        "source_urls": [
+          "https://mypy.readthedocs.io/en/stable/getting_started.html",
+          "https://docs.astral.sh/ty/type-checking/"
+        ]
+      },
+      {
+        "job": "Testing",
+        "default": "pytest with deterministic fake external services and captured fixtures",
+        "alternatives": [
+          "Integration suites against sandbox services"
+        ],
+        "reason": "Fast repeatable tests can verify parsing, permissions and retry decisions.",
+        "limits": "Add adversarial outputs and partial-failure cases for agents; do not confuse output snapshots with task success.",
+        "source_urls": [
+          "https://docs.pytest.org/en/stable/getting-started.html"
+        ]
+      },
+      {
+        "job": "Validation",
+        "default": "Pydantic at configuration, tool-input and model-output boundaries",
+        "alternatives": [
+          "Standard-library dataclasses for trusted internal values"
+        ],
+        "reason": "Reject malformed external structures before effects.",
+        "limits": "Define strictness intentionally; a validated plan still needs permission and domain checks.",
+        "source_urls": [
+          "https://pydantic.dev/docs/validation/latest/concepts/strict_mode/"
+        ]
+      },
+      {
+        "job": "External I/O",
+        "default": "Provider-supported Python SDK or HTTPX with explicit timeouts and bounded concurrency",
+        "alternatives": [
+          "Standard-library clients for small dependency-free work"
+        ],
+        "reason": "Centralize transport settings, credentials and test seams.",
+        "limits": "Configure total task deadlines as well as network inactivity timeouts; avoid retry storms and duplicated writes; redact credentials from logs.",
+        "source_urls": [
+          "https://www.python-httpx.org/advanced/timeouts/"
+        ]
+      },
+      {
+        "job": "Persistence and migrations",
+        "default": "No database for stateless scripts; PostgreSQL + SQLAlchemy/Alembic for shared durable business state",
+        "alternatives": [
+          "SQLite for one-machine local state"
+        ],
+        "reason": "Avoid introducing infrastructure before state ownership requires it.",
+        "limits": "Files need atomic writes/checkpoints; database state does not automatically resume execution. Review migrations and use task-local sessions.",
+        "source_urls": [
+          "https://docs.sqlalchemy.org/en/21/orm/session_basics.html",
+          "https://alembic.sqlalchemy.org/en/latest/autogenerate.html"
+        ]
+      },
+      {
+        "job": "Auth and credentials",
+        "default": "Scoped service credentials injected by the execution platform",
+        "alternatives": [
+          "Delegated user OAuth when required by the integration"
+        ],
+        "reason": "Workers generally need service authorization rather than user login UI.",
+        "limits": "Credential storage/provider is deployment-specific and unselected; keep secrets out of source, fixtures, task payloads and output.",
+        "source_urls": [
+          "https://docs.astral.sh/uv/guides/integration/docker/",
+          "https://www.python-httpx.org/advanced/timeouts/"
+        ]
+      },
+      {
+        "job": "Long-running durable agents",
+        "default": "Temporal Python SDK when recovery across restarts is required",
+        "alternatives": [
+          "Celery for independent queued jobs; direct function for bounded work"
+        ],
+        "reason": "Persisted workflow orchestration and separate worker processes suit retries, pauses and human waits.",
+        "limits": "Adds a service and operational cost. Keep external I/O in activities, make side effects idempotent, test replay and cancellation; no end-to-end integration was run.",
+        "source_urls": [
+          "https://docs.temporal.io/develop/python",
+          "https://docs.celeryq.dev/en/stable/userguide/tasks.html"
+        ]
+      },
+      {
+        "job": "Execution and deployment",
+        "default": "uv-managed package and explicit CLI entry point; separate managed worker process for persistent workers",
+        "alternatives": [
+          "uv script metadata for a small standalone file",
+          "Scheduled container for bounded jobs"
+        ],
+        "reason": "Make inputs, exit codes and restart behavior reproducible.",
+        "limits": "Scheduler/platform is unselected; document non-overlap and checkpoint semantics. Do not add a web server just to run a job.",
+        "source_urls": [
+          "https://docs.astral.sh/uv/guides/projects/",
+          "https://docs.astral.sh/uv/guides/scripts/",
+          "https://docs.astral.sh/uv/guides/integration/docker/"
+        ]
+      },
+      {
+        "job": "Application logging",
+        "default": "Python logging with configured handlers",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Shared standard logging captures application and dependency diagnostics",
+        "limits": "Configure logging at entry point, redact credentials and add request/job IDs, duration and failure context. Persist logs on the execution platform; metrics/tracing backend is a separate operational choice.",
+        "source_urls": [
+          "https://docs.python.org/3/library/logging.html"
+        ]
+      },
+      {
+        "job": "Bounded external-call retries",
+        "default": "Tenacity only for retryable transient failures",
+        "alternatives": [
+          "Provider SDK retry policy when sufficient"
+        ],
+        "reason": "Explicit stop/wait/filter rules support controlled retries",
+        "limits": "Install tenacity; set attempt/deadline limits, jitter and exception filters. The bare decorator retries forever without delay; do not stack retries with SDK/worker retries or repeat non-idempotent effects without keys.",
+        "source_urls": [
+          "https://tenacity.readthedocs.io/en/latest/"
+        ]
+      },
+      {
+        "job": "Object storage",
+        "default": "Boto3 S3 client when durable objects are required",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Official SDK supports file transfer to S3",
+        "limits": "Install boto3 only for S3-backed work; use platform credentials, private keys and bounded transfers. Boto3 is synchronous: keep blocking transfers out of an async event loop; verify alternative provider compatibility.",
+        "source_urls": [
+          "https://docs.aws.amazon.com/boto3/latest/guide/s3-uploading-files.html"
+        ]
+      },
+      {
+        "job": "HTTP timeouts",
+        "default": "HTTPX client timeouts and connection limits",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Connect/read/write/pool deadlines prevent unbounded remote waits",
+        "limits": "Configure shared client timeout and limits; retain overall operation deadline separately because read timeout measures inactivity between chunks. Close clients and redact request logs.",
+        "source_urls": [
+          "https://www.python-httpx.org/advanced/timeouts/"
+        ]
+      }
+    ],
+    "setup_steps": [
+      "For maintained work, create a local source project: uv init worker-app; cd worker-app; select/pin compatible Python; uv add httpx pydantic pydantic-settings",
+      "uv add --dev ruff mypy pytest; define an importable worker_app package and a pyproject.toml CLI entry point.",
+      "Implement explicit inputs, a dry-run or fixture mode, bounded external calls, structured result/error output, and credentials injected by the environment.",
+      "For a genuinely standalone file, the alternative is uv init --script task.py then uv add --script task.py httpx pydantic; run via uv run task.py. Promote reused logic into a package.",
+      "Only when shared persistent state is required: add sqlalchemy, psycopg and alembic, then configure reviewed migrations. For durable orchestration: uv add temporalio and implement workflows/activities plus a worker connected to a separately provisioned Temporal service.",
+      "Package the locked environment for the chosen scheduler or worker platform. Record startup, cancellation, retry, checkpoint and failure-resume behavior; verify fixture execution before live access."
+    ],
+    "verification_commands": [
+      "uv sync --locked",
+      "uv run ruff check .",
+      "uv run ruff format --check .",
+      "uv run mypy src",
+      "uv run pytest",
+      "uv run python -m compileall -q src"
+    ],
+    "open_questions": [
+      "Which provider SDKs and minimum credential scopes are required?",
+      "Are runs bounded, scheduled, queued or long-lived with human waits?",
+      "Which effects are safe to retry, and what are run deadlines and cost budgets?",
+      "Who owns execution history, alerts, secrets and recovery?"
+    ],
+    "evidence_status": "documentation-reviewed",
+    "sources": [
+      {
+        "url": "https://docs.astral.sh/uv/guides/projects/",
+        "title": "uv projects",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.astral.sh/ruff/installation/",
+        "title": "Ruff installation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://mypy.readthedocs.io/en/stable/getting_started.html",
+        "title": "mypy getting started",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.astral.sh/ty/type-checking/",
+        "title": "ty type checking",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.pytest.org/en/stable/getting-started.html",
+        "title": "pytest getting started",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pydantic.dev/docs/validation/latest/concepts/strict_mode/",
+        "title": "Pydantic strict mode",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://www.python-httpx.org/advanced/timeouts/",
+        "title": "HTTPX timeouts",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.sqlalchemy.org/en/21/orm/session_basics.html",
+        "title": "SQLAlchemy session basics",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://alembic.sqlalchemy.org/en/latest/autogenerate.html",
+        "title": "Alembic autogeneration",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.astral.sh/uv/guides/integration/docker/",
+        "title": "uv Docker",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.temporal.io/develop/python",
+        "title": "Temporal Python SDK",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.celeryq.dev/en/stable/userguide/tasks.html",
+        "title": "Celery tasks",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.astral.sh/uv/guides/scripts/",
+        "title": "uv scripts",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.python.org/3/library/logging.html",
+        "title": "Python logging",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://tenacity.readthedocs.io/en/latest/",
+        "title": "Tenacity documentation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.aws.amazon.com/boto3/latest/guide/s3-uploading-files.html",
+        "title": "Boto3 uploads",
+        "checked_date": "2026-10-10"
+      }
+    ]
+  }
+]

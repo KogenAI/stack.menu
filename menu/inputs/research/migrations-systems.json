@@ -1,0 +1,970 @@
+{
+  "schema": "stack-menu-migration-research/1",
+  "reviewed_at": "2026-10-11",
+  "evidence": "documentation-reviewed",
+  "evidence_limits": "All architecture choices, migration topologies, benefits and checks are recommendations inferred from documented APIs. No integration, benchmark, deployment, distribution or live migration was executed. Source pages were fetched on the reviewed date; floating docs and branch URLs may change. Exact production versions, contracts, hosts, licenses/paid tiers and actual backlog remain implementation inputs.",
+  "profiles": [
+    {
+      "id": "go-service",
+      "version_scope": "Go 1.27 release documentation and current net/http/context APIs; sqlc latest transaction guide with pgx/v5; River current documentation, PostgreSQL composition. Resolve and record Go toolchain, sqlc, pgx and River versions in go.mod/go.sum and tool configuration before implementation. Official release notes identify Go 1.27 as the August 2026 release; this research does not qualify a lockfile or patch-version/security support.",
+      "operating_model": "Recommendation: a Go HTTP process owns request admission and cancellation, domain packages own invariants, and a bounded SQL connection pool provides parallel database access. Durable jobs have their own persisted queue and worker lifecycle. Goroutines and buffered channels are concurrency mechanisms; graceful drain does not turn them into a recoverable queue.",
+      "architecture": [
+        "Recommendation: compose net/http handlers around small domain packages and explicit interfaces at external boundaries. Pass request contexts into SQL and outbound calls. Use bounded errgroup fan-out or a worker pool, with an overload policy separate from concurrency limits.",
+        "Recommendation: maintain reviewed SQL migrations and sqlc-generated queries; share a pool, acquire transactions only around domain writes, and call generated WithTx for the transaction. A single global mutex around all queries recreates avoidable serialization.",
+        "Recommendation: PostgreSQL-backed River workers can run with the web binary initially or in an independent process when their scaling or shutdown needs differ. Insert business state and a job in the same database transaction when atomic enqueue is required; cross-database work needs a separately designed outbox.",
+        "Recommendation: retain an established identity provider, object store, email sender and broker during a service rewrite. Request/response, cookies, WebSocket application protocol, job payload and retry semantics are separate compatibility contracts."
+      ],
+      "developer_workflow": [
+        "Recommendation: start from the existing repository; inspect go.mod, go.sum, schema migrations and queue configuration. For a new local source project, go mod init example.com/service creates a module; choose the actual module path and supported toolchain deliberately.",
+        "Recommendation: pin sqlc using the maintained tool installer, review sqlc.yaml and SQL source, then run sqlc generate after query/schema changes. Regenerate in CI and compare output; generated typing does not validate production schema drift.",
+        "Recommendation: run gofmt on changed files, go vet ./..., go test ./... and go test -race ./... on a supported target. Add HTTP contract fixtures and cancellation/queue crash tests against the selected database; these are proposed checks, not executed here.",
+        "Recommendation: build the service with go build ./cmd/server when that entry point exists. Set server/header/body deadlines, worker limits, pool capacity and shutdown budget from the deployment shape. Profile a representative workload with Go pprof; performance and cost remain unmeasured."
+      ],
+      "avoid": [
+        "Avoid one fire-and-forget goroutine per email/payment: an acknowledged request can survive while its side effect disappears on process crash.",
+        "Avoid spawning unlimited goroutines to hide slow SQL. The downstream pool becomes the queue; cancellation, memory and overload must be bounded explicitly.",
+        "Avoid replacing Redis solely because Go has channels. Shared fan-out, sessions, queue persistence and locks have different semantics.",
+        "Avoid treating Server.Shutdown as complete WebSocket shutdown; hijacked connections need separate notification and tracking."
+      ],
+      "transitions": [
+        {
+          "capability": "data",
+          "existing_contract": "Inventory the old schema, isolation, identifiers, null handling, timestamps and transaction invariants before changing language or driver.",
+          "coexistence": "Recommendation: let the old application own migrations while Go accesses backward-compatible columns through sqlc; route writes for one domain/cohort to one owner. Expand schema before either runtime needs it.",
+          "target": "Recommendation: sqlc plus pgx/v5 or database/sql, a shared bounded pool and explicit transaction-scoped queries. Keep the existing database if its guarantees fit; PostgreSQL replacement is a separate migration.",
+          "benefits": [
+            {
+              "benefit": "Typed query access and concurrent pool usage can improve maintainability and remove an unnecessary application-wide lock.",
+              "prerequisites": "Queries generated from the reviewed schema; representative null/time/transaction fixtures; a pool sized across all replicas.",
+              "tradeoffs": "Generated types do not prove isolation or business correctness; pool exhaustion and migrations still need operations."
+            }
+          ],
+          "checks": [
+            "Verify old-write/new-read and new-write/old-read round trips, including nulls and time zones.",
+            "Force a mid-transaction failure; neither half of the domain change may commit.",
+            "Saturate the pool and cancel a request; verify bounded waiting and connection release."
+          ],
+          "rollback": "Recommendation: return domain traffic to the old writer while preserving expanded columns. Contract migrations wait until the rollback window closes; reconcile any new-only writes first.",
+          "sources": [
+            "https://docs.sqlc.dev/en/latest/howto/transactions.html",
+            "https://go.dev/doc/database/manage-connections"
+          ],
+          "id": "data-1"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Capture existing queue kind, JSON arguments, retry/schedule/dead-letter states and external-effect idempotency. Redis/Resque or Sidekiq payloads are not River payloads.",
+          "coexistence": "Recommendation: keep old workers consuming old queues. Route selected job kinds into River through versioned producers; transform outstanding states explicitly and retain one scheduler. River Ruby integration is a possible bridge, not automatic Active Job execution.",
+          "target": "Recommendation: River PostgreSQL jobs with domain writes plus InsertTx in the same transaction, explicit queue concurrency and bounded retry policy. Keep Redis for any remaining broker/session/cache responsibility.",
+          "benefits": [
+            {
+              "benefit": "Atomic enqueue closes the gap between committing domain state and creating work.",
+              "prerequisites": "Domain rows and River insertion use the same transaction/database; validated job-kind/argument mapping; replay-safe external effects.",
+              "tradeoffs": "Adds queue schema/maintenance to the database; retries can repeat effects; backlog migration and adapter compatibility are separate work."
+            }
+          ],
+          "checks": [
+            "Abort the domain transaction; no job may become available.",
+            "Crash after sending an email but before job completion; retry must reconcile or reuse a stable external idempotency key.",
+            "Account for ready, scheduled, retry, failed and in-flight jobs before retiring the old consumer."
+          ],
+          "rollback": "Recommendation: stop new River producers and reroute only unstarted work after reconciliation. Keep a compatible River consumer for already accepted jobs; a broker switch cannot undo sent messages or payments.",
+          "sources": [
+            "https://riverqueue.com/docs/transactional-enqueueing",
+            "https://riverqueue.com/docs/job-retries",
+            "https://riverqueue.com/docs/ruby"
+          ],
+          "id": "jobs-1"
+        },
+        {
+          "capability": "operations",
+          "existing_contract": "Preserve response/error behavior, overload rules, deadlines and restart guarantees; establish separate budgets for HTTP and background jobs.",
+          "coexistence": "Recommendation: serve a fixed tenant/endpoint cohort from Go behind existing routing, with errgroup/context cancellation inside each operation and deployment-level readiness. Keep the old instance ready for contract-compatible rollback.",
+          "target": "Recommendation: signal.NotifyContext, bounded admission/fan-out, Server.Shutdown with a fresh timeout context, tracked worker termination and pool closure after accepted work ends.",
+          "benefits": [
+            {
+              "benefit": "Cooperative cancellation limits work that callers no longer need and makes planned shutdown observable.",
+              "prerequisites": "Every called operation honors context; in-flight tasks are tracked; the platform shutdown grace period exceeds the configured drain budget.",
+              "tradeoffs": "Cancellation does not reverse a committed write or external effect; forced termination still loses memory-only work."
+            }
+          ],
+          "checks": [
+            "Cancel a client while SQL/outbound I/O is blocked; verify resources and goroutines settle.",
+            "Send SIGTERM during a write; the server stops admitting traffic and records whether accepted work committed.",
+            "Force SIGKILL; verify durable jobs recover independently of graceful drain."
+          ],
+          "rollback": "Recommendation: return routing to the old process and inspect committed outcomes and queued work before any replay. Preserve identical database/schema contracts for both versions.",
+          "sources": [
+            "https://pkg.go.dev/net/http#Server.Shutdown",
+            "https://pkg.go.dev/golang.org/x/sync/errgroup",
+            "https://pkg.go.dev/os/signal#NotifyContext"
+          ],
+          "id": "operations-1"
+        },
+        {
+          "capability": "realtime",
+          "existing_contract": "Preserve authentication, subscription identifiers, frame formats, ordering, reconnect cursors and cross-runtime fan-out. A WebSocket transport does not implement Action Cable automatically.",
+          "coexistence": "Recommendation: keep the existing broker and explicit application-protocol adapter while moving complete room/tenant cohorts, including reconnects, to Go. Publish/subscribe in both directions using captured protocol fixtures.",
+          "target": "Recommendation: coder/websocket for transport plus bounded per-connection queues, tracked close handshakes and an application resynchronization path. Retain Redis Pub/Sub if ephemeral cross-process fan-out fits; add durable history separately where missed events matter.",
+          "benefits": [
+            {
+              "benefit": "Explicit connection ownership and queue limits bound slow-client resource use.",
+              "prerequisites": "Capacity and disconnect policy are defined; clients can reconnect and reconstruct authoritative state; broker/protocol compatibility is tested.",
+              "tradeoffs": "Redis Pub/Sub is at-most-once and does not replay disconnected messages; replacing it with process-local channels removes cross-instance delivery."
+            }
+          ],
+          "checks": [
+            "Connect an old and new client to the same room; verify broadcasts in both directions and revocation.",
+            "Disconnect a subscriber and publish; reconnect must fetch missed authoritative state.",
+            "Throttle one client; verify the configured queue overflow policy and independent delivery to others."
+          ],
+          "rollback": "Recommendation: route the cohort and reconnects back together. Keep the broker and old protocol alive; rebuild client state from durable records rather than pretending ephemeral events can be replayed.",
+          "sources": [
+            "https://github.com/coder/websocket",
+            "https://redis.io/docs/latest/develop/pubsub/",
+            "https://pkg.go.dev/net/http#Server.Shutdown"
+          ],
+          "id": "realtime-1"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://go.dev/doc/go1.27",
+          "title": "Go 1.27 release notes",
+          "claim": "Identifies the August 2026 release; runtime/tool behavior and JSON v2 are documented with compatibility caveats."
+        },
+        {
+          "url": "https://go.dev/doc/modules/managing-dependencies",
+          "title": "Managing Go dependencies",
+          "claim": "go.mod and go.sum own module dependency versions."
+        },
+        {
+          "url": "https://docs.sqlc.dev/en/latest/howto/transactions.html",
+          "title": "sqlc transactions",
+          "claim": "Generated WithTx binds queries to a transaction; pgx/v5 example is documented."
+        },
+        {
+          "url": "https://go.dev/doc/database/manage-connections",
+          "title": "Go SQL connection management",
+          "claim": "sql.DB is a concurrent pool; limits can cause waits and deadlocks."
+        },
+        {
+          "url": "https://riverqueue.com/docs/transactional-enqueueing",
+          "title": "River transactional enqueue",
+          "claim": "Enqueue with domain changes in one transaction avoids a two-store commit gap."
+        },
+        {
+          "url": "https://riverqueue.com/docs/job-retries",
+          "title": "River retries",
+          "claim": "Retry attempts and delays are configurable; errors lead to repeated execution."
+        },
+        {
+          "url": "https://riverqueue.com/docs/ruby",
+          "title": "River Ruby integration",
+          "claim": "Current documentation describes a shared River schema and explicit job kinds/JSON arguments."
+        },
+        {
+          "url": "https://pkg.go.dev/net/http#Server.Shutdown",
+          "title": "net/http server shutdown",
+          "claim": "HTTP drain does not close or await hijacked WebSocket connections."
+        },
+        {
+          "url": "https://pkg.go.dev/golang.org/x/sync/errgroup",
+          "title": "errgroup",
+          "claim": "WithContext cancellation and SetLimit support bounded concurrent work."
+        },
+        {
+          "url": "https://pkg.go.dev/os/signal#NotifyContext",
+          "title": "os/signal",
+          "claim": "NotifyContext connects OS signals to context cancellation."
+        },
+        {
+          "url": "https://github.com/coder/websocket",
+          "title": "coder/websocket README",
+          "claim": "Go WebSocket transport supports contexts and close handshakes; application protocol is separate."
+        },
+        {
+          "url": "https://redis.io/docs/latest/develop/pubsub/",
+          "title": "Redis Pub/Sub",
+          "claim": "Pub/Sub delivery is at-most-once; disconnected subscribers miss events."
+        }
+      ]
+    },
+    {
+      "id": "go-cli",
+      "version_scope": "Go 1.27 toolchain documentation, Cobra/pflag current guide, Bubble Tea upstream API and GoReleaser v2 documentation. Pin compatible module/tool versions; Bubble Tea major/module-path changes need explicit review. No release matrix was built.",
+      "operating_model": "Recommendation: keep the command tree as an adapter over testable application functions. A noninteractive command is a versioned automation interface; a Bubble Tea view is an optional interactive client of the same functions. The executable owns stream, exit-status, cancellation and configuration contracts.",
+      "architecture": [
+        "Recommendation: Cobra parses and validates arguments, then RunE calls domain operations that return typed results/errors. Formatters own text versus JSON output; diagnostics and progress go to stderr, leaving stdout usable by scripts.",
+        "Recommendation: expose a schema/version field in machine-readable output and configuration. Centralize environment/flag/file precedence and secret redaction; preserve old names through an explicit deprecation period.",
+        "Recommendation: use Bubble Tea Model/Update/View and commands for terminal interaction. Keep interactive state separate from persisted application configuration, and disable prompts/spinners for pipes or explicit noninteractive mode.",
+        "Recommendation: use the established module workflow and GoReleaser target matrix for binary distribution. Native libraries, signing, notarization and OS behavior require per-target checks even when cross-compilation succeeds."
+      ],
+      "developer_workflow": [
+        "Recommendation: inspect existing flags, help output, scripts and configuration before changing the CLI. A new project can start with go mod init and Cobra CLI generation when desired; generation is optional, not an architecture.",
+        "Recommendation: run gofmt, go vet ./... and go test ./...; add subprocess-level contract fixtures that capture stdout, stderr and exit status. Domain unit tests alone miss terminal and shell behavior.",
+        "Recommendation: exercise --help, invalid flags, piped input, --output json (if implemented), interrupted work and no-TTY execution. Choose and document application exit codes; Cobra does not define every business error code.",
+        "Recommendation: after installing a pinned GoReleaser v2, review .goreleaser.yaml, run goreleaser check and goreleaser release --snapshot --clean to prepare local artifacts. These are review commands, not a published release; verify clean-machine install and upgrade on the supported targets. Current GoReleaser OSS installation docs require Go 1.27 when installing the tool from source; a prebuilt tool or a compatible pinned older tool is a separate choice from the application minimum Go version."
+      ],
+      "avoid": [
+        "Avoid logging or progress bars on machine-readable stdout; one extra line can break the calling script.",
+        "Avoid os.Exit inside domain functions or cleanup scopes: os.Exit skips deferred calls. Map errors to a code after cleanup in the entry point.",
+        "Avoid requiring a TTY for every command; automation needs explicit inputs and a prompt-free path.",
+        "Avoid rewriting configuration in place without a version/backup; users may need to downgrade the executable.",
+        "Avoid silently switching encoding/json to Go 1.27 encoding/json/v2 during a rewrite; changed serialization defaults require compatibility fixtures and an explicit protocol decision."
+      ],
+      "transitions": [
+        {
+          "capability": "cli",
+          "existing_contract": "Capture scripts consuming current flags, positional arguments, stdout/stderr, exit codes and completion output.",
+          "coexistence": "Recommendation: retain old subcommands/aliases as thin adapters while introducing an explicit JSON mode. Mark renamed flags deprecated through Cobra instead of silently changing their meaning.",
+          "target": "Recommendation: Cobra RunE plus centralized result/error mapping; versioned JSON on stdout and diagnostics on stderr. Freeze documented application codes for success, usage and operational failure.",
+          "benefits": [
+            {
+              "benefit": "A stable CLI protocol permits automation and humans to share one executable.",
+              "prerequisites": "Consumer fixtures cover streams/status; formatting and error categories are explicit; deprecation schedule preserves callers.",
+              "tradeoffs": "Versioned output requires ongoing compatibility ownership; usage errors and remote failures may need different handling."
+            }
+          ],
+          "checks": [
+            "Run old calling scripts against the new binary and compare all three output channels.",
+            "Verify invalid flags perform no effects and produce the documented exit code.",
+            "Pipe JSON to a parser; help/progress/logging must not contaminate its data."
+          ],
+          "rollback": "Recommendation: install the preceding binary and continue serving the old protocol. Keep newly introduced machine schemas behind explicit versions so callers can choose a compatible response.",
+          "sources": [
+            "https://cobra.dev/docs/how-to-guides/working-with-flags/",
+            "https://pkg.go.dev/encoding/json#Decoder.DisallowUnknownFields",
+            "https://pkg.go.dev/os#Exit"
+          ],
+          "id": "cli-1"
+        },
+        {
+          "capability": "data",
+          "existing_contract": "Inventory config paths, default values, flag/environment precedence, secret fields and old readers.",
+          "coexistence": "Recommendation: parse both old and versioned schemas through adapters; display migration diagnostics on stderr and offer an explicit migration command with backup. Keep the old file untouched until conversion passes.",
+          "target": "Recommendation: a typed versioned config decoded deliberately, with unknown-field policy and semantic validation. Write a same-directory temporary file, validate it and replace only after success; qualify filesystem/OS behavior and cross-process ownership.",
+          "benefits": [
+            {
+              "benefit": "A versioned configuration contract makes upgrades and later rollback predictable.",
+              "prerequisites": "Old fixtures exist; migration preserves semantics and backups; one writer and tested replacement behavior are defined.",
+              "tradeoffs": "Strict unknown-field rejection can hinder mixed-version use; atomic replacement does not establish crash durability or coordinate concurrent writers."
+            }
+          ],
+          "checks": [
+            "Load representative old config, migrate and compare effective settings.",
+            "Reject unknown unsupported schema versions before modifying files.",
+            "Interrupt conversion and verify either the original or complete new file remains; test permissions on each target OS."
+          ],
+          "rollback": "Recommendation: restore the backup and preceding executable together. Preserve old readable configuration throughout the downgrade window; do not roll back after newer-only values without an explicit mapping.",
+          "sources": [
+            "https://pkg.go.dev/encoding/json#Decoder.DisallowUnknownFields",
+            "https://cobra.dev/docs/how-to-guides/working-with-flags/"
+          ],
+          "id": "data-1"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Preserve per-item effects, retry decisions, ordering and interrupt behavior for batch commands; a process-local queue has no restart history.",
+          "coexistence": "Recommendation: keep the sequential executor available and compare the new bounded executor on fixture inputs. Route one operation class at a time; reuse stable operation IDs across retries.",
+          "target": "Recommendation: signal.NotifyContext plus errgroup limit or a fixed worker pool. Pass context through clients, close resources after workers finish, and persist a checkpoint/receipt when interrupted effects need later recovery.",
+          "benefits": [
+            {
+              "benefit": "Bounded fan-out can overlap independent I/O while maintaining a clear cancellation boundary.",
+              "prerequisites": "Concurrency quota and total deadline are set; downstream calls honor cancellation; completed and ambiguous effects can be reconciled.",
+              "tradeoffs": "No throughput gain is measured; cancellation cannot undo effects; a retry can duplicate a write without provider or business idempotency."
+            }
+          ],
+          "checks": [
+            "Interrupt midway through a batch and verify completed, pending and ambiguous items are reported separately.",
+            "Simulate one failed item; verify the selected stop/continue policy and bounded parallelism.",
+            "Resume using stable IDs and prove acknowledged effects are not repeated."
+          ],
+          "rollback": "Recommendation: return to sequential execution using the same checkpoint contract. Reconcile ambiguous outcomes first; restarting from item zero is not a safe general rollback.",
+          "sources": [
+            "https://pkg.go.dev/golang.org/x/sync/errgroup",
+            "https://pkg.go.dev/os/signal#NotifyContext",
+            "https://pkg.go.dev/os#Exit"
+          ],
+          "id": "jobs-1"
+        },
+        {
+          "capability": "operations",
+          "existing_contract": "Preserve command name, install path, OS/architecture support, update channel and downgrade compatibility.",
+          "coexistence": "Recommendation: produce snapshot artifacts beside the old release and smoke-test them without changing the default download. Review generated package-manager changes and publish channels only after target verification.",
+          "target": "Recommendation: pinned GoReleaser v2 matrix with metadata/checksums, OS-specific install tests and an explicit signing path. CGO dependencies and macOS signing/notarization need separate toolchain/credential setup; the documented native package notarization flow is Pro; qualify the chosen binary or package flow separately.",
+          "benefits": [
+            {
+              "benefit": "A repeatable artifact matrix reduces manual release assembly.",
+              "prerequisites": "Build inputs/tool versions are pinned; each promised target is installed and exercised; signing credentials and package metadata are owned.",
+              "tradeoffs": "Cross-compilation is not execution evidence; CGO can require native toolchains; selected signing/notarization automation may require a paid tier."
+            }
+          ],
+          "checks": [
+            "Install on clean Linux, macOS and Windows hosts for every advertised architecture.",
+            "Verify version metadata, checksums, permissions and executable path.",
+            "Upgrade from the old package and downgrade with preserved config; inspect macOS Gatekeeper behavior for the actual downloaded artifact."
+          ],
+          "rollback": "Recommendation: repoint the owned download/package channel to the previous verified release and keep its artifacts available. Restore compatible configuration with the binary; do not silently overwrite unrelated install locations.",
+          "sources": [
+            "https://goreleaser.com/getting-started/how-it-works/",
+            "https://goreleaser.com/customization/builds/go/",
+            "https://goreleaser.com/customization/sign/notarize/",
+            "https://goreleaser.com/customization/publish/snapshots/"
+          ],
+          "id": "operations-1"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://cobra.dev/docs/how-to-guides/working-with-flags/",
+          "title": "Cobra flag guide",
+          "claim": "Flag scoping, validation, deprecation and optional configuration integration are explicit."
+        },
+        {
+          "url": "https://github.com/charmbracelet/bubbletea",
+          "title": "Bubble Tea upstream",
+          "claim": "The TUI uses Model/Update/View with commands for effects."
+        },
+        {
+          "url": "https://pkg.go.dev/encoding/json#Decoder.DisallowUnknownFields",
+          "title": "Go JSON decoder",
+          "claim": "Typed decoding and DisallowUnknownFields are available; schema policy is the application responsibility."
+        },
+        {
+          "url": "https://pkg.go.dev/os#Exit",
+          "title": "os.Exit",
+          "claim": "Process exit skips deferred calls; exit-code meanings need an application contract."
+        },
+        {
+          "url": "https://pkg.go.dev/golang.org/x/sync/errgroup",
+          "title": "errgroup",
+          "claim": "Group limit and cancellation support bounded batch execution."
+        },
+        {
+          "url": "https://pkg.go.dev/os/signal#NotifyContext",
+          "title": "os/signal",
+          "claim": "NotifyContext exposes signal cancellation."
+        },
+        {
+          "url": "https://goreleaser.com/getting-started/how-it-works/",
+          "title": "GoReleaser workflow",
+          "claim": "Release configuration and build/package/publish workflow are described; snapshot behavior has its own source."
+        },
+        {
+          "url": "https://goreleaser.com/customization/builds/go/",
+          "title": "GoReleaser Go builds",
+          "claim": "GOOS/GOARCH matrix and environment/CGO settings are configurable."
+        },
+        {
+          "url": "https://goreleaser.com/customization/sign/notarize/",
+          "title": "GoReleaser notarization",
+          "claim": "Signing/notarization requires Apple credentials; the native package flow is Pro and uses Apple tools. Cross-platform binary notarization is a separate documented flow."
+        },
+        {
+          "url": "https://goreleaser.com/customization/publish/snapshots/",
+          "title": "GoReleaser snapshots",
+          "claim": "Snapshot mode builds review artifacts without publishing to a release channel."
+        },
+        {
+          "url": "https://goreleaser.com/getting-started/quick-start/",
+          "title": "GoReleaser quick start",
+          "claim": "goreleaser check validates config; release --snapshot --clean builds local review artifacts."
+        },
+        {
+          "url": "https://goreleaser.com/getting-started/install/oss/",
+          "title": "GoReleaser OSS installation",
+          "claim": "Current source installation requires Go 1.27; verified prebuilt binaries are another documented installation method."
+        },
+        {
+          "url": "https://go.dev/doc/go1.27",
+          "title": "Go 1.27 release notes",
+          "claim": "Introduces encoding/json/v2 with changed defaults; serializer replacement requires compatibility review."
+        }
+      ]
+    },
+    {
+      "id": "rust-service",
+      "version_scope": "Reviewed docs expose Axum 0.8.9, Tokio 1.53.2 and SQLx 0.9.0 on 11 October 2026; Rust std docs show 1.99.0. These are documentation scopes, not a qualified composition or an automatic upgrade recommendation. Record rust-toolchain.toml, Cargo.lock, enabled features, SQLx CLI compatibility and database version before implementation.",
+      "operating_model": "Recommendation: Axum/Tower owns request extraction and middleware; domain functions return explicit errors; Tokio drives async I/O; SQLx pools and transactions own database access. Track child tasks and cancellation separately from persisted jobs. A Tokio channel coordinates tasks inside one live process and cannot recover accepted work after a crash.",
+      "architecture": [
+        "Recommendation: route through Axum extractors and typed State with cloneable pool/client handles. Keep domain logic independent of HTTP responses, and map business/infrastructure errors deliberately through IntoResponse.",
+        "Recommendation: compose Tower limits and timeouts with explicit overload/error mapping. Use bounded channels/semaphores; a concurrency limit without an admission/queue policy does not bound every waiting request.",
+        "Recommendation: use SQLx query macros where schema checking fits and dynamic queries where needed. Store reviewed migrations and offline metadata; runtime authorization and isolation remain separate from compile-time type checks.",
+        "Recommendation: move sustained CPU work to a bounded blocking executor or dedicated worker process. Track async tasks with cancellation/termination coordination; a started spawn_blocking task cannot be forcibly aborted through Tokio."
+      ],
+      "developer_workflow": [
+        "Recommendation: inspect Cargo.toml/Cargo.lock, rust-toolchain.toml and enabled dependency features. For a new project, cargo new service and cargo add axum can establish the package; select Tokio runtime and SQLx database/TLS features deliberately rather than copying a broad feature list.",
+        "Recommendation: run cargo fmt --check, cargo clippy --all-targets -- -D warnings and cargo test --locked with the project-supported feature matrix. Compile and run protocol/cancellation fixtures; no integration was executed in this research.",
+        "Recommendation: install a SQLx CLI version compatible with the selected crate; against a disposable database run cargo sqlx migrate run, then cargo sqlx prepare --workspace and commit .sqlx metadata. CI cargo sqlx prepare --check --workspace detects stale metadata; an offline build does not prove the live schema matches.",
+        "Recommendation: cargo build --release --locked prepares a release for the selected target. Use tracing/request IDs, pool-wait metrics and representative load profiles before asserting latency, cost or capacity advantages."
+      ],
+      "avoid": [
+        "Avoid Arc<Mutex<Connection>> for all queries; a shared pool permits independent requests without a global database serialization boundary.",
+        "Avoid blocking SDK calls or heavy loops on async runtime workers. spawn_blocking needs its own capacity limits and cannot abort a running closure.",
+        "Avoid using Tokio mpsc as a drop-in replacement for durable Redis jobs; accepted jobs disappear with memory unless independently persisted.",
+        "Avoid confusing Rust memory safety with correct authorization, queue delivery or compatibility guarantees."
+      ],
+      "transitions": [
+        {
+          "capability": "data",
+          "existing_contract": "Capture the old SQL schema, transactions, tenant filters, nullable values and database engine behavior.",
+          "coexistence": "Recommendation: keep existing schema ownership and backward-compatible columns; run SQLx reads for a selected boundary before transferring its writer. Generate metadata against exactly the reviewed migration state.",
+          "target": "Recommendation: SQLx pooled access with transaction-scoped domain changes; query! checks literals against a live build schema or checked-in .sqlx metadata. Keep database engine choice independent of the Rust rewrite.",
+          "benefits": [
+            {
+              "benefit": "Compile-time query/type checks can expose SQL/API mismatches before deployment.",
+              "prerequisites": "Query macros/features and metadata match the chosen engine and schema; nullable results and dynamic queries receive runtime checks.",
+              "tradeoffs": "Dynamic SQL is outside macro checking; stale offline metadata can compile; schema ownership and deployment order still need controls."
+            }
+          ],
+          "checks": [
+            "Run an offline locked build with the reviewed metadata and a live prepare --check against the migrated fixture DB.",
+            "Verify both runtimes read each other's writes, including null/time/ID mappings.",
+            "Cancel during a transaction and confirm the intended committed/rolled-back state plus pool recovery."
+          ],
+          "rollback": "Recommendation: route writes back while retaining additive schema and a previous compatible binary. Delay destructive migrations; reconcile new-only persisted values before rollback.",
+          "sources": [
+            "https://docs.rs/sqlx/latest/sqlx/macro.query.html",
+            "https://docs.rs/sqlx/latest/sqlx/struct.Pool.html",
+            "https://github.com/transact-rs/sqlx/blob/main/sqlx-cli/README.md"
+          ],
+          "id": "data-1"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Preserve old broker serialization, acknowledgement, delayed/retry states, concurrency and effect IDs. Durable Redis workers cannot be replaced transparently by tokio::spawn.",
+          "coexistence": "Recommendation: Rust commits an outbox intent in its domain transaction; a replay-safe relay submits to the retained queue/worker interface. Existing workers retain queue ownership while new job kinds are qualified. This outbox design is inferred, not a shipped Axum feature.",
+          "target": "Recommendation: keep proven durable workers until a chosen Rust queue implementation is qualified for retries, scheduling, leases and crashes. River current Ruby docs describe a shared schema with Rust; that statement alone does not qualify a Rust worker API or migration.",
+          "benefits": [
+            {
+              "benefit": "A retained worker boundary allows the HTTP layer to change without dropping backlog or broker guarantees.",
+              "prerequisites": "Same-transaction outbox intent; stable relay/effect IDs; explicit payload translator; observed delivery and backlog ownership.",
+              "tradeoffs": "Two runtimes and a relay add operations; delivery may repeat; a SQLx transaction alone does not atomically submit to Redis."
+            }
+          ],
+          "checks": [
+            "Crash after the domain commit but before relay delivery; an intent remains recoverable.",
+            "Crash the relay after submission before marking sent; duplicate delivery produces one logical effect.",
+            "Reconcile ready, scheduled, retry, failed and in-flight old jobs before any worker replacement."
+          ],
+          "rollback": "Recommendation: stop the new producer, let accepted outbox entries settle and retain the old worker. Roll back traffic only after ambiguous effects are reconciled; avoid consuming a queue with incompatible handlers.",
+          "sources": [
+            "https://tokio.rs/tokio/tutorial/channels",
+            "https://docs.rs/sqlx/latest/sqlx/macro.query.html",
+            "https://riverqueue.com/docs/ruby"
+          ],
+          "id": "jobs-1"
+        },
+        {
+          "capability": "operations",
+          "existing_contract": "Define HTTP admission/error behavior, task ownership, shutdown deadline and behavior for unavoidable CPU/blocking operations.",
+          "coexistence": "Recommendation: retain old routing while introducing Tower admission bounds and CancellationToken/TaskTracker-based ownership for a coherent endpoint cohort. Benchmark equivalent resource limits and durability before attributing gains to Rust.",
+          "target": "Recommendation: bounded async work, cooperative cancellation, explicit shutdown notification plus tracked task completion, and SQLx pool close. For untrusted/hard-deadline native work, isolate it in a process whose termination contract is tested.",
+          "benefits": [
+            {
+              "benefit": "Tracked tasks and explicit admission limits make resource use and planned termination easier to reason about.",
+              "prerequisites": "Every child task is tracked; limits include waiting work; cancellation-safe I/O and shutdown budget are verified.",
+              "tradeoffs": "spawn_blocking closures may continue after timeout; killing a process still requires durable recovery and external-effect reconciliation."
+            }
+          ],
+          "checks": [
+            "Cancel an overloaded request and verify queue permits/resources are released.",
+            "Send termination during async and blocking work; document tasks that drain and work that cannot be aborted.",
+            "Force a crash after acceptance; verify recovery of persisted intents and honest failure of memory-only work."
+          ],
+          "rollback": "Recommendation: return the cohort to the previous service and reconcile persisted outcomes. Do not simply retry every cancelled request; its external effect may already have occurred.",
+          "sources": [
+            "https://docs.rs/tower/latest/tower/limit/index.html",
+            "https://tokio.rs/tokio/topics/shutdown",
+            "https://docs.rs/tokio/latest/tokio/task/fn.spawn_blocking.html",
+            "https://docs.rs/sqlx/latest/sqlx/struct.Pool.html"
+          ],
+          "id": "operations-1"
+        },
+        {
+          "capability": "realtime",
+          "existing_contract": "Preserve subscriptions, authorization revocation, event versions, reconnect behavior and cross-instance fan-out.",
+          "coexistence": "Recommendation: keep the existing shared broker while a Rust gateway serves entire room/tenant cohorts; adapters translate existing messages without dual-emitting user effects. Test cross-runtime publication in both directions.",
+          "target": "Recommendation: Axum WebSocket transport and bounded per-client queues. Tokio broadcast is appropriate only for local ephemeral fan-out with explicit Lagged handling; use durable state/event history to resync clients when loss is unacceptable.",
+          "benefits": [
+            {
+              "benefit": "Local bounded fan-out can prevent slow receivers from retaining unbounded memory.",
+              "prerequisites": "Overflow/disconnect/resync policy exists; replica routing and shared fan-out remain covered; every broadcast error is handled.",
+              "tradeoffs": "Tokio broadcast is process-local; old messages are evicted when capacity is exceeded; it is not a durable cross-node broker."
+            }
+          ],
+          "checks": [
+            "Force receiver lag and verify Lagged triggers resync or the documented disconnect policy.",
+            "Publish from each runtime and confirm the opposite runtime's subscribers receive the intended event.",
+            "Reconnect after deployment/crash and rebuild state without trusting missing ephemeral frames."
+          ],
+          "rollback": "Recommendation: route the whole cohort back and retain the shared broker/protocol. Resynchronize from authoritative durable records; local channel state cannot be restored from a previous binary.",
+          "sources": [
+            "https://docs.rs/axum/latest/axum/",
+            "https://docs.rs/tokio/latest/tokio/sync/broadcast/index.html",
+            "https://redis.io/docs/latest/develop/pubsub/"
+          ],
+          "id": "realtime-1"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.rs/axum/latest/axum/",
+          "title": "Axum 0.8.9",
+          "claim": "Typed extractors/State and Tower middleware form the HTTP composition."
+        },
+        {
+          "url": "https://docs.rs/tower/latest/tower/limit/index.html",
+          "title": "Tower limits",
+          "claim": "Concurrency and rate-limit middleware exist; admission/error policy needs application design."
+        },
+        {
+          "url": "https://tokio.rs/tokio/topics/shutdown",
+          "title": "Tokio graceful shutdown",
+          "claim": "CancellationToken and TaskTracker coordinate shutdown and task completion."
+        },
+        {
+          "url": "https://tokio.rs/tokio/tutorial/channels",
+          "title": "Tokio channels",
+          "claim": "Bounded mpsc coordinates tasks; capacity/backpressure is explicit, not disk persistence."
+        },
+        {
+          "url": "https://docs.rs/tokio/latest/tokio/task/fn.spawn_blocking.html",
+          "title": "Tokio spawn_blocking",
+          "claim": "CPU work needs a parallelism limit; started blocking tasks cannot be aborted."
+        },
+        {
+          "url": "https://docs.rs/sqlx/latest/sqlx/macro.query.html",
+          "title": "SQLx 0.9.0 query macro",
+          "claim": "Literal queries need a matching database schema or offline metadata; engine binding and nullability have limits."
+        },
+        {
+          "url": "https://docs.rs/sqlx/latest/sqlx/struct.Pool.html",
+          "title": "SQLx pool",
+          "claim": "A shared async pool supports reuse; a mutex around one connection creates serialization; close should be awaited."
+        },
+        {
+          "url": "https://github.com/transact-rs/sqlx/blob/main/sqlx-cli/README.md",
+          "title": "SQLx CLI README",
+          "claim": "Migrations and prepare/prepare --check maintain offline query metadata."
+        },
+        {
+          "url": "https://docs.rs/tokio/latest/tokio/sync/broadcast/index.html",
+          "title": "Tokio broadcast",
+          "claim": "A bounded local channel drops older values and reports lagging receivers."
+        },
+        {
+          "url": "https://riverqueue.com/docs/ruby",
+          "title": "River cross-language schema statement",
+          "claim": "Current Ruby guide explicitly names Go, Rust and TypeScript sharing a schema; Rust API itself is unqualified here."
+        },
+        {
+          "url": "https://redis.io/docs/latest/develop/pubsub/",
+          "title": "Redis Pub/Sub",
+          "claim": "Ephemeral shared fan-out remains at-most-once and needs a separate recovery path."
+        }
+      ]
+    },
+    {
+      "id": "rust-cli",
+      "version_scope": "Reviewed clap 4.6.7 and Rust std 1.99.0 documentation; Serde, Ratatui and current axodotdev cargo-dist book. Pin rust-toolchain.toml/Cargo.lock and dist version/config. The older opensource.axo.dev book path failed; no target install or release workflow was executed.",
+      "operating_model": "Recommendation: clap derives/parses a stable command interface, domain operations return Result, and the entry point converts errors to streams/status after cleanup. Serde owns a versioned machine format; Ratatui is an optional terminal client. Cargo/dist prepare artifacts for explicitly supported targets and update channels.",
+      "architecture": [
+        "Recommendation: use a library crate or modules for application operations and a thin binary adapter. Keep clap parsing errors separate from business errors; prefer explicit main ExitCode mapping when the contract requires more than generic failure.",
+        "Recommendation: Serde input/output types carry schema versions. Separate strict user configuration from forward-compatible result reading; deny_unknown_fields is an intentional policy, not universal compatibility.",
+        "Recommendation: encapsulate raw-mode/alternate-screen lifetime and restore the terminal on errors and panics. Share domain operations between Ratatui and a noninteractive JSON mode; interactive render state is not durable application state.",
+        "Recommendation: bounded Rayon/Tokio work is selected by CPU versus I/O needs, with explicit cancellation and effect receipts. A compiled binary reduces interpreter deployment needs but does not remove database, TLS or platform dependencies."
+      ],
+      "developer_workflow": [
+        "Recommendation: start from existing Cargo manifest, consumers and rust-toolchain.toml. For a new local package, cargo new tool and cargo add clap --features derive are optional initial steps; add serde --features derive and serde_json only when a machine/config format is required.",
+        "Recommendation: cargo fmt --check, cargo clippy --all-targets -- -D warnings and cargo test --locked verify source checks in the selected feature matrix. Exercise subprocess stdout/stderr/status and panic/interrupt terminal restoration on supported OSs.",
+        "Recommendation: cargo build --release --locked builds one selected target. Inspect its native/TLS dependencies and execute on clean target hosts; --target compilation alone does not qualify distribution.",
+        "Recommendation: with a pinned dist tool, run dist init and review generated configuration/workflows before committing; init can overwrite manual workflow edits. dist plan --output-format=json previews artifact/announcement intent; actual target builds, installers and upgrade/downgrade checks remain required."
+      ],
+      "avoid": [
+        "Avoid treating debug-formatted Result errors as a stable machine API; define error codes and schema deliberately.",
+        "Avoid process::exit in cleanup-sensitive paths; terminal restoration and destructors need normal control flow.",
+        "Avoid enabling raw terminal mode for piped/noninteractive invocations; they need predictable streams and no prompts.",
+        "Avoid hand-editing generated dist workflows without recording how customization survives regeneration."
+      ],
+      "transitions": [
+        {
+          "capability": "cli",
+          "existing_contract": "Record current commands, option defaults, exit codes, stdout/stderr, JSON field names and shell completions consumed by callers.",
+          "coexistence": "Recommendation: keep an old command adapter and explicit schema version while migrating parsing to clap. Preserve old names/aliases and map new domain errors into the established protocol.",
+          "target": "Recommendation: clap plus typed result/error JSON and main ExitCode mapping. clap usage failures use status 2 while help/version uses success; application failures need their own documented policy.",
+          "benefits": [
+            {
+              "benefit": "Typed parsing and a stable output envelope make command automation explicit.",
+              "prerequisites": "Contract fixtures cover old callers; result schemas and error/status mapping are versioned; help/completion behavior is checked.",
+              "tradeoffs": "Parser defaults can change compatibility; numeric status meanings are not universal across platforms; Rust error types do not define the public protocol."
+            }
+          ],
+          "checks": [
+            "Verify help/version succeed and invalid arguments use the intended stream/code without effects.",
+            "Execute legacy scripts and compare stdout/stderr/status exactly where promised.",
+            "Validate empty, partial and failed JSON results against the advertised schema."
+          ],
+          "rollback": "Recommendation: return consumers to the previous binary/schema while retaining old option adapters. Keep version selection explicit so a rollback does not silently alter JSON meaning.",
+          "sources": [
+            "https://docs.rs/clap/latest/clap/",
+            "https://docs.rs/clap/latest/clap/error/struct.Error.html",
+            "https://doc.rust-lang.org/std/process/struct.ExitCode.html"
+          ],
+          "id": "cli-1"
+        },
+        {
+          "capability": "data",
+          "existing_contract": "Inventory configuration file locations, schema versions, defaults, permissions and old binaries' ability to read newer files.",
+          "coexistence": "Recommendation: read old config into a versioned internal model and migrate only through an explicit command with backup. Keep concurrent writer ownership explicit; read-only startup must not silently rewrite files.",
+          "target": "Recommendation: Serde-tagged/versioned configuration and documented unknown-field handling. Validate a temporary representation before replacing the live file; platform atomicity, permissions and crash behavior require implementation checks.",
+          "benefits": [
+            {
+              "benefit": "Explicit config migration decouples executable upgrades from accidental data loss.",
+              "prerequisites": "Old/new fixtures and semantic transforms exist; backup/restore works; unsupported versions fail before write.",
+              "tradeoffs": "Strict Serde unknown-field rejection can prevent mixed-version use; deny_unknown_fields does not compose with flatten; replacing a file is not a complete durability protocol."
+            }
+          ],
+          "checks": [
+            "Load old config and compare effective settings after migration.",
+            "Verify unsupported versions and malformed values leave the source unchanged.",
+            "Downgrade the binary with its preserved config and confirm paths/permissions on each target OS."
+          ],
+          "rollback": "Recommendation: restore the preserved old config and binary as a pair. Reconcile new-only fields before using an old reader; avoid destructive in-place downgrade guesses.",
+          "sources": [
+            "https://serde.rs/container-attrs.html"
+          ],
+          "id": "data-1"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Preserve ordering, per-item effects, timeout and interrupt semantics for batch/network subcommands.",
+          "coexistence": "Recommendation: retain sequential mode while qualifying bounded parallel work using dry-run/fixtures. Store item operation IDs and completion receipts before enabling resume against live systems.",
+          "target": "Recommendation: a bounded executor selected for CPU or async I/O with cooperative stop, tracked joins and cleanup. Started blocking work needs its own stop protocol or process boundary; do not label a task timeout as effect cancellation.",
+          "benefits": [
+            {
+              "benefit": "Bounded parallel execution can overlap independent work without unlimited task creation.",
+              "prerequisites": "Independent item semantics; capacity/budget limits; stable effect IDs; tested cancellation and resume contract.",
+              "tradeoffs": "Speed is unmeasured; running blocking tasks may continue; a cancelled remote write can have an ambiguous outcome."
+            }
+          ],
+          "checks": [
+            "Interrupt a batch and verify no new items start, joins are bounded and terminal state restores.",
+            "Simulate a remote success with a lost acknowledgement; resume reconciles rather than duplicating the effect.",
+            "Verify CPU tasks cannot starve I/O and the executor respects the declared capacity."
+          ],
+          "rollback": "Recommendation: use sequential mode with the same receipt format and reconcile unknown outcomes. A previous executable must be able to read checkpoint versions or an explicit converter is required.",
+          "sources": [
+            "https://tokio.rs/tokio/topics/shutdown",
+            "https://docs.rs/tokio/latest/tokio/task/fn.spawn_blocking.html",
+            "https://ratatui.rs/recipes/apps/panic-hooks/"
+          ],
+          "id": "jobs-1"
+        },
+        {
+          "capability": "operations",
+          "existing_contract": "Capture existing target triples, libc/native dependencies, install path, package metadata and update/downgrade contracts.",
+          "coexistence": "Recommendation: prepare dist artifacts beside the previous release; review generated CI and installers, and use a prerelease or test channel for target qualification. Do not promise all platforms merely because dist generates a matrix.",
+          "target": "Recommendation: pinned dist configuration and Cargo.lock with release artifacts/installers for exercised targets. Keep signing/attestation, system dependency baselines and update channel ownership explicit.",
+          "benefits": [
+            {
+              "benefit": "Generated release plans coordinate binary artifacts and installers across targets.",
+              "prerequisites": "dist version is pinned; generated workflow is reviewed; native dependencies and every advertised target are exercised.",
+              "tradeoffs": "dist init may replace generated workflows; OS signing and Linux libc compatibility remain separate obligations; a plan is not build/publication evidence."
+            }
+          ],
+          "checks": [
+            "Inspect dist plan --output-format=json for expected target triples and artifact names.",
+            "Install downloaded artifacts on clean target hosts, including the oldest promised Linux baseline.",
+            "Exercise upgrade/downgrade, PATH behavior, checksum verification and preserved versioned config."
+          ],
+          "rollback": "Recommendation: restore the previous verified package/update channel and retain older installers/checksums. Review data/config compatibility before allowing downgrade; never change a public channel based only on a plan.",
+          "sources": [
+            "https://axodotdev.github.io/cargo-dist/book/workspaces/simple-guide.html",
+            "https://axodotdev.github.io/cargo-dist/book/reference/config.html",
+            "https://doc.rust-lang.org/cargo/commands/cargo-build.html"
+          ],
+          "id": "operations-1"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.rs/clap/latest/clap/",
+          "title": "clap 4.6.7",
+          "claim": "Parser/derive command definition supports a typed command boundary."
+        },
+        {
+          "url": "https://docs.rs/clap/latest/clap/error/struct.Error.html",
+          "title": "clap errors",
+          "claim": "Usage errors generally print to stderr with code 2; help-like output uses stdout and success."
+        },
+        {
+          "url": "https://doc.rust-lang.org/std/process/struct.ExitCode.html",
+          "title": "Rust ExitCode",
+          "claim": "ExitCode can be returned by main; arbitrary numeric code meanings are platform-specific."
+        },
+        {
+          "url": "https://serde.rs/container-attrs.html",
+          "title": "Serde container attributes",
+          "claim": "deny_unknown_fields rejects unknown inputs and is incompatible with flatten; version policy is application-owned."
+        },
+        {
+          "url": "https://ratatui.rs/recipes/apps/panic-hooks/",
+          "title": "Ratatui panic hooks",
+          "claim": "Terminal restoration must be arranged around error/panic paths."
+        },
+        {
+          "url": "https://tokio.rs/tokio/topics/shutdown",
+          "title": "Tokio shutdown",
+          "claim": "Track/notify/await tasks for planned completion."
+        },
+        {
+          "url": "https://docs.rs/tokio/latest/tokio/task/fn.spawn_blocking.html",
+          "title": "Tokio blocking tasks",
+          "claim": "Started blocking tasks cannot be aborted; capacity is a separate concern."
+        },
+        {
+          "url": "https://axodotdev.github.io/cargo-dist/book/workspaces/simple-guide.html",
+          "title": "dist simple application guide",
+          "claim": "init generates config/workflows, can overwrite manual edits, and plan previews artifacts."
+        },
+        {
+          "url": "https://axodotdev.github.io/cargo-dist/book/reference/config.html",
+          "title": "dist configuration reference",
+          "claim": "Targets, installers and CI/download/update settings are configured explicitly."
+        },
+        {
+          "url": "https://doc.rust-lang.org/cargo/commands/cargo-build.html",
+          "title": "Cargo build",
+          "claim": "Locked and target-specific builds have defined semantics; build success is not target execution."
+        }
+      ]
+    },
+    {
+      "id": "python-scripts-workers",
+      "version_scope": "Python APIs: TaskGroup/asyncio.timeout require 3.11+; inspected /3 docs currently show 3.15.0. Use a supported minor compatible with selected SDKs and lock it; this does not recommend blindly upgrading to 3.15. Reviewed uv current guides, HTTPX current guides, Celery 5.6.3 task docs and Temporal Python guides. Resolve actual SDK versions in uv.lock before qualification.",
+      "operating_model": "Recommendation: a maintained package owns validated inputs, a run/effect ledger, a CLI result contract and a bounded execution loop. A short task may run directly under a scheduler; independent queued jobs fit Celery when broker semantics are qualified; long waits and restart recovery may justify Temporal workflows with external effects in Activities. A prompt, validated model output or log is not proof of a completed effect.",
+      "architecture": [
+        "Recommendation: separate parsing/validation, pure transformation, provider adapters and effects. Use deterministic fixtures/dry-run for decision logic, scoped injected credentials and stable operation IDs; do not place secrets or raw provider tokens in run payloads.",
+        "Recommendation: reuse HTTPX clients with explicit connect/read/write/pool timeouts and connection limits; add a total task deadline and bounded TaskGroup/semaphore or worker-queue execution. Connection limits alone do not bound all queued coroutines.",
+        "Recommendation: persist source cursor, input/schema version, effect intent and acknowledged result where restart matters. One-machine SQLite can own local state; shared workers need a chosen shared durable store and lease/ownership model. A checkpoint is not atomically committed with a remote email or payment.",
+        "Recommendation: in Temporal, deterministic Workflow code orchestrates Activities, waits and retries; Activities perform provider calls and heartbeat progress. In Celery, configure acknowledgement/redelivery and retry policy to the task's replay semantics. Avoid layering unbounded SDK, decorator and worker retries."
+      ],
+      "developer_workflow": [
+        "Recommendation: inspect existing scheduler, dependencies, input formats and receipts. For maintained local work, uv init --package worker-app creates a package; pin a supported Python minor, add SDK/validation dependencies and commit pyproject.toml plus uv.lock in the maintained source repository.",
+        "Recommendation: uv sync --locked, uv run ruff check ., uv run mypy src and uv run pytest require the corresponding dev tools configured/installed. Add fixtures for malformed provider/model output, permission failures, partial effects, ambiguous acknowledgements and resume.",
+        "Recommendation: define [project.scripts] for the package CLI and structured JSON results plus explicit success/usage/failure statuses. uv run --locked <entrypoint> uses the locked project; scheduler start, overlap policy, termination and resume command are deployment-owned choices.",
+        "Recommendation: for durable orchestration, uv add temporalio and implement Workflow/Activity/Worker components connected to a separately operated Temporal service. Replay representative histories with temporalio.worker.Replayer before workflow changes; test Activity heartbeat/cancellation and time-skipping integration flows.",
+        "Recommendation: use uv sync --locked --no-dev inside a reviewed container build, then record the actual entry point, writable state path, credential scopes and dependency/image pins. No scheduler, broker or Temporal integration was executed here."
+      ],
+      "avoid": [
+        "Avoid resuming by rerunning every input: a crash after remote success before checkpoint creates ambiguous effects and needs reconciliation or a provider idempotency key.",
+        "Avoid synchronous SDK calls in async execution; use a documented async client or bounded offload, with explicit cancellation limits.",
+        "Avoid swallowing CancelledError in TaskGroup work; cooperative cancellation depends on it being propagated after cleanup.",
+        "Avoid describing Celery late acknowledgement or a Temporal Workflow as exactly-once external effects. Application/provider idempotency remains necessary.",
+        "Avoid importing time/random/network behavior into deterministic Temporal Workflow code; move external I/O into Activities and replay-test changes."
+      ],
+      "transitions": [
+        {
+          "capability": "cli",
+          "existing_contract": "Capture old script arguments, environment/config precedence, file paths, exit codes and scheduler invocation behavior.",
+          "coexistence": "Recommendation: retain the old script as a thin entry point into an importable package while callers transition. Introduce structured output/version fields and an explicit noninteractive/dry-run mode without changing live side effects.",
+          "target": "Recommendation: uv package with pyproject.toml entry point, committed uv.lock and supported Python minor; JSON results on stdout, diagnostics on stderr, schema and status policy in the CLI documentation.",
+          "benefits": [
+            {
+              "benefit": "An importable locked package makes repeated automation easier to test and invoke consistently.",
+              "prerequisites": "Inputs/entry point/status are defined; compatible Python and SDKs are pinned; scheduler uses the same package build.",
+              "tradeoffs": "A lockfile does not fix provider behavior or scheduler overlap; deploy-time environment/credentials remain required."
+            }
+          ],
+          "checks": [
+            "Run old scheduler command against the package adapter and compare input/output/status.",
+            "Start from a clean locked environment and parse output without progress/log contamination.",
+            "Verify dry-run performs zero provider writes and reports the intended actions."
+          ],
+          "rollback": "Recommendation: restore the previous package/environment and command while preserving versioned run/checkpoint files. Keep the old entry point until every scheduler/caller is migrated.",
+          "sources": [
+            "https://docs.astral.sh/uv/guides/projects/",
+            "https://docs.astral.sh/uv/guides/integration/docker/"
+          ],
+          "id": "cli-1"
+        },
+        {
+          "capability": "data",
+          "existing_contract": "Identify source pagination/cursors, input revisions, item identifiers, partial outputs and acknowledged versus uncertain effects.",
+          "coexistence": "Recommendation: introduce a run/effect ledger alongside the old logs and compare reconciliation in fixture mode. Keep one active execution owner; migrate old checkpoints with source-input/version provenance.",
+          "target": "Recommendation: transactional SQLite checkpoint/receipt state for one host or an operated shared database for multiple workers. For exported files, validate temporary output then os.replace on the same filesystem; qualify sync/permissions separately.",
+          "benefits": [
+            {
+              "benefit": "Durable progress records allow targeted restart and investigation instead of blind replay.",
+              "prerequisites": "Stable item/effect IDs; checkpoint transactions; single writer or tested shared ownership; provider lookup/idempotency for uncertain effects.",
+              "tradeoffs": "A file/database commit cannot atomically commit a remote side effect; os.replace atomicity does not establish power-loss durability or cross-filesystem replacement."
+            }
+          ],
+          "checks": [
+            "Crash before effect, after remote success and after checkpoint; verify each resume decision.",
+            "Resume the same input and prove acknowledged effects are skipped or reconciled.",
+            "Interrupt export and verify a complete prior/new artifact; restore ledger from backup and compare cursor ownership."
+          ],
+          "rollback": "Recommendation: keep the ledger readable by the previous worker or convert it explicitly. Reconcile ambiguous remote outcomes before replay; reverting code cannot unsend a message or reverse a provider write.",
+          "sources": [
+            "https://docs.python.org/3/library/sqlite3.html",
+            "https://docs.python.org/3/library/os.html#os.replace"
+          ],
+          "id": "data-1"
+        },
+        {
+          "capability": "operations",
+          "existing_contract": "Preserve provider rate limits, retry budgets, total run deadline and cleanup/cancellation behavior; SDK inactivity timeout is not a whole-run deadline.",
+          "coexistence": "Recommendation: retain sequential mode, add shared HTTPX clients and explicit capacity, and compare fixture results before enabling concurrency. Use a bounded queue for large inputs rather than creating one task for every item.",
+          "target": "Recommendation: TaskGroup plus asyncio.timeout for operation lifetime, semaphore/worker limits for admission, HTTPX network timeouts and connection limits. Keep sync SDK work outside the event loop; cancellation of offloaded work needs a separate policy.",
+          "benefits": [
+            {
+              "benefit": "Bounded concurrency and total deadlines prevent unlimited waiting work and reduce abandoned I/O.",
+              "prerequisites": "Supported Python 3.11+; every provider adapter honors limits; aggregate retry budget and cancellation cleanup are configured.",
+              "tradeoffs": "Read timeout measures inactivity between chunks; cancelling a coroutine does not prove a server write was cancelled; throughput gains are unmeasured."
+            }
+          ],
+          "checks": [
+            "Slow streaming chunks beyond the total deadline while below read timeout; the whole operation still stops.",
+            "Overload input and verify active plus queued work remain bounded.",
+            "Cancel one task during provider I/O; TaskGroup cleanup closes clients and reports any ambiguous write."
+          ],
+          "rollback": "Recommendation: return to sequential execution with the same receipt IDs and retry budget. Resolve uncertain effects from provider state before retrying; retain operation deadlines.",
+          "sources": [
+            "https://docs.python.org/3/library/asyncio-task.html",
+            "https://docs.python.org/3/library/asyncio-sync.html",
+            "https://www.python-httpx.org/advanced/timeouts/",
+            "https://www.python-httpx.org/advanced/resource-limits/"
+          ],
+          "id": "operations-1"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Capture independent task payload versions, broker durability, acknowledgement timing, retries, dead-letter handling and scheduler overlap.",
+          "coexistence": "Recommendation: keep the old scheduler for unconverted tasks while routing selected task kinds into a qualified Celery queue. One scheduler/consumer owns each kind, and old backlog states remain accounted for.",
+          "target": "Recommendation: Celery for independent jobs, with idempotent task bodies, bounded worker concurrency, explicit retry/backoff and intentionally selected acknowledgement/worker-loss settings. Keep existing brokers when their guarantees satisfy the contract.",
+          "benefits": [
+            {
+              "benefit": "A qualified queue permits independent worker restart and retry for bounded jobs.",
+              "prerequisites": "Broker persistence/redelivery and payload mapping are tested; task effects are replay-safe; acknowledgement and worker-loss policy are deliberately configured.",
+              "tradeoffs": "Late acknowledgement alone does not guarantee redelivery for every child-process termination; Celery worker settings and broker behavior matter; duplicate execution remains possible."
+            }
+          ],
+          "checks": [
+            "Terminate the worker during a task and verify actual redelivery for the selected settings.",
+            "Lose acknowledgement after an external effect; retries must not duplicate the logical effect.",
+            "Drain or transform ready/delayed/retry/failed work before retiring the old scheduler/consumer."
+          ],
+          "rollback": "Recommendation: stop new producers, retain compatible workers for accepted tasks, and reroute only reconciled unstarted work. A scheduler rollback must not create a second schedule for the same task kind.",
+          "sources": [
+            "https://docs.celeryq.dev/en/stable/userguide/tasks.html"
+          ],
+          "id": "jobs-1",
+          "option_title": "Independent jobs with Celery"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Capture long-lived operation IDs, timer/human-wait behavior, provider effects and history/checkpoint schema before adopting durable orchestration.",
+          "coexistence": "Recommendation: keep old workflows running under their existing owner; start only newly routed operation IDs in Temporal. Keep provider calls in Activities and preserve effect IDs across retries. Do not duplicate a live run as a shadow test.",
+          "target": "Recommendation: Temporal Python Workflows/Activities with specified timeouts, heartbeats, replay tests and compatible worker deployments. Temporal service/visibility/history retention and operational ownership are prerequisites, not Python package installation side effects.",
+          "benefits": [
+            {
+              "benefit": "Persisted workflow history can resume orchestration across worker restarts and represent long waits.",
+              "prerequisites": "Temporal service and workers are operated; Workflow code is deterministic; Activity effects are idempotent/reconcilable; compatible histories pass replay.",
+              "tradeoffs": "Adds a service and history/versioning obligations; Activity retries may repeat effects; orchestration recovery is not automatic compensation of external changes."
+            }
+          ],
+          "checks": [
+            "Replay representative open and completed histories after code changes; fail promotion on nondeterminism.",
+            "Restart workers during timers and Activities; verify orchestration resumes and heartbeat/checkpoint behavior.",
+            "Crash after provider success before Activity completion; retry reconciles the stable effect ID."
+          ],
+          "rollback": "Recommendation: stop routing new IDs to the new workflow version and keep compatible workers servicing existing histories. Replay-test the rollback code; if incompatible, complete/version old executions rather than abandoning their state.",
+          "sources": [
+            "https://docs.temporal.io/develop/python/workflows/basics",
+            "https://docs.temporal.io/develop/python/activities/basics",
+            "https://docs.temporal.io/develop/python/activities/timeouts",
+            "https://docs.temporal.io/develop/python/best-practices/testing-suite",
+            "https://docs.temporal.io/activity-definition"
+          ],
+          "id": "jobs-2",
+          "option_title": "Recoverable multi-step workflows with Temporal"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://docs.astral.sh/uv/guides/projects/",
+          "title": "uv projects",
+          "claim": "Project/package entry points, lockfile-based execution and dependency management are documented."
+        },
+        {
+          "url": "https://docs.astral.sh/uv/guides/integration/docker/",
+          "title": "uv Docker",
+          "claim": "Locked/no-dev sync and build/runtime environment setup are explicit."
+        },
+        {
+          "url": "https://docs.python.org/3/library/sqlite3.html",
+          "title": "Python sqlite3",
+          "claim": "Transactions and persisted local state are available; transaction control and concurrency need deliberate configuration."
+        },
+        {
+          "url": "https://docs.python.org/3/library/os.html#os.replace",
+          "title": "Python os.replace",
+          "claim": "Replacement can be atomic on success and can fail across filesystems; sync/durability is separate."
+        },
+        {
+          "url": "https://docs.python.org/3/library/asyncio-task.html",
+          "title": "Python asyncio tasks",
+          "claim": "TaskGroup/timeout require 3.11+ and use cancellation; swallowing cancellation breaks structured behavior."
+        },
+        {
+          "url": "https://docs.python.org/3/library/asyncio-sync.html",
+          "title": "Python asyncio synchronization",
+          "claim": "Semaphore supports bounded task access and is not thread-safe."
+        },
+        {
+          "url": "https://www.python-httpx.org/advanced/timeouts/",
+          "title": "HTTPX timeouts",
+          "claim": "Connect/read/write/pool timeouts are separate; read timeout concerns waiting for chunks."
+        },
+        {
+          "url": "https://www.python-httpx.org/advanced/resource-limits/",
+          "title": "HTTPX resource limits",
+          "claim": "Connection and keepalive pool bounds are configurable."
+        },
+        {
+          "url": "https://docs.celeryq.dev/en/stable/userguide/tasks.html",
+          "title": "Celery 5.6.3 tasks",
+          "claim": "Idempotency, acknowledgements, retries and worker-loss behavior need explicit policy; late ack has exceptions."
+        },
+        {
+          "url": "https://docs.temporal.io/develop/python/workflows/basics",
+          "title": "Temporal Python Workflow basics",
+          "claim": "Workflow code must respect deterministic/replay constraints."
+        },
+        {
+          "url": "https://docs.temporal.io/develop/python/activities/basics",
+          "title": "Temporal Activity basics",
+          "claim": "Activity definitions and worker registration place external work outside deterministic Workflow code; idempotency has a separate concept source."
+        },
+        {
+          "url": "https://docs.temporal.io/develop/python/activities/timeouts",
+          "title": "Temporal Activity timeouts",
+          "claim": "Activity timeouts, retry policies and heartbeats support bounded/recoverable execution."
+        },
+        {
+          "url": "https://docs.temporal.io/develop/python/best-practices/testing-suite",
+          "title": "Temporal Python testing",
+          "claim": "Replay checks history compatibility; Activity and time-skipping environments support recovery testing."
+        },
+        {
+          "url": "https://docs.temporal.io/activity-definition",
+          "title": "Temporal Activity idempotency",
+          "claim": "Activities may execute more than once after an unreported completion; completed Activities are not rerun merely by Workflow replay. Provider idempotency keys are enforced by the called service."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+# Context routing endpoint
+
+`POST /route` accepts `Content-Type: application/json`. Use [context.schema.json](/context.schema.json) for field types and [selection-index.json](/selection-index.json) for exact profile IDs. Supply extracted requirements already known to the visiting agent. Omitted fields remain unknown; they are never assumed false in the response policy. Do not send conversation transcripts, source code, personal data or secrets.
+
+Example:
+
+```sh
+curl --json '{"goal":"choose","component":"web","realtime":true}' https://stack.menu/route
+```
+
+The response includes the selected journey (`choose`, `build`, `migrate`), direct resource links, curated candidates and explicit exclusions, contextual nudges, missing consequential questions and a handoff checklist. Candidates follow catalogue order; there is no ranking or winning recommendation. The agent should read finalists and reason about the actual requirements. When choosing, a live-session flag adds checks and suggests comparing Phoenix; it does not eliminate other frameworks or assert tested scale. When building with a chosen stack or an explicit migration target, the checks stay within those choices.
+
+Use `goal:auto` (or omit it) to build with an `existing_stack`, migrate when a `target_stack` is supplied, or choose otherwise. Explicit `choose` with `existing_stack` means the user has asked to reconsider it. `build` preserves a chosen stack; constraints prompt fit verification. `migrate` fetches source/target contracts and asks for missing inventory. A backend is selected separately from native/offline/static clients. Call the router once per component; for iOS plus Android, make one request for each native client and evaluate a shared backend separately. Explicit reconsideration with an existing stack links the baseline and migration contracts. Building preserves it even for live-session requirements; a mismatched component is a separate design question. A migration without a target asks for one; identical profile IDs prompt an installed-version/contract check instead of pretending a replacement is planned.
+
+`GET /route` describes the contract. A GET query supports the same fields (`?component=web&realtime=true`) for read-only tools; booleans must be literal `true` or `false`. Prefer POST for context because URLs can enter provider request logs. No user-agent detection, cookies, account, model call or application persistence is used.
+
+HTTP: 200 result/contract; 400 invalid JSON, unsupported values/fields or duplicate query fields; 413 body exceeds 16 KiB; 415 wrong media type; 405 unsupported method. Responses are JSON and no-store. HEAD returns headers without a body. On failure, read this schema, correct the field and retry; if POST is unavailable, follow [the static agent entry](/agents/guide.md) and selection workflow directly.
+
+This local implementation shares the same handler with the prepared Cloudflare Pages Function. A static download includes the full guides and policy; `/route` requires the local server or future Pages Function deployment.
+
+The endpoint serves agent HTTP clients and same-origin use. Cross-origin browser POST/OPTIONS is not supported; those clients can use the static guides. Repeated GET fields are rejected; duplicate keys in a JSON object follow the JSON parser’s last-value behavior, so send each field once.

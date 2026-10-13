@@ -1,0 +1,44 @@
+# Stack Menu
+
+Tools and guidance for choosing an application stack, building with a known stack and reconsidering an existing application. The primary reader is the user's agent. The small human page links to agent guidance, coverage and contact; demonstration media will follow when available.
+
+[Website](https://stack.menu/) · [Agent entry](https://stack.menu/llms.txt) · [Contact](https://stack.menu/contact/)
+
+## Start here
+
+- [Build and contribute](docs/website-workflow.md) — editable owners, local preview, direct checks and recovery.
+- [Implementation scope](docs/current-state.md) — supported behavior and evidence limits.
+- [Agent instructions](content/agent-entry.md) — navigation and contextual guidance.
+- [Routing contract](content/routing.md) — structured context and optional endpoint.
+- [Content inputs](menu/README.md) — dated snapshots, research freshness and attribution.
+- [Artwork and surface map](branding/README.md) — editable masters, generated exports and font licenses.
+
+## Local use
+
+Use Node 24 (minimum 22.12), npm 9.6.5+ and Python 3.9+:
+
+```sh
+npm ci
+npm run build
+npm run preview
+```
+
+Open `http://127.0.0.1:8770/`. The preview uses the same Pages middleware and route handler, with no analytics and an HTTP `noindex` header. Local agents can fetch `/llms.txt` directly. Remote agents need the public site or an attached `dist/llms-full.txt`.
+
+The site uses Astro static output and a small deterministic Cloudflare Pages Function for optional context routing. It has no embedded chatbot. Full HTML, Markdown and JSON guidance covers 14 curated profiles. Setup recipes and dependency combinations are documentation-reviewed; they are not universally integration-qualified.
+
+## Folder map
+
+| Folder | Contents |
+| --- | --- |
+| `content/` | Agent entry, contact facts, routing contract and Cookout example |
+| `menu/` | Profile summaries and dated research snapshots |
+| `src/` | Static routes, semantic layout, metadata and responsive styles |
+| `lib/`, `functions/` | Context routing and Markdown negotiation |
+| `public/` | Fonts/licenses, favicon and share-card exports |
+| `branding/` | Editable share artwork and source-to-surface mapping |
+| `scripts/` | Content compilation, representation generation and preview |
+| `docs/` | Contributor workflow and implementation scope |
+| `.generated/`, `dist/` | Disposable build inputs/output; rebuild rather than editing |
+
+Preserve imported Elixir Menu's Apache 2.0 [LICENSE](public/menu-assets/elixir-LICENSE.txt) and [NOTICE](public/menu-assets/elixir-NOTICE.txt). Repository code and editorial summaries use [Apache 2.0](LICENSE); preserve the [NOTICE](NOTICE) and [identity boundaries](BRANDING.md). Sources, review dates and gaps remain explicit in the guides.

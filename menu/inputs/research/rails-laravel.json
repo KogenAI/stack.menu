@@ -1,0 +1,549 @@
+[
+  {
+    "id": "rails-hotwire-postgresql",
+    "name": "Rails + Hotwire + PostgreSQL",
+    "use_cases": [
+      "SaaS",
+      "Business CRUD",
+      "Collaboration and workflow products"
+    ],
+    "choose_when": [
+      "An integrated monolith and server-owned UI fit the product.",
+      "A small team benefits from stable conventions and limited integration work."
+    ],
+    "avoid_when": [
+      "The core is an offline-first canvas or requires extensive browser-owned state.",
+      "Hard CPU/latency constraints justify a specialist service."
+    ],
+    "tools": [
+      {
+        "job": "UI",
+        "default": "ERB + Turbo + Stimulus",
+        "alternatives": "React client when browser-owned state dominates; retain Rails API",
+        "reason": "Server-rendered HTML and selective JavaScript limit duplicated UI state.",
+        "limits": "Do not force Hotwire onto rich offline editors.",
+        "source_urls": [
+          "https://hotwired.dev/"
+        ]
+      },
+      {
+        "job": "Database and migrations",
+        "default": "PostgreSQL + Active Record migrations",
+        "alternatives": "SQLite for deliberately single-host deployments",
+        "reason": "Relational constraints and conventional migrations fit business data.",
+        "limits": "Use unique/foreign-key constraints; assess locks and use expand/contract changes for rolling deploys.",
+        "source_urls": [
+          "https://guides.rubyonrails.org/active_record_migrations.html"
+        ]
+      },
+      {
+        "job": "Authentication",
+        "default": "Rails authentication generator",
+        "alternatives": "Devise when its additional authentication modules are needed",
+        "reason": "Generated local sessions plus explicit per-resource authorization.",
+        "limits": "Generator is a starting point; signup, authorization and account lifecycle require product decisions.",
+        "source_urls": [
+          "https://guides.rubyonrails.org/getting_started.html",
+          "https://github.com/varvet/pundit",
+          "https://github.com/heartcombo/devise"
+        ]
+      },
+      {
+        "job": "Authorization",
+        "default": "Pundit policy classes",
+        "alternatives": "Existing resource-level policy implementation; keep authentication separate",
+        "reason": "Generated local sessions plus explicit per-resource authorization.",
+        "limits": "Generator is a starting point; signup, authorization and account lifecycle require product decisions.",
+        "source_urls": [
+          "https://guides.rubyonrails.org/getting_started.html",
+          "https://github.com/varvet/pundit",
+          "https://github.com/heartcombo/devise"
+        ]
+      },
+      {
+        "job": "Jobs",
+        "default": "Active Job + Solid Queue",
+        "alternatives": "Another Active Job backend only for measured operational needs",
+        "reason": "Database-backed jobs avoid a mandatory separate broker.",
+        "limits": "Configure worker capacity, retry limits and idempotency; separate queue DB does not guarantee atomic app-write/enqueue.",
+        "source_urls": [
+          "https://guides.rubyonrails.org/active_job_basics.html"
+        ]
+      },
+      {
+        "job": "Tests",
+        "default": "Minitest + Rails integration/system tests",
+        "alternatives": "Keep RSpec in an established RSpec repository",
+        "reason": "Exercise authorization, database constraints and essential browser flows.",
+        "limits": "Browser tests need their driver/browser; unit tests alone miss UI and transaction races.",
+        "source_urls": [
+          "https://guides.rubyonrails.org/testing.html"
+        ]
+      },
+      {
+        "job": "Lint and security",
+        "default": "RuboCop + Brakeman + bundler-audit",
+        "alternatives": "Preserve existing compatible project tooling",
+        "reason": "Style, application scanning and dependency advisories cover different risks.",
+        "limits": "Scans do not establish security; test tenant isolation and unsafe uploads. bundler-audit has GPL-3.0 licensing.",
+        "source_urls": [
+          "https://guides.rubyonrails.org/getting_started.html",
+          "https://guides.rubyonrails.org/security.html",
+          "https://github.com/rubysec/bundler-audit"
+        ]
+      },
+      {
+        "job": "Deployment",
+        "default": "Kamal + generated Dockerfile + PostgreSQL backups",
+        "alternatives": "Managed container hosting when server operations are undesirable",
+        "reason": "Portable container deployment with application-owned configuration.",
+        "limits": "Requires registry/server credentials and persistent data strategy; backups and restore drills remain operator work.",
+        "source_urls": [
+          "https://kamal-deploy.org/docs/installation/",
+          "https://guides.rubyonrails.org/getting_started.html"
+        ]
+      },
+      {
+        "job": "Agent tooling",
+        "default": "Generators + routes/schema/test feedback + version-matched Rails guides",
+        "alternatives": "Add only a reviewed MCP integration with a concrete need",
+        "reason": "Conventions make edits easier to locate and verify.",
+        "limits": "Agent productivity is an inference; no cross-framework coding-success benchmark established.",
+        "source_urls": [
+          "https://rubyonrails.org/ai"
+        ]
+      },
+      {
+        "job": "Licensing and hosting",
+        "default": "Rails MIT; self-hostable",
+        "alternatives": "Paid infrastructure/support when operationally useful",
+        "reason": "No mandatory proprietary Rails hosting service.",
+        "limits": "Dependency licenses remain separate; do not infer all gems are MIT.",
+        "source_urls": [
+          "https://github.com/rails/rails/blob/main/MIT-LICENSE"
+        ]
+      },
+      {
+        "job": "Transactional email",
+        "default": "Action Mailer",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Framework mailers integrate templates and queued delivery",
+        "limits": "Configure provider transport and sender; use deliver_later when delivery must be queued; test content and failure behavior. Provider acceptance is not inbox delivery.",
+        "source_urls": [
+          "https://guides.rubyonrails.org/action_mailer_basics.html"
+        ]
+      },
+      {
+        "job": "Uploads and object storage",
+        "default": "Active Storage",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Framework attachments support external storage and direct uploads",
+        "limits": "Run the installed-version Active Storage generator/migrations; configure private storage, authorization, limits and cleanup. Public blob URLs and user-supplied files need an explicit access policy.",
+        "source_urls": [
+          "https://guides.rubyonrails.org/active_storage_overview.html"
+        ]
+      },
+      {
+        "job": "Realtime transport",
+        "default": "Action Cable",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Rails channels integrate WebSocket messages with application code",
+        "limits": "Configure chosen cable adapter and connection/channel authorization; test reconnect, revoked membership and host proxy behavior. Broadcast is not durable event history.",
+        "source_urls": [
+          "https://guides.rubyonrails.org/action_cable_overview.html"
+        ]
+      }
+    ],
+    "setup_steps": [
+      "Start in a source directory in a local development workspace with supported Ruby/Rails, PostgreSQL and Git installed; choose and record compatible versions before generation.",
+      "Run rails new product -d postgresql; enter product; configure development/test database access without committing credentials.",
+      "Run bin/rails generate authentication; add Pundit via bundle add pundit and run bin/rails generate pundit:install; implement signup and resource policies deliberately.",
+      "Run bin/rails db:prepare; start bin/rails server. Configure Solid Queue from the installed-version guide and run its worker with bin/jobs when enabled.",
+      "Add bundler-audit to the development group if absent; preserve Gemfile.lock. Define authorization, duplicate-job and migration tests.",
+      "Prepare config/deploy.yml, secrets, database persistence and backup/restore procedure. Only in an authorized deployment run bundle exec kamal setup initially or bundle exec kamal deploy thereafter."
+    ],
+    "verification_commands": [
+      "ruby --version",
+      "bundle exec rails --version",
+      "bin/rails db:migrate:status",
+      "bin/rails zeitwerk:check",
+      "bin/rails test",
+      "bin/rails test:system",
+      "bin/rubocop",
+      "bin/brakeman",
+      "bundle exec bundler-audit check --update"
+    ],
+    "evidence_status": "documentation-reviewed",
+    "open_questions": [
+      "Which signup, SSO/MFA and resource authorization policies are required?",
+      "Does the product fit server-owned screens or need substantial offline/client state?",
+      "Which host, mail/storage services, worker throughput and restore requirements apply?"
+    ],
+    "sources": [
+      {
+        "url": "https://hotwired.dev/",
+        "title": "Hotwire: HTML Over The Wire",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://guides.rubyonrails.org/active_record_migrations.html",
+        "title": "Active Record Migrations",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://guides.rubyonrails.org/getting_started.html",
+        "title": "Getting Started with Rails",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/varvet/pundit",
+        "title": "Pundit README",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/heartcombo/devise",
+        "title": "Devise README",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://guides.rubyonrails.org/active_job_basics.html",
+        "title": "Active Job Basics",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://guides.rubyonrails.org/testing.html",
+        "title": "Testing Applications",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://guides.rubyonrails.org/security.html",
+        "title": "Securing Rails Applications",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/rubysec/bundler-audit",
+        "title": "bundler-audit README and license",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://kamal-deploy.org/docs/installation/",
+        "title": "Kamal Installation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://rubyonrails.org/ai",
+        "title": "Rails and AI",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/rails/rails/blob/main/MIT-LICENSE",
+        "title": "Rails MIT License",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://guides.rubyonrails.org/action_mailer_basics.html",
+        "title": "Rails Action Mailer",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://guides.rubyonrails.org/active_storage_overview.html",
+        "title": "Rails Active Storage",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://guides.rubyonrails.org/action_cable_overview.html",
+        "title": "Rails Action Cable",
+        "checked_date": "2026-10-10"
+      }
+    ]
+  },
+  {
+    "id": "laravel-livewire-postgresql",
+    "name": "Laravel + Livewire + PostgreSQL",
+    "use_cases": [
+      "SaaS",
+      "Administrative and business applications",
+      "Server-driven interactive products"
+    ],
+    "choose_when": [
+      "PHP team or Laravel ecosystem fit is strong.",
+      "Integrated auth, queues and concrete agent inspection tools reduce assembly work."
+    ],
+    "avoid_when": [
+      "The UI fundamentally requires an offline/client-state architecture; use the Inertia alternative if Laravel still fits.",
+      "A hosting plan cannot operate needed queue workers or scheduled jobs."
+    ],
+    "tools": [
+      {
+        "job": "UI",
+        "default": "Official Livewire starter kit + Blade/Tailwind",
+        "alternatives": "Official React/Vue/Svelte Inertia kits for heavier client interactions",
+        "reason": "One supported starter establishes coherent UI/auth integration.",
+        "limits": "Starter includes Flux; distinguish its free components from paid Pro assets.",
+        "source_urls": [
+          "https://laravel.com/framework/docs/13.x/starter-kits",
+          "https://fluxui.dev/pricing"
+        ]
+      },
+      {
+        "job": "Database and migrations",
+        "default": "PostgreSQL + Eloquent + Laravel migrations",
+        "alternatives": "SQLite for local/small deployments; existing MySQL where operationally established",
+        "reason": "Conventional ORM and migrations with a production relational store.",
+        "limits": "Use constraints; production-engine integration tests; never use migrate:fresh against retained data.",
+        "source_urls": [
+          "https://laravel.com/framework/docs/13.x/database",
+          "https://laravel.com/framework/docs/13.x/migrations"
+        ]
+      },
+      {
+        "job": "Authentication",
+        "default": "Starter-kit Fortify auth",
+        "alternatives": "WorkOS starter variant for managed identity requirements",
+        "reason": "Existing authentication flow plus resource-level authorization.",
+        "limits": "Policies remain application work; managed identity adds external terms/cost.",
+        "source_urls": [
+          "https://laravel.com/framework/docs/13.x/starter-kits",
+          "https://laravel.com/framework/docs/13.x/authorization"
+        ]
+      },
+      {
+        "job": "Authorization",
+        "default": "Laravel policies and gates",
+        "alternatives": "Existing explicit resource-level authorization implementation; identity providers still require policies",
+        "reason": "Existing authentication flow plus resource-level authorization.",
+        "limits": "Policies remain application work; managed identity adds external terms/cost.",
+        "source_urls": [
+          "https://laravel.com/framework/docs/13.x/starter-kits",
+          "https://laravel.com/framework/docs/13.x/authorization"
+        ]
+      },
+      {
+        "job": "Queues",
+        "default": "Laravel database queue + supervised workers",
+        "alternatives": "Redis + Horizon for queue dashboards/balancing; SQS for an established managed queue",
+        "reason": "Simple starting infrastructure with explicit scale-up options.",
+        "limits": "Use after-commit dispatch, idempotent jobs, finite retries and worker restarts. Horizon requires Redis.",
+        "source_urls": [
+          "https://laravel.com/framework/docs/13.x/queues",
+          "https://laravel.com/framework/docs/13.x/horizon"
+        ]
+      },
+      {
+        "job": "Tests",
+        "default": "Pest or PHPUnit from starter; Dusk for key browser flows",
+        "alternatives": "Keep the existing test runner rather than changing syntax for its own sake",
+        "reason": "Application and browser verification complement each other.",
+        "limits": "Use a dedicated test database and install Dusk only in development.",
+        "source_urls": [
+          "https://laravel.com/framework/docs/13.x/testing",
+          "https://laravel.com/framework/docs/13.x/dusk"
+        ]
+      },
+      {
+        "job": "Lint, static analysis and security",
+        "default": "Pint + Larastan/PHPStan + Composer audit",
+        "alternatives": "Existing equivalent tooling if already maintained",
+        "reason": "Formatting, static checks and dependency advisory checks expose different failures.",
+        "limits": "Install a compatible Larastan version and configure its extension; no audit substitutes for authorization tests.",
+        "source_urls": [
+          "https://laravel.com/framework/docs/13.x/pint",
+          "https://github.com/larastan/larastan",
+          "https://getcomposer.org/doc/03-cli.md#audit"
+        ]
+      },
+      {
+        "job": "Deployment",
+        "default": "PHP-FPM web service + worker supervisor + scheduler on chosen host",
+        "alternatives": "Laravel Cloud for managed operation; Forge for server management",
+        "reason": "A conventional process model is a practical default.",
+        "limits": "Serve only public/; APP_DEBUG=false; persist uploads; reload workers after releases; paid platforms are optional.",
+        "source_urls": [
+          "https://laravel.com/framework/docs/13.x/deployment"
+        ]
+      },
+      {
+        "job": "Agent tooling",
+        "default": "Laravel Boost development dependency",
+        "alternatives": "Normal CLI/docs when MCP is unavailable",
+        "reason": "Version-aware documentation and route/schema/log inspection provide concrete context.",
+        "limits": "Tools can execute application code; use development credentials and honor maintained repository instructions. A README-only integration is an optional project policy; inspect installed Boost help before opting out of generated instructions.",
+        "source_urls": [
+          "https://laravel.com/framework/docs/13.x/ai"
+        ]
+      },
+      {
+        "job": "Licensing and hosting",
+        "default": "Laravel framework MIT; self-hostable",
+        "alternatives": "Optional paid Flux Pro and managed services",
+        "reason": "Framework use does not mandate a hosting subscription.",
+        "limits": "Check each optional asset/package/service license separately.",
+        "source_urls": [
+          "https://github.com/laravel/framework/blob/13.x/LICENSE.md",
+          "https://fluxui.dev/pricing"
+        ]
+      },
+      {
+        "job": "Transactional email",
+        "default": "Laravel Mail",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Mailables and queue integration keep delivery in application conventions",
+        "limits": "Configure the selected mailer and verified sender; use queued mail where required, after-commit handling and failed-job monitoring. Provider acceptance is not inbox delivery.",
+        "source_urls": [
+          "https://laravel.com/framework/docs/13.x/mail"
+        ]
+      },
+      {
+        "job": "Uploads and object storage",
+        "default": "Laravel Storage / Flysystem",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Storage disks support private local or S3-backed files",
+        "limits": "Configure filesystems.php; install the selected adapter only, authorize downloads and uploads, define size/type limits and retention. Ephemeral deploy disks are not durable shared storage.",
+        "source_urls": [
+          "https://laravel.com/framework/docs/13.x/filesystem"
+        ]
+      },
+      {
+        "job": "Realtime transport",
+        "default": "Laravel broadcasting + Reverb when self-hosted sockets are required",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Private channels integrate realtime application events",
+        "limits": "Use the installed broadcasting setup; configure Echo, channel authorization, queued events and a supervised Reverb process. Verify TLS/proxy/scaling and reconnect; broadcast is not durable replay.",
+        "source_urls": [
+          "https://laravel.com/framework/docs/13.x/broadcasting"
+        ]
+      }
+    ],
+    "setup_steps": [
+      "Start in a local development workspace with a supported PHP/Composer runtime, PostgreSQL, Node/npm and Git. Resolve actual package compatibility; Boost minimums do not define Laravel minimums.",
+      "Install installer if needed with composer global require laravel/installer; run laravel new product and choose Livewire, PostgreSQL and the desired test runner; enter product.",
+      "Configure .env database/mail/queue settings and confirm application key generation; do not commit secrets. Run php artisan migrate against the intended development database.",
+      "Run npm install then npm run build; run composer run dev. Configure a supervised queue worker and scheduler separately for production.",
+      "Add composer require laravel/boost --dev; inspect installed boost:install help and configure the selected integration. Honor generated guidance unless the repository explicitly chooses README-only instructions; inspect available installer options or configure MCP manually for that policy.",
+      "Add compatible Larastan as a dev dependency and configure phpstan.neon using its guide. For browser tests add laravel/dusk as a dev dependency then run php artisan dusk:install.",
+      "Prepare an authorized release: install locked production dependencies, build assets, review migrations, run php artisan optimize, and reload supervised services. Confirm backup/restore and rollback compatibility before production migration."
+    ],
+    "verification_commands": [
+      "php --version",
+      "composer check-platform-reqs",
+      "php artisan about",
+      "php artisan migrate:status",
+      "php artisan test",
+      "php artisan dusk",
+      "vendor/bin/pint --test",
+      "vendor/bin/phpstan analyse",
+      "composer audit",
+      "npm run build"
+    ],
+    "evidence_status": "documentation-reviewed",
+    "open_questions": [
+      "Which starter-kit features and paid UI components are actually required?",
+      "Which identity and per-resource authorization policies must be supported?",
+      "Which host, mail/storage providers, realtime capacity and worker/scheduler operation will own production?"
+    ],
+    "sources": [
+      {
+        "url": "https://laravel.com/framework/docs/13.x/starter-kits",
+        "title": "Laravel Starter Kits",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://fluxui.dev/pricing",
+        "title": "Flux Pricing and Component Tiers",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://laravel.com/framework/docs/13.x/database",
+        "title": "Laravel Database: Getting Started",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://laravel.com/framework/docs/13.x/migrations",
+        "title": "Laravel Database Migrations",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://laravel.com/framework/docs/13.x/authorization",
+        "title": "Laravel Authorization",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://laravel.com/framework/docs/13.x/queues",
+        "title": "Laravel Queues",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://laravel.com/framework/docs/13.x/horizon",
+        "title": "Laravel Horizon",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://laravel.com/framework/docs/13.x/testing",
+        "title": "Testing Applications",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://laravel.com/framework/docs/13.x/dusk",
+        "title": "Laravel Dusk",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://laravel.com/framework/docs/13.x/pint",
+        "title": "Laravel Pint",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/larastan/larastan",
+        "title": "Larastan README",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://getcomposer.org/doc/03-cli.md#audit",
+        "title": "Composer CLI: Audit",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://laravel.com/framework/docs/13.x/deployment",
+        "title": "Laravel Deployment",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://laravel.com/framework/docs/13.x/ai",
+        "title": "AI Assisted Development",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/laravel/framework/blob/13.x/LICENSE.md",
+        "title": "Laravel Framework MIT License",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://laravel.com/framework/docs/13.x/mail",
+        "title": "Laravel Mail",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://laravel.com/framework/docs/13.x/filesystem",
+        "title": "Laravel file storage",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://laravel.com/framework/docs/13.x/broadcasting",
+        "title": "Laravel broadcasting",
+        "checked_date": "2026-10-10"
+      }
+    ]
+  }
+]

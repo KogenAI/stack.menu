@@ -1,0 +1,391 @@
+[
+  {
+    "id": "elixir-phoenix-liveview",
+    "name": "Elixir: Phoenix + LiveView + Ecto/PostgreSQL, with Oban when needed",
+    "use_cases": [
+      "Connected browser products and portals",
+      "Real-time collaboration interfaces",
+      "JSON APIs for native clients",
+      "Durable application background work"
+    ],
+    "choose_when": [
+      "Server-owned state and business rules dominate a connected product.",
+      "Phoenix conventions and OTP process lifecycles match the service requirements.",
+      "A relational store can also support durable background jobs."
+    ],
+    "avoid_when": [
+      "The main deliverable is a platform-native mobile UI or offline-first client.",
+      "The application depends on a library, accelerator or vendor SDK unsupported by the intended Elixir deployment.",
+      "A small static site, simple script or CLI does not need a running web application."
+    ],
+    "tools": [
+      {
+        "job": "Web application",
+        "default": "Phoenix + its generated HTTP/asset defaults",
+        "alternatives": [
+          "Phoenix API-only",
+          "Plain supervised Mix application for non-web services"
+        ],
+        "reason": "Coherent routing, contexts and generated application structure.",
+        "limits": "Phoenix is unnecessary for a CLI or a service without HTTP; preserve existing architecture.",
+        "source_urls": [
+          "https://hexdocs.pm/phoenix/Mix.Tasks.Phx.New.html",
+          "https://hexdocs.pm/phoenix/json_and_apis.html"
+        ]
+      },
+      {
+        "job": "Dependency documentation and agent guidance",
+        "default": "usage_rules for selected dependency guidance",
+        "alternatives": [
+          "Installed-version HexDocs and maintained repository guidance"
+        ],
+        "reason": "Discover dependency documentation and synchronize selected upstream usage rules for agents",
+        "limits": "Development-only tool; inspect installed-version options and review generated content. Preserve Phoenix-generated guidance by default. An explicit README-only repository may configure file: \"docs/dependency-rules.md\" in mix.exs and link it from README; this destination is an optional project convention, not an upstream default.",
+        "source_urls": [
+          "https://hexdocs.pm/usage_rules/readme.html",
+          "https://hexdocs.pm/usage_rules/Mix.Tasks.UsageRules.Sync.html"
+        ]
+      },
+      {
+        "job": "Browser UI",
+        "default": "LiveView + HEEx components",
+        "alternatives": [
+          "Server-rendered Phoenix HTML",
+          "JavaScript hooks for isolated client behavior",
+          "Separate TypeScript browser application over Phoenix APIs"
+        ],
+        "reason": "Shared server-side business operations and interactive screens suit connected forms, portals and collaboration.",
+        "limits": "Offline-first state, high-frequency local interactions and rich canvas editors can justify a dedicated client. LiveView does not remove HTML/CSS or all JavaScript.",
+        "source_urls": [
+          "https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html",
+          "https://hexdocs.pm/phoenix_live_view/js-interop.html",
+          "https://hexdocs.pm/phoenix/json_and_apis.html"
+        ]
+      },
+      {
+        "job": "Shared relational persistence",
+        "default": "Ecto + PostgreSQL",
+        "alternatives": [
+          "Another Ecto adapter when an actual persistence requirement warrants it"
+        ],
+        "reason": "Explicit queries, changesets and database transactions fit shared application data.",
+        "limits": "Changeset validation is not a replacement for database constraints or authorization; database operations and migrations need operational ownership. Current Ecto documentation deprecates Repo.transaction/2 in favor of Repo.transact/2. Follow the installed-version API and callback/result semantics; do not mechanically rename an existing transaction without tests.",
+        "source_urls": [
+          "https://hexdocs.pm/ecto/Ecto.html",
+          "https://hexdocs.pm/ecto/Ecto.Repo.html#c:transact/2"
+        ]
+      },
+      {
+        "job": "Accounts and access control",
+        "default": "phx.gen.auth + scoped context authorization",
+        "alternatives": [
+          "External identity integration for SSO requirements"
+        ],
+        "reason": "Generated first-party authentication keeps application-owned code; contexts authorize operations.",
+        "limits": "Check permission both on mount/navigation and each operation. Test revoked access and reconnect behavior; magic-link delivery needs a configured mail provider.",
+        "source_urls": [
+          "https://hexdocs.pm/phoenix/mix_phx_gen_auth.html",
+          "https://hexdocs.pm/phoenix_live_view/security-model.html"
+        ]
+      },
+      {
+        "job": "Durable background work",
+        "default": "Oban with the existing Ecto/PostgreSQL database",
+        "alternatives": [
+          "Another supported Oban SQL engine after engine-specific qualification; retain the existing datastore when it meets requirements"
+        ],
+        "reason": "Persist jobs and enqueue alongside domain changes in one transaction.",
+        "limits": "Task is only for explicitly disposable work and does not satisfy crash-durable delivery. Oban engine support and guarantees must be checked against the selected version; Redis is not a shipped Oban persistence engine. Oban Pro is an optional licensed extension, not a replacement for persistence.",
+        "source_urls": [
+          "https://hexdocs.pm/oban/Oban.html",
+          "https://hexdocs.pm/oban/testing.html"
+        ]
+      },
+      {
+        "job": "Behavior and persistence tests",
+        "default": "ExUnit + Ecto SQL Sandbox + LiveViewTest",
+        "alternatives": [
+          "Oban.Testing when jobs exist"
+        ],
+        "reason": "Test contexts, data invariants, denied access and server-side UI behavior.",
+        "limits": "LiveViewTest does not establish browser JavaScript, accessibility or visual correctness. Inline/manual job tests are not a production recovery simulation.",
+        "source_urls": [
+          "https://hexdocs.pm/ex_unit/ExUnit.html",
+          "https://hexdocs.pm/ecto_sql/Ecto.Adapters.SQL.Sandbox.html",
+          "https://hexdocs.pm/phoenix_live_view/Phoenix.LiveViewTest.html",
+          "https://hexdocs.pm/oban/testing.html"
+        ]
+      },
+      {
+        "job": "Real-browser checks",
+        "default": "PhoenixTest.Playwright for critical browser flows",
+        "alternatives": [
+          "A separately maintained Playwright suite"
+        ],
+        "reason": "Exercise hooks, navigation, reconnects and actual browser behavior omitted by server-side tests.",
+        "limits": "Adds Node/package-manager/browser binaries and sandbox configuration; verify supported wrapper features. It is an editorial extension, not a Phoenix generator default.",
+        "source_urls": [
+          "https://hexdocs.pm/phoenix_test_playwright/readme.html",
+          "https://hexdocs.pm/phoenix_live_view/Phoenix.LiveViewTest.html"
+        ]
+      },
+      {
+        "job": "Code quality",
+        "default": "Mix formatter and compiler warnings; Credo when selected",
+        "alternatives": [
+          "Dialyxir for additional success-typing analysis"
+        ],
+        "reason": "Fast local feedback plus consistency checks; select checks appropriate to project size.",
+        "limits": "Static analysis does not prove domain correctness. Dialyxir adds analysis/PLT maintenance and is not a mandatory starter dependency.",
+        "source_urls": [
+          "https://hexdocs.pm/credo/overview.html",
+          "https://hexdocs.pm/dialyxir/readme.html"
+        ]
+      },
+      {
+        "job": "Security checks",
+        "default": "Hex audit + Sobelow, alongside permission tests",
+        "alternatives": [],
+        "reason": "Hex reports retired packages and known advisories; Sobelow finds common risky code patterns.",
+        "limits": "Use the installed Hex version’s behavior. Scan findings need review; configure a non-zero Sobelow exit threshold and do not blanket-suppress findings. Neither proves the application secure.",
+        "source_urls": [
+          "https://hexdocs.pm/hex/Mix.Tasks.Hex.Audit.html",
+          "https://hexdocs.pm/sobelow/readme.html",
+          "https://hexdocs.pm/phoenix_live_view/security-model.html"
+        ]
+      },
+      {
+        "job": "Deployment",
+        "default": "Mix release + runtime configuration",
+        "alternatives": [
+          "Containerized release when the host benefits"
+        ],
+        "reason": "Package application and runtime with explicit migration/server entry points.",
+        "limits": "Build for the target OS/architecture and native libraries. Host choice, secrets, migrations, TLS, backups, restore and rollback remain separate responsibilities.",
+        "source_urls": [
+          "https://hexdocs.pm/phoenix/releases.html"
+        ]
+      },
+      {
+        "job": "Native mobile client boundary",
+        "default": "Platform-native clients consuming Phoenix APIs",
+        "alternatives": [
+          "Evaluate LiveView Native separately for an explicitly suitable connected client"
+        ],
+        "reason": "Preserve native UI/platform ownership while sharing server-side domain operations.",
+        "limits": "Do not advertise Elixir as a complete native mobile default: LiveView Native’s inspected README uses release-candidate dependencies and platform-specific clients. Validate target support, offline behavior, accessibility and signing independently.",
+        "source_urls": [
+          "https://hexdocs.pm/phoenix/json_and_apis.html",
+          "https://github.com/liveview-native/live_view_native"
+        ]
+      },
+      {
+        "job": "Project instructions",
+        "default": "README navigation + generated Phoenix agent guidance",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Keep generated stack conventions available to coding agents",
+        "limits": "Preserve maintained repository rules; --no-agents-md is an optional project choice, not the Phoenix default.",
+        "source_urls": [
+          "https://hexdocs.pm/phoenix/Mix.Tasks.Phx.New.html"
+        ]
+      },
+      {
+        "job": "Transactional email",
+        "default": "Swoosh + selected provider adapter",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Mailer adapters and test delivery fit generated Phoenix account flows",
+        "limits": "Configure adapter/client dependencies and sender credentials; keep test/local adapters in development only. Use Oban for required queued delivery; a Task has no durable retry guarantee.",
+        "source_urls": [
+          "https://hexdocs.pm/swoosh/Swoosh.html"
+        ]
+      },
+      {
+        "job": "Uploads",
+        "default": "LiveView uploads",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Built-in upload configuration and consumption fit connected forms",
+        "limits": "Configure allow_upload limits and authorize attachment association; persist consumed files before temp cleanup. External storage integration and content validation remain application work.",
+        "source_urls": [
+          "https://hexdocs.pm/phoenix_live_view/uploads.html"
+        ]
+      },
+      {
+        "job": "Realtime application events",
+        "default": "Phoenix.PubSub",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Local/distributed publication updates connected views and channels",
+        "limits": "Supervise PubSub and subscribe to scoped topics; authorize each subscription/action and test reconnect. PubSub is transient broadcast, not durable replay or a message queue.",
+        "source_urls": [
+          "https://hexdocs.pm/phoenix_pubsub/Phoenix.PubSub.html"
+        ]
+      }
+    ],
+    "setup_steps": [
+      "Read README.md, mix.exs, mix.lock and runtime pins; preserve existing applications. This is a recipe, not executed setup evidence.",
+      "For a new project, choose an empty source directory in a local development workspace. Check elixir --version, mix --version, mix phx.new --version and actual PostgreSQL connectivity; install only missing prerequisites using official instructions.",
+      "Resolve and record a compatible Elixir/OTP pair and Phoenix generator. Generate with mix phx.new my_app --database postgres; honor generated guidance. Use --no-agents-md only when the repository explicitly adopts a README-only instruction policy.",
+      "If dependency guidance synchronization is useful, add usage_rules as a development dependency, configure selected rules in mix.exs and review mix usage_rules.sync output. Honor generated Phoenix guidance; configure an alternate file only for an explicit repository policy.",
+      "Enter my_app; configure development database credentials outside committed secrets; inspect and run mix setup. For API-only creation use the documented --no-html --no-assets options instead.",
+      "If accounts are required, run mix phx.gen.auth Accounts User users --live, then mix deps.get and mix ecto.migrate; review generated instructions and email setup.",
+      "If jobs are required, follow the installed Oban installation/migration instructions, supervise Oban and configure bounded queues; write idempotent workers and tests.",
+      "Add selected development/test checks only. For PhoenixTest.Playwright install its JS dependency and matching browsers, configure test endpoint and SQL sandbox as documented.",
+      "Run the checks below and actual browser flows. Fix failures in place, retaining logs; never regenerate over work to hide a failure.",
+      "For deployment qualification, follow Phoenix releases: generate release helpers, compile production assets and build a target-compatible release. Rehearse migration, startup, reconnect, job retry and backup/restore on the selected host before claiming production readiness.",
+      "Completion: record exact versions, lockfile, checks and observed flows in README-linked evidence; report untested deployment/mobile paths explicitly."
+    ],
+    "verification_commands": [
+      "mix hex.audit",
+      "mix format --check-formatted",
+      "mix compile --warnings-as-errors",
+      "mix test",
+      "mix credo --strict  # only after installing/configuring Credo",
+      "mix sobelow --strict --exit low  # only after installing/configuring Sobelow; review findings",
+      "mix dialyzer  # optional, after Dialyxir/PLT configuration",
+      "mix phx.server  # interactive smoke check, not an automated assertion",
+      "MIX_ENV=prod mix assets.deploy  # release qualification, after production prerequisites",
+      "MIX_ENV=prod mix release  # after release configuration; not deployment proof"
+    ],
+    "evidence_status": "documentation-reviewed",
+    "sources": [
+      {
+        "url": "https://hexdocs.pm/phoenix/Mix.Tasks.Phx.New.html",
+        "title": "Phoenix application generator",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html",
+        "title": "Phoenix LiveView",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/phoenix_live_view/js-interop.html",
+        "title": "LiveView JavaScript interoperability",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/ecto/Ecto.html",
+        "title": "Ecto",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/phoenix/mix_phx_gen_auth.html",
+        "title": "Phoenix authentication generator",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/phoenix_live_view/security-model.html",
+        "title": "LiveView security model",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/oban/Oban.html",
+        "title": "Oban",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/oban/testing.html",
+        "title": "Oban testing",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/ex_unit/ExUnit.html",
+        "title": "ExUnit",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/phoenix_live_view/Phoenix.LiveViewTest.html",
+        "title": "LiveViewTest",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/ecto_sql/Ecto.Adapters.SQL.Sandbox.html",
+        "title": "Ecto SQL Sandbox",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/phoenix_test_playwright/readme.html",
+        "title": "PhoenixTest.Playwright",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/credo/overview.html",
+        "title": "Credo",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/dialyxir/readme.html",
+        "title": "Dialyxir",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/sobelow/readme.html",
+        "title": "Sobelow",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/hex/Mix.Tasks.Hex.Audit.html",
+        "title": "Hex dependency audit",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/phoenix/releases.html",
+        "title": "Phoenix releases",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/phoenix/json_and_apis.html",
+        "title": "Phoenix JSON and APIs",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/liveview-native/live_view_native",
+        "title": "LiveView Native source README",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/swoosh/Swoosh.html",
+        "title": "Swoosh",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/phoenix_live_view/uploads.html",
+        "title": "LiveView uploads",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/phoenix_pubsub/Phoenix.PubSub.html",
+        "title": "Phoenix PubSub",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/usage_rules/readme.html",
+        "title": "usage_rules README",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/usage_rules/Mix.Tasks.UsageRules.Sync.html",
+        "title": "usage_rules sync task",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://hexdocs.pm/ecto/Ecto.Repo.html#c:transact/2",
+        "title": "Ecto current transaction API and semantics",
+        "checked_date": "2026-10-13"
+      }
+    ],
+    "open_questions": [
+      "Does the product fit connected server-owned UI, or need a separate offline/native client?",
+      "Which account/tenant permissions and email recovery requirements apply?",
+      "Which work needs durable retries and duplicate-effect protection?",
+      "Which host, object storage, observability and backup/restore requirements apply?"
+    ]
+  }
+]

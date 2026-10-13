@@ -1,0 +1,599 @@
+{
+  "reviewed": "2026-10-11",
+  "status": "Choose and configure each library against its installed-version documentation.",
+  "instruction": "Select an optional tool only when the application's requirements match its use case. Explain the selection, check compatibility with the project's lockfile, and follow its installed-version documentation. Do not install the whole menu.",
+  "groups": [
+    {
+      "id": "optional-accounts",
+      "title": "Accounts and product controls",
+      "items": [
+        {
+          "id": "social-login",
+          "job": "Social login and OIDC",
+          "tool": "Assent",
+          "when": "Users need to sign in with Google, GitHub, Apple or an OpenID Connect provider.",
+          "use": "Integrate provider authentication with the application's existing accounts and sessions.",
+          "boundary": "Account linking, session management and permissions remain application concerns. SAML is a separate requirement.",
+          "sources": [
+            [
+              "Assent",
+              "https://github.com/pow-auth/assent"
+            ]
+          ]
+        },
+        {
+          "id": "rate-limits",
+          "job": "Rate limiting",
+          "tool": "Hammer",
+          "when": "Login attempts, API calls, uploads or expensive actions need limits.",
+          "use": "Define limits by actor, operation and time window; choose a backend that matches the deployment.",
+          "boundary": "A node-local counter does not automatically enforce a cluster-wide quota. Choose the algorithm's burst behavior deliberately.",
+          "sources": [
+            [
+              "Hammer",
+              "https://hexdocs.pm/hammer/readme.html"
+            ]
+          ]
+        },
+        {
+          "id": "feature-flags",
+          "job": "Feature flags",
+          "tool": "FunWithFlags",
+          "when": "Features need gradual rollout, per-customer access or an operational off switch.",
+          "use": "Choose an Ecto or Redis persistence adapter and configure synchronization between nodes.",
+          "boundary": "Keep permission checks separate from rollout flags. Remove expired flags and restrict the management interface.",
+          "sources": [
+            [
+              "FunWithFlags",
+              "https://hexdocs.pm/fun_with_flags/readme.html"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "optional-files",
+      "title": "Files and documents",
+      "items": [
+        {
+          "id": "object-storage",
+          "job": "Object storage",
+          "tool": "ExAws.S3",
+          "when": "Uploads need to live in an S3 or compatible object store.",
+          "use": "Use ExAws with its S3 service module for object operations and signed URLs. In a LiveView app, connect it to the upload flow.",
+          "boundary": "The storage service, credentials, access rules and lifecycle policy are separate. Check which operations a compatible service actually supports.",
+          "sources": [
+            [
+              "ExAws.S3",
+              "https://hexdocs.pm/ex_aws_s3/ExAws.S3.html"
+            ]
+          ]
+        },
+        {
+          "id": "image-processing",
+          "job": "Image processing",
+          "tool": "Image",
+          "when": "The product needs thumbnails, resized uploads, image conversion or watermarks.",
+          "use": "Process images through the libvips-backed Image API; use Oban for work that needs retries.",
+          "boundary": "Vix/libvips introduces native runtime requirements. Check the deployment target and required codecs, and limit input dimensions and processing work.",
+          "sources": [
+            [
+              "Image",
+              "https://hexdocs.pm/image/readme.html"
+            ]
+          ]
+        },
+        {
+          "id": "markdown",
+          "job": "Markdown parsing and rendering",
+          "tool": "MDEx",
+          "when": "The application needs CommonMark parsing, rendered Markdown content or transformations over a Markdown document tree.",
+          "use": "Use MDEx to parse and transform a document or render HTML. Choose extensions and syntax highlighting deliberately; reserve HEEx components and expressions for trusted application-owned content.",
+          "boundary": "Treat user-authored Markdown as untrusted input: configure and verify HTML sanitization, link handling and size limits. Never evaluate its HEEx expressions. MDEx uses native Rust code; verify precompiled artifact support or a Rust build toolchain for the deployment target.",
+          "sources": [
+            [
+              "MDEx",
+              "https://github.com/leandrocp/mdex"
+            ]
+          ]
+        },
+        {
+          "id": "pdf-generation",
+          "job": "PDF generation",
+          "tool": "ChromicPDF",
+          "when": "Invoices, reports or other HTML documents need downloadable PDFs.",
+          "use": "Render application-owned HTML and CSS through a managed Chrome process.",
+          "boundary": "Chrome is an additional runtime dependency; PDF/A conversion also uses Ghostscript. Isolate rendering and control access to external resources.",
+          "sources": [
+            [
+              "ChromicPDF",
+              "https://hexdocs.pm/chromic_pdf/ChromicPDF.html"
+            ]
+          ]
+        },
+        {
+          "id": "csv",
+          "job": "CSV import and export",
+          "tool": "NimbleCSV",
+          "when": "Users need bulk uploads, data exports or integrations through CSV files.",
+          "use": "Parse and write streams; validate each imported row through the application's business rules.",
+          "boundary": "CSV parsing does not validate field types or business rules. Define malformed-row handling and spreadsheet formula escaping for exports.",
+          "sources": [
+            [
+              "NimbleCSV",
+              "https://hexdocs.pm/nimble_csv/NimbleCSV.html"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "optional-interfaces",
+      "title": "APIs and collaboration",
+      "items": [
+        {
+          "id": "openapi",
+          "job": "Documented HTTP APIs",
+          "tool": "OpenApiSpex",
+          "when": "External consumers need an OpenAPI contract for the Phoenix API.",
+          "use": "Describe operations and schemas, validate requests, and test responses against the specification.",
+          "boundary": "A schema does not enforce ownership or authorization. Keep the published contract aligned with application behavior.",
+          "sources": [
+            [
+              "OpenApiSpex",
+              "https://hexdocs.pm/open_api_spex/readme.html"
+            ]
+          ]
+        },
+        {
+          "id": "graphql",
+          "job": "GraphQL APIs",
+          "tool": "Absinthe",
+          "when": "Clients specifically need GraphQL queries, mutations or subscriptions.",
+          "use": "Expose the existing business layer through a schema; use Dataloader where batching is needed.",
+          "boundary": "Resolvers still need authorization and query-cost limits. Ordinary JSON endpoints remain simpler when GraphQL adds no client benefit.",
+          "sources": [
+            [
+              "Absinthe",
+              "https://hexdocs.pm/absinthe/overview.html"
+            ]
+          ]
+        },
+        {
+          "id": "presence",
+          "job": "Who is online",
+          "tool": "Phoenix Presence",
+          "when": "Chat, collaborative screens or live rooms need connected-user state.",
+          "use": "Track presence metadata and broadcast joins and leaves through Phoenix's existing realtime infrastructure.",
+          "boundary": "Presence is ephemeral and eventually consistent. It is not a durable audit trail, access-control system or editing-conflict resolver.",
+          "sources": [
+            [
+              "Phoenix Presence",
+              "https://hexdocs.pm/phoenix/Phoenix.Presence.html"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "optional-international",
+      "title": "Languages, locales and money",
+      "items": [
+        {
+          "id": "translations",
+          "job": "Translated interface text",
+          "tool": "Gettext",
+          "when": "The application needs interface copy in multiple languages.",
+          "use": "Use the Gettext integration already present in typical Phoenix projects; maintain translation catalogs and plural forms.",
+          "boundary": "It does not translate user-authored content automatically. Dates, amounts and units need locale-aware formatting too.",
+          "sources": [
+            [
+              "Gettext",
+              "https://hexdocs.pm/gettext/Gettext.html"
+            ]
+          ]
+        },
+        {
+          "id": "localization",
+          "job": "Localized dates and numbers",
+          "tool": "Localize",
+          "when": "Dates, numbers, currencies and units must follow the user's locale.",
+          "use": "Use CLDR-based formatting and parsing. For new projects, evaluate Localize as the documented successor to the ex_cldr family.",
+          "boundary": "Existing ex_cldr applications need a planned migration. Check runtime requirements and package locale data for deployment.",
+          "sources": [
+            [
+              "Localize",
+              "https://hexdocs.pm/localize/readme.html"
+            ],
+            [
+              "ex_cldr migration notice",
+              "https://hexdocs.pm/ex_cldr/readme.html"
+            ]
+          ]
+        },
+        {
+          "id": "money",
+          "job": "Currency amounts",
+          "tool": "Money (ex_money)",
+          "when": "Prices, invoices or balances need explicit currencies and decimal arithmetic.",
+          "use": "Represent amount and currency together and make rounding rules explicit.",
+          "boundary": "This is not payment processing, tax calculation or an accounting ledger. The package is ex_money; check its major-version migration notes.",
+          "sources": [
+            [
+              "Money",
+              "https://hexdocs.pm/ex_money/readme.html"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "optional-ai",
+      "title": "AI features",
+      "items": [
+        {
+          "id": "llm-client",
+          "job": "Calling language models",
+          "tool": "ReqLLM",
+          "when": "The product needs text generation, streaming, structured outputs, embeddings or model tool calls through supported provider APIs.",
+          "use": "Use a common Elixir interface to supported providers, including schema-constrained output and embedding generation. Keep provider-specific settings explicit; store embeddings separately when retrieval needs persistence.",
+          "boundary": "Provider and model capabilities differ. Start here for direct model calls; add an agent framework only when orchestration needs it. Define application validation, permissions and representative evaluations separately.",
+          "sources": [
+            [
+              "ReqLLM",
+              "https://github.com/agentjido/req_llm"
+            ]
+          ]
+        },
+        {
+          "id": "ai-agents",
+          "job": "Tool-using AI agents",
+          "tool": "Jido.AI 2.x",
+          "when": "A language model must select tools, keep agent state or run a bounded multistep reasoning loop.",
+          "use": "Add Jido.AI to a Jido agent and use ReqLLM for provider access. Define tools as actions, and keep model selection, timeouts and tool policy explicit.",
+          "boundary": "Model output is untrusted and nondeterministic. Restrict tool permissions and side effects, set cost and step limits, require approval for high-risk operations, and test representative tasks.",
+          "sources": [
+            [
+              "Jido.AI documentation",
+              "https://hexdocs.pm/jido_ai/readme.html"
+            ],
+            [
+              "Jido ecosystem",
+              "https://jido.run/ecosystem"
+            ]
+          ]
+        },
+        {
+          "id": "structured-extraction",
+          "job": "Validated structured extraction",
+          "tool": "InstructorLite",
+          "when": "The main requirement is extracting typed fields from text into Ecto schemas, with casting, validation and retries.",
+          "use": "Define an instruction with an Ecto schema and use changeset validation to check the returned fields. Choose this alternative when its Ecto integration fits better than ReqLLM structured output.",
+          "boundary": "It is not an agent runtime and does not provide response streaming. Valid fields can still contain incorrect facts; handle failed validation, retry limits and domain checks explicitly.",
+          "sources": [
+            [
+              "InstructorLite",
+              "https://github.com/martosaur/instructor_lite"
+            ]
+          ]
+        },
+        {
+          "id": "llm-chains",
+          "job": "Conversational chains and tool loops",
+          "tool": "LangChain for Elixir",
+          "when": "The application is organized around message history, model responses and chained tool calls, or already uses the Elixir LangChain abstractions.",
+          "use": "Compose messages, model adapters and tools through LLMChain. Use its callbacks for streaming and inspect tool-call trajectories when evaluating a conversation workflow.",
+          "boundary": "This is an alternative orchestration approach, not an extra layer every ReqLLM or Jido application needs. Bound tool loops, authorize actions and implement persistence and retry behavior for the actual product.",
+          "sources": [
+            [
+              "LangChain for Elixir",
+              "https://github.com/brainlid/langchain"
+            ]
+          ]
+        },
+        {
+          "id": "ash-ai",
+          "job": "AI features for Ash applications",
+          "tool": "Ash AI",
+          "when": "An application already uses Ash resources and needs to expose selected actions as model tools or MCP tools, generate structured outputs or maintain embeddings.",
+          "use": "Add Ash AI to the existing Ash domains and resources. Select the actions to expose and carry the authenticated actor and tenant into their execution; configure model access only for features that require it.",
+          "boundary": "Choose Ash as an architecture first. Ash AI does not justify migrating an ordinary contexts application by itself. Test authorization for every exposed action and verify embedding updates, retrieval quality and model costs.",
+          "sources": [
+            [
+              "Ash AI",
+              "https://github.com/ash-project/ash_ai"
+            ]
+          ]
+        },
+        {
+          "id": "vector-search",
+          "job": "Vector similarity search",
+          "tool": "pgvector",
+          "when": "Embeddings are useful for semantic retrieval or recommendations alongside existing PostgreSQL data.",
+          "use": "Enable the PostgreSQL vector extension and use the Elixir pgvector integration with Ecto or Postgrex.",
+          "boundary": "The library does not generate embeddings. Verify database-extension support, dimensions, indexes and retrieval quality against representative queries.",
+          "sources": [
+            [
+              "pgvector for Elixir",
+              "https://hexdocs.pm/pgvector/readme.html"
+            ]
+          ]
+        },
+        {
+          "id": "local-models",
+          "job": "Running pretrained models",
+          "tool": "Bumblebee + Nx",
+          "when": "Inference should run on infrastructure you control, using a supported pretrained model.",
+          "use": "Load supported model architectures with Bumblebee and serve predictions through Nx.Serving.",
+          "boundary": "Plan model memory, a suitable numerical backend and hardware. Model compatibility and licensing need to be checked individually.",
+          "sources": [
+            [
+              "Bumblebee",
+              "https://hexdocs.pm/bumblebee/Bumblebee.html"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "optional-data",
+      "title": "Data processing and machine learning",
+      "items": [
+        {
+          "id": "ingestion",
+          "job": "Message ingestion pipelines",
+          "tool": "Broadway",
+          "when": "The application consumes a stream from Kafka, RabbitMQ, SQS or another supported source.",
+          "use": "Build concurrent processing stages with batching, acknowledgements and back-pressure.",
+          "boundary": "The source connector determines delivery behavior. Keep handlers safe to retry; ordinary application jobs still fit Oban.",
+          "sources": [
+            [
+              "Broadway",
+              "https://hexdocs.pm/broadway/Broadway.html"
+            ]
+          ]
+        },
+        {
+          "id": "dataframes",
+          "job": "Tabular data analysis",
+          "tool": "Explorer",
+          "when": "Imports, analytics or reports need dataframe transformations over CSV, Parquet or similar datasets.",
+          "use": "Use typed series and dataframes for grouping, joining and transforming tabular data.",
+          "boundary": "The default Polars backend uses native code. Check deployment support and memory use; routine application queries still belong in Ecto.",
+          "sources": [
+            [
+              "Explorer",
+              "https://hexdocs.pm/explorer/Explorer.html"
+            ]
+          ]
+        },
+        {
+          "id": "neural-networks",
+          "job": "Building and training neural networks",
+          "tool": "Axon + Nx",
+          "when": "The project needs to define or train a neural network in Elixir rather than only run a supported pretrained model.",
+          "use": "Use Axon to build models and training loops on Nx, with a numerical compiler/backend suited to the target hardware. Use Bumblebee when loading a supported pretrained model meets the requirement.",
+          "boundary": "Check native backend support, hardware, memory and training data. Validate on held-out data and measure deployment behavior; adding Axon does not establish model quality or a performance advantage.",
+          "sources": [
+            [
+              "Axon",
+              "https://github.com/elixir-nx/axon"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "optional-performance",
+      "title": "Performance and scaling",
+      "items": [
+        {
+          "id": "genstage",
+          "job": "Custom demand-driven pipelines",
+          "tool": "GenStage",
+          "when": "Producers and consumers need a custom event pipeline with demand-driven backpressure.",
+          "use": "Model stages around runtime concurrency and data transfer; keep business steps in functions.",
+          "boundary": "You own buffering, subscriptions and failure behavior. Use Task.async_stream for simpler bounded parallel work, or Broadway for its ingestion features.",
+          "sources": [
+            [
+              "GenStage",
+              "https://hexdocs.pm/gen_stage/GenStage.html"
+            ]
+          ]
+        },
+        {
+          "id": "flow",
+          "job": "Parallel dataset transformations",
+          "tool": "Flow",
+          "when": "A large enumerable needs parallel mapping, partitioned grouping, aggregation or windows.",
+          "use": "Build a Flow pipeline and choose partition keys, stages and windows for the workload.",
+          "boundary": "Coordination has overhead; small inputs can favor Enum or Task. Partitioning affects grouping and order; bound accumulating state.",
+          "sources": [
+            [
+              "Flow",
+              "https://hexdocs.pm/flow/Flow.html"
+            ]
+          ]
+        },
+        {
+          "id": "benchmarking",
+          "job": "Compare code performance",
+          "tool": "Benchee",
+          "when": "A measured hot path has alternative implementations to compare.",
+          "use": "Benchmark representative inputs with warmup, runtime, memory and reduction measurements.",
+          "boundary": "Microbenchmarks do not establish application throughput or production latency. Check correctness and end-to-end behavior separately.",
+          "sources": [
+            [
+              "Benchee",
+              "https://hexdocs.pm/benchee/readme.html"
+            ]
+          ]
+        },
+        {
+          "id": "profiling",
+          "job": "Locate runtime bottlenecks",
+          "tool": "Mix + OTP profilers",
+          "when": "The application is slow and you need to locate expensive calls or repeated work.",
+          "use": "Use the supported mix profile task or OTP profiler for the question; combine findings with the existing Telemetry events.",
+          "boundary": "Check installed runtime support for tprof, eprof and fprof. Tracing can change timing and add overhead; profile a representative bounded workload.",
+          "sources": [
+            [
+              "Mix + OTP profilers",
+              "https://hexdocs.pm/mix/Mix.Tasks.Profile.Tprof.html"
+            ]
+          ]
+        },
+        {
+          "id": "cache-management",
+          "job": "Managed in-memory caching",
+          "tool": "Cachex",
+          "when": "A node-local cache needs expiration, eviction or fallback loading beyond a small ETS implementation.",
+          "use": "Configure cache limits, expiration and loading behavior around the data lifecycle.",
+          "boundary": "Define invalidation and stale-data policy. A local cache is not a durable source of truth or a cluster-wide consistency guarantee.",
+          "sources": [
+            [
+              "Cachex",
+              "https://hexdocs.pm/cachex/Cachex.html"
+            ]
+          ]
+        },
+        {
+          "id": "native-rust",
+          "job": "Native computation and Rust integration",
+          "tool": "Rustler",
+          "when": "Profiling identifies CPU-heavy work suited to native code, or the product must call an existing Rust library.",
+          "use": "Expose a narrow NIF interface and select normal versus dirty scheduling appropriate to the work.",
+          "boundary": "Native faults can crash the VM. Validate target builds, scheduler impact and boundary-copying costs; consider a separate OS process when fault isolation is required.",
+          "sources": [
+            [
+              "Rustler",
+              "https://hexdocs.pm/rustler/readme.html"
+            ]
+          ]
+        },
+        {
+          "id": "numerical-compiler",
+          "job": "Compiled tensor computation",
+          "tool": "EXLA + Nx",
+          "when": "Nx numerical work needs a compiled backend on supported CPU or accelerator hardware.",
+          "use": "Use EXLA as the Nx compiler/backend and select the supported target, precision and memory settings.",
+          "boundary": "Compilation, data transfer and native dependencies have costs. Verify hardware/toolchain support and measure representative workloads; it is not a general accelerator for arbitrary Elixir functions.",
+          "sources": [
+            [
+              "EXLA + Nx",
+              "https://hexdocs.pm/exla/EXLA.html"
+            ]
+          ]
+        },
+        {
+          "id": "elastic-compute",
+          "job": "Elastic remote execution",
+          "tool": "FLAME",
+          "when": "Bursty expensive work should run on additional ephemeral nodes, such as media processing or model inference.",
+          "use": "Configure a bounded runner pool and an appropriate backend. Start only required application children and size runner database pools deliberately.",
+          "boundary": "Boot latency, network transfer and capacity costs matter. FLAME supplies compute execution, not a durable job queue; pair it with Oban when jobs must persist.",
+          "sources": [
+            [
+              "FLAME",
+              "https://hexdocs.pm/flame/FLAME.html"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "optional-development",
+      "title": "Development tools",
+      "items": [
+        {
+          "id": "boundary-checks",
+          "job": "Module dependency rules",
+          "tool": "Boundary",
+          "when": "Domains or layers need explicit, compiler-checked dependencies and public module exports. Useful for agent-maintained applications as well as human-maintained code.",
+          "use": "Declare each boundary in its root module with use Boundary, explicit deps and a small exports list. Add the compile-time dependency and compiler below. A boundary always exports its root module; prefer explicit exports over exports: :all. Keep allowed calls aligned with the architecture.",
+          "boundary": "Violations are compiler warnings unless compilation uses --warnings-as-errors. External OTP application calls are allowed by default; opt into selected app checks or strict mode when required. Dynamic calls such as apply/3 are not checked. Boundary enforces static module references; it does not isolate an agent’s files, processes or network access. Libraries can limit the compiler to dev/test as the compiler documentation describes.",
+          "setup": "# In mix.exs deps/0:\n{:boundary, \"~> 0.11\", runtime: false}\n\n# In mix.exs project/0:\ncompilers: [:boundary] ++ Mix.compilers()\n\n# In each domain root module (adapt the names):\nuse Boundary, deps: [MyApp.Accounts], exports: []",
+          "check": "Run mix deps.get, then mix compile --warnings-as-errors in the environments your CI checks. Add a temporary forbidden static call to confirm the check fails, remove it, and rerun successfully. The dependency alone does not enforce boundaries.",
+          "sources": [
+            [
+              "Boundary reference",
+              "https://boundary.hexdocs.pm/Boundary.html"
+            ],
+            [
+              "Boundary installation",
+              "https://boundary.hexdocs.pm/readme.html"
+            ],
+            [
+              "Compiler and CI enforcement",
+              "https://boundary.hexdocs.pm/Mix.Tasks.Compile.Boundary.html"
+            ]
+          ]
+        },
+        {
+          "id": "ai-development",
+          "job": "AI-assisted Phoenix development",
+          "tool": "Tidewave",
+          "when": "A coding agent needs runtime context from a Phoenix application during development.",
+          "use": "Add the Tidewave Phoenix integration as a development-only dependency and plug. Connect your coding agent to inspect logs, evaluate code, query the development database and read installed-version documentation.",
+          "boundary": "This gives the agent access to the running development application. Use a trusted local environment and keep the dependency and endpoint out of production; this is tooling for building the app, not an AI feature for its users.",
+          "sources": [
+            [
+              "Tidewave Phoenix",
+              "https://github.com/tidewave-ai/tidewave_phoenix"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "optional-architecture",
+      "title": "A different application architecture",
+      "items": [
+        {
+          "id": "ash-architecture",
+          "job": "Declarative business applications",
+          "tool": "Ash",
+          "when": "Resources, actions, policies and derived APIs form a substantial part of the application.",
+          "use": "Evaluate Ash early as the domain layer beneath Phoenix, with only the extensions the product needs.",
+          "boundary": "This changes how business logic is modeled. It is an architectural choice, not a small utility to install beside an unchanged contexts design.",
+          "sources": [
+            [
+              "What is Ash?",
+              "https://hexdocs.pm/ash/what-is-ash.html"
+            ]
+          ]
+        },
+        {
+          "id": "agent-runtime",
+          "job": "Stateful agent workflows",
+          "tool": "Jido 2.x",
+          "when": "The application needs cooperating agents that choose or coordinate steps, share reusable actions and react to routed signals.",
+          "use": "Model the system with agents, actions, signals and directives, and run long-lived agents through Jido's supervised runtime. AI is optional; add Jido.AI only when decisions need a language model.",
+          "boundary": "Prefer a plain GenServer, durable Oban jobs or an explicit function pipeline when behavior is fixed and simple. Supervision and in-memory state alone do not preserve progress across restarts; choose and verify persistence and resume behavior.",
+          "sources": [
+            [
+              "Jido documentation",
+              "https://hexdocs.pm/jido/readme.html"
+            ],
+            [
+              "Jido ecosystem",
+              "https://jido.run/ecosystem"
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "specialist_tracks": [
+    {
+      "tool": "Nerves",
+      "job": "Embedded devices and firmware",
+      "url": "https://hexdocs.pm/nerves/getting-started.html"
+    },
+    {
+      "tool": "Membrane",
+      "job": "Audio, video and streaming pipelines",
+      "url": "https://membrane.stream/"
+    }
+  ]
+}

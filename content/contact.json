@@ -1,0 +1,34 @@
+{
+  "@type": "Organization",
+  "@id": "https://optimum.ba/#organization",
+  "name": "Optimum Tech",
+  "legalName": "Optimum Tech, LLC",
+  "description": "Software development and product consulting. Optimum Tech helps businesses decide what to build, develop the software, and put it to work.",
+  "url": "https://optimum.ba/",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "1207 Delaware Ave #2578",
+    "addressLocality": "Wilmington",
+    "addressRegion": "DE",
+    "postalCode": "19806",
+    "addressCountry": "US"
+  },
+  "contactPoint": [
+    {
+      "@type": "ContactPoint",
+      "contactType": "tool suggestions and documentation corrections",
+      "email": "tools@optimum.ba"
+    },
+    {
+      "@type": "ContactPoint",
+      "contactType": "consulting",
+      "email": "consulting@optimum.ba"
+    }
+  ],
+  "sameAs": [
+    "https://github.com/optimumBA",
+    "https://www.linkedin.com/company/optimum-tech-llc/",
+    "https://x.com/optimumBA"
+  ],
+  "@context": "https://schema.org"
+}

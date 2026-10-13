@@ -1,0 +1,815 @@
+{
+  "schema": "stack-menu-migration-research/1",
+  "reviewed_at": "2026-10-11",
+  "evidence": "documentation-reviewed",
+  "profiles": [
+    {
+      "id": "typescript-next-node",
+      "version_scope": "Documentation reviewed 11 October 2026: current Next.js App Router docs label 16.4.0. Pin the installed Next, React, Node and database packages; distinguish cacheComponents:true from the previous caching model. This profile does not qualify a lockfile or hosting adapter.",
+      "operating_model": "A Next application contains server rendering and browser interactivity with an explicit trust boundary. Recommendation: preserve an existing backend's domain ownership during UI adoption; for a new owned backend use server-only data access. Node/Docker and alternative adapters require separate runtime checks.",
+      "architecture": [
+        "Server Components load server-owned data; Client Components own interaction and browser APIs. Keep the client boundary near interactive leaves and pass minimal serializable DTOs.",
+        "Recommendation: one domain writer and migration owner per responsibility. Existing REST/GraphQL services remain authoritative during coexistence; a new server-only DAL can own validation, authorization and transactions after transfer.",
+        "Choose server, browser and CDN caches deliberately. Session-dependent output, invalidation and multiple instances require independent policies; adding a framework cache does not migrate a shared session or queue.",
+        "Recommendation: durable jobs and realtime run behind explicit service contracts when required. A render, Server Action or browser promise is not an execution backlog."
+      ],
+      "developer_workflow": [
+        "Start in the external source checkout. Read README and inspect package.json, lockfile, next.config, current API ownership, schema and runtime. Record whether Cache Components are enabled before selecting examples.",
+        "For an existing npm project run npm ci; use its scripts. With Next installed, npx next typegen then npx tsc --noEmit checks generated route types and TypeScript. Run the configured ESLint/Biome command separately; the build is not a substitute for lint.",
+        "Run npm run dev for iteration and npm run build for production compilation; use npm run start only if its script runs the selected production server. Configure Playwright's isolated backend/data first, then npx playwright test for mixed-version journeys.",
+        "Recommendation: deploy the same built artifact to all instances, record build/deployment identifiers, cache coordination, migrations, secrets and adapter support. Reproduce cold/warm loads, sign-out, old-tab actions and rollback on a staging topology."
+      ],
+      "avoid": [
+        "Marking the root tree use client brings imported dependencies into the browser bundle and broadens the secret/exposure surface.",
+        "Passing whole ORM records to Client Components exposes fields unrelated to presentation; enforce authorization and DTO filtering on the server.",
+        "UI-hidden buttons or Proxy redirects cannot replace authorization at the mutation/data boundary.",
+        "Copying pre-16 cache defaults into a Cache Components app silently changes freshness behavior; identify the installed model.",
+        "Treating an old browser build as gone after deployment ignores existing tabs, prefetched payloads and action identifiers."
+      ],
+      "transitions": [
+        {
+          "capability": "data",
+          "existing_contract": "Existing REST/GraphQL behavior, DTOs, authorization, transactions and one schema owner.",
+          "coexistence": "Recommendation: Adopt server-rendered routes that call the old API; keep its writer and migration authority. Compare read-only fixtures without replaying real side effects.",
+          "target": "Recommendation: Retain the API permanently if appropriate, or transfer a bounded domain to a server-only DAL with minimal DTOs after mixed-version checks.",
+          "benefits": [
+            {
+              "benefit": "Server loading can reduce client waterfalls; an owned DAL centralizes authorization.",
+              "prerequisites": "Server-reachable API or reviewed database ownership; measurable user journeys.",
+              "tradeoffs": "A new domain writer requires schema/transaction review; framework adoption alone changes neither."
+            }
+          ],
+          "checks": [
+            "Old and new UI decode identical success/error/empty fixtures.",
+            "Forged resource IDs remain denied on both mutation paths.",
+            "An acknowledged write is readable through the old interface."
+          ],
+          "rollback": "Route the cohort back while old-compatible schema remains; reconcile writes before any writer reversal.",
+          "sources": [
+            "https://nextjs.org/docs/app/guides/data-security",
+            "https://nextjs.org/docs/app/getting-started/server-and-client-components"
+          ],
+          "id": "data-1"
+        },
+        {
+          "capability": "identity",
+          "existing_contract": "Existing session issuer, cookie/token format, expiry, revocation, tenant membership and CSRF behavior.",
+          "coexistence": "Recommendation: Retain the issuer behind an adapter and authorize data/mutations in both implementations; inventory origin/domain/cookie differences before sharing.",
+          "target": "Recommendation: Use an explicitly selected issuer and server-side authorization boundary; transfer session contracts or require a controlled sign-in when compatibility cannot be preserved.",
+          "benefits": [
+            {
+              "benefit": "One identity authority can support gradual UI/backend replacement.",
+              "prerequisites": "Validated issuer integration and old/new expiry/revocation fixtures.",
+              "tradeoffs": "Session sharing is format/security work; sign-in continuity is not guaranteed by using cookies."
+            }
+          ],
+          "checks": [
+            "Revoked and expired sessions fail in old/new paths.",
+            "Cross-tenant direct action requests are denied.",
+            "Sign-out clears browser remote-state caches and back navigation reveals no protected data."
+          ],
+          "rollback": "Restore old routes/issuer acceptance only while its keys and session semantics remain supported; do not resurrect revoked sessions.",
+          "sources": [
+            "https://nextjs.org/docs/app/guides/authentication",
+            "https://nextjs.org/docs/app/guides/data-security"
+          ],
+          "id": "identity-1"
+        },
+        {
+          "capability": "cache",
+          "existing_contract": "Actual enabled caching model, personalized response policy, keys, freshness, invalidation and shared-instance behavior.",
+          "coexistence": "Recommendation: Keep the prior policy while converting one route/data category; separate old/new cache namespaces and observe stale/account-crossing outcomes.",
+          "target": "Recommendation: Choose Cache Components or version-matched previous-model APIs explicitly; keep user-specific data outside shared public entries and coordinate shared invalidation when deployed across instances.",
+          "benefits": [
+            {
+              "benefit": "Repeated eligible work can be reused without refetching each time.",
+              "prerequisites": "A documented freshness tolerance, safe keys and working invalidation.",
+              "tradeoffs": "Coordination/storage adds operations; freshness and cost gains require measurement."
+            }
+          ],
+          "checks": [
+            "A write refreshes affected reads through every serving instance.",
+            "Account A cannot read cached output for account B.",
+            "Cold, warm and forced-refresh responses agree with the selected policy."
+          ],
+          "rollback": "Disable the new cache path and purge its namespace; keep source data unchanged and retain old invalidation until transfer completes.",
+          "sources": [
+            "https://nextjs.org/docs/app/getting-started/caching",
+            "https://nextjs.org/docs/app/guides/caching-without-cache-components",
+            "https://nextjs.org/docs/app/guides/self-hosting"
+          ],
+          "id": "cache-1"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Existing job producer/consumer payloads, ready/scheduled/retry/failed/in-flight states and external-effect idempotency.",
+          "coexistence": "Recommendation: Keep existing workers; move a named job type behind a versioned event contract. Reconcile backlog and retain one consumer owner per item.",
+          "target": "Recommendation: Use selected durable execution such as Inngest for required workflows; a transactional outbox is a proposed design when domain commit and event submission are separate systems.",
+          "benefits": [
+            {
+              "benefit": "Checkpointed completed steps allow retry/resume without starting every step again.",
+              "prerequisites": "Selected service/SDK integration, stable step IDs, replay-safe external effects and delivery reconciliation.",
+              "tradeoffs": "Operating a workflow service adds dependency/cost; checkpoints do not supply business exactly-once effects."
+            }
+          ],
+          "checks": [
+            "Crash after an external effect but before step acknowledgement; retry causes one intended business effect.",
+            "Domain commit with event-send failure is eventually reconciled.",
+            "Old scheduled/retry work is drained or deliberately transformed."
+          ],
+          "rollback": "Stop new producers for the transferred type, account for active runs and resume old workers with compatible payloads; reconcile irreversible effects first.",
+          "sources": [
+            "https://www.inngest.com/docs/durable-execution"
+          ],
+          "id": "jobs-1"
+        },
+        {
+          "capability": "operations",
+          "existing_contract": "Current hosting/runtime, static assets, open-tab state, prefetched payloads and Server Function compatibility.",
+          "coexistence": "Recommendation: Keep old assets and compatible API routes; promote one built artifact per deployment and rehearse an old tab against the new deployment.",
+          "target": "Recommendation: Use version-matched deploymentId support and infrastructure routing as needed; same-build instances share required action keys and cache coordination.",
+          "benefits": [
+            {
+              "benefit": "Explicit rollout handling reduces missing-chunk/navigation mismatches.",
+              "prerequisites": "A qualified host, retained assets and tested old-client behavior.",
+              "tradeoffs": "Hard navigation can lose component state; same encryption key does not make old action IDs compatible."
+            }
+          ],
+          "checks": [
+            "Open an old tab, deploy, navigate and submit an old form; observe success or a controlled update path.",
+            "Preserved drafts survive any required full reload.",
+            "All instances serve matching build/deployment identifiers."
+          ],
+          "rollback": "Restore the prior artifact and routing while compatible assets/data remain; do not claim traffic rollback reverses schema or external effects.",
+          "sources": [
+            "https://nextjs.org/docs/app/guides/self-hosting"
+          ],
+          "id": "operations-1"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://nextjs.org/docs/app/getting-started/server-and-client-components",
+          "title": "Next.js Server and Client Components",
+          "claim": "Pages/layouts default to server components; browser interaction and APIs require client boundaries."
+        },
+        {
+          "url": "https://nextjs.org/docs/app/guides/data-security",
+          "title": "Next.js Data Security",
+          "claim": "Existing HTTP APIs or a new server-only DAL provide explicit data ownership; mutations require validation/authorization and minimal DTOs."
+        },
+        {
+          "url": "https://nextjs.org/docs/app/guides/authentication",
+          "title": "Next.js Authentication",
+          "claim": "Authentication, session management and authorization are separate responsibilities; optimistic redirects do not replace secure checks."
+        },
+        {
+          "url": "https://nextjs.org/docs/app/getting-started/caching",
+          "title": "Next.js Caching with Cache Components",
+          "claim": "Current caching guide applies when cacheComponents is enabled."
+        },
+        {
+          "url": "https://nextjs.org/docs/app/guides/caching-without-cache-components",
+          "title": "Next.js Caching and Revalidating (Previous Model)",
+          "claim": "The alternative caching guide applies without Cache Components; defaults and APIs must match that model."
+        },
+        {
+          "url": "https://nextjs.org/docs/app/guides/self-hosting",
+          "title": "Next.js Self-Hosting",
+          "claim": "Multi-instance cache coordination, action encryption keys, deployment identifiers and old-client version skew need deployment design."
+        },
+        {
+          "url": "https://nextjs.org/docs/app/getting-started/installation",
+          "title": "Next.js Installation",
+          "claim": "Framework setup and deterministic lint/type/build checks have separate tooling."
+        },
+        {
+          "url": "https://nextjs.org/docs/app/api-reference/cli/next",
+          "title": "Next.js CLI",
+          "claim": "next typegen, build and production server commands are qualified by installed framework and scripts."
+        },
+        {
+          "url": "https://www.inngest.com/docs/durable-execution",
+          "title": "Inngest Durable Execution",
+          "claim": "Completed steps are checkpointed and workflows can retry/resume; durable endpoints are separately marked beta."
+        }
+      ]
+    },
+    {
+      "id": "typescript-react-vite-browser",
+      "version_scope": "Documentation reviewed 11 October 2026: current React docs label 19.3; current Vite docs include migration from v7 and Rolldown build options. Preserve the project's resolved React/Vite/TypeScript/router versions and API schema. SPA guidance is not a claim that Vite supplies SSR or a backend.",
+      "operating_model": "React/Vite builds browser assets. Recommendation: select it when an existing API owns persistence, authorization, email, durable jobs and other privileged effects; choose routing and remote-state tools deliberately. A client-only build has no protected server runtime.",
+      "architecture": [
+        "Views consume route-loaded or query-cached DTOs; one API client module defines credentials, errors, cancellation and runtime validation. Backend ownership remains independent of UI language.",
+        "Recommendation: domain state stays on the server; transient form/navigation state stays in the browser. Use tenant-aware cache keys and an explicit account-switch/reset policy.",
+        "Bundled VITE_ values are public configuration. Keep database, provider and signing credentials in the backend; a development proxy is only local routing.",
+        "Recommendation: retain content-hashed old chunks during rollout, revalidate HTML and provide a guarded update path for stale tabs. Add service-worker storage/adoption policy only if offline operation is required."
+      ],
+      "developer_workflow": [
+        "Start at the source README, API schema and lockfile. For a new local prototype npm create vite@latest my-app -- --template react-ts creates a starter; record resolved versions before promoting it. Existing applications keep their package manager.",
+        "Use npm ci, the configured TypeScript project check (for the standard scaffold npx tsc -b) and npm run build. npm run dev is local development; npm run preview previews a build and is not the production host.",
+        "Configure routing, typed API boundaries, TanStack Query only where useful and its QueryClientProvider. Define loading, stale, denied and offline states before using retries.",
+        "Recommendation: use browser network/debug tooling and React profiling for the actual slow interaction. Configure Playwright with old/new API fixtures; run npx playwright test only after installing its runner/browsers and setting an isolated webServer."
+      ],
+      "avoid": [
+        "Bundling a secret as VITE_API_KEY publishes it to users; moving its string into a frontend module does not create a trust boundary.",
+        "Rebuilding server authorization as React route guards allows direct unauthorized API calls.",
+        "Independent fetching in nested effects creates waterfalls and duplicated state ownership; use route loaders or a selected remote-state cache where appropriate.",
+        "Treating TanStack Query defaults as an application freshness contract overlooks refetch/retry behavior and account boundaries.",
+        "Deleting old chunks on deployment breaks lazy imports in open tabs; repeated automatic reload can also discard unsaved work."
+      ],
+      "transitions": [
+        {
+          "capability": "client",
+          "existing_contract": "Existing URLs, backend API DTOs, errors, permissions and navigation/deep-link semantics.",
+          "coexistence": "Recommendation: Replace one route/screen with React while keeping existing API ownership and deep links; contract fixtures cover old/new UI.",
+          "target": "Recommendation: Keep a browser/API split with route loaders or a selected query client; adopt a server framework only when required rendering/backend features justify it.",
+          "benefits": [
+            {
+              "benefit": "An independently delivered browser client can evolve behind a stable API.",
+              "prerequisites": "Owned routing/hosting fallback and backward-compatible API.",
+              "tradeoffs": "A SPA must own routing/data/loading infrastructure; SSR/RSC are additional architecture choices."
+            }
+          ],
+          "checks": [
+            "Direct deep links and refresh work from the production host.",
+            "Old/new clients decode success/error/unknown-field fixtures.",
+            "Unauthorized direct API requests remain denied."
+          ],
+          "rollback": "Restore old HTML/assets/routes while API compatibility remains; preserve submitted data and reconcile pending mutations.",
+          "sources": [
+            "https://react.dev/learn/build-a-react-app-from-scratch",
+            "https://vite.dev/guide/static-deploy"
+          ],
+          "id": "client-1"
+        },
+        {
+          "capability": "identity",
+          "existing_contract": "Backend credential transport, allowed origins, cookies/CSRF, token expiry and account boundaries.",
+          "coexistence": "Recommendation: Keep the backend issuer; configure same-origin routing or narrowly allowed credentialed CORS and preserve old clients.",
+          "target": "Recommendation: Centralize credential/error behavior in the API client; enforce authorization and any cookie CSRF protection in the backend.",
+          "benefits": [
+            {
+              "benefit": "One backend authority reduces duplicated browser identity logic.",
+              "prerequisites": "Reviewed origin/credential policy and issuer behavior.",
+              "tradeoffs": "CORS controls browser response access, not authorization; frontend guards remain presentation only."
+            }
+          ],
+          "checks": [
+            "Credentialed requests succeed only for permitted origins.",
+            "Expired credentials transition to sign-in without endless retries.",
+            "Cross-tenant and CSRF probes are rejected by the backend."
+          ],
+          "rollback": "Restore the old browser artifact/origin policy only if existing credential handling remains secure; retain revocation history.",
+          "sources": [
+            "https://fetch.spec.whatwg.org/",
+            "https://vite.dev/guide/env-and-mode"
+          ],
+          "id": "identity-1"
+        },
+        {
+          "capability": "cache",
+          "existing_contract": "Current fetch/cache behavior, stale tolerance, retry limits and account-switch isolation.",
+          "coexistence": "Recommendation: Introduce query keys for a bounded remote-state category; keep transient form state separate and compare outcomes with the old fetch path.",
+          "target": "Recommendation: Use explicit TanStack Query staleTime, retry, invalidation and account-clear policy where its remote-state cache serves a requirement.",
+          "benefits": [
+            {
+              "benefit": "Shared queries can reuse data and refresh deliberately.",
+              "prerequisites": "A QueryClientProvider, stable tenant-aware keys and mutation invalidation.",
+              "tradeoffs": "Default stale queries refetch on mount/focus/reconnect; retries can obscure application errors if left unspecified."
+            }
+          ],
+          "checks": [
+            "A mutation refreshes affected list/detail views.",
+            "Switching accounts cannot reuse the old account's records.",
+            "Network restoration produces one coherent refresh; permission errors do not retry indefinitely."
+          ],
+          "rollback": "Return the category to the old loader and clear the new cache; do not discard durable pending user operations.",
+          "sources": [
+            "https://tanstack.com/query/latest/docs/framework/react/guides/important-defaults"
+          ],
+          "id": "cache-1"
+        },
+        {
+          "capability": "realtime",
+          "existing_contract": "Existing event envelope, authorization, IDs, reconnect behavior and replay/retention rules.",
+          "coexistence": "Recommendation: Keep a backend bridge producing the current event contract; move clients by stable subscription cohort rather than arbitrary per-request routing.",
+          "target": "Recommendation: Use EventSource for one-way events when host/credentials fit, WebSocket for bidirectional needs; persist/replay events separately when delivery requires it.",
+          "benefits": [
+            {
+              "benefit": "A standard browser event stream can replace bespoke polling for suitable feeds.",
+              "prerequisites": "Authenticated endpoint, event IDs, retention/replay contract and streaming host.",
+              "tradeoffs": "EventSource reconnect does not create server event history; its constructor has no arbitrary header option."
+            }
+          ],
+          "checks": [
+            "Disconnect after event N and reconnect; no required event is omitted or applied twice.",
+            "Revocation terminates access and later reconnect is denied.",
+            "Old/new envelopes decode during mixed-version rollout."
+          ],
+          "rollback": "Restore old polling/transport using the same cursor domain; reconcile delivered events and keep bridge/history through the rollback window.",
+          "sources": [
+            "https://html.spec.whatwg.org/multipage/server-sent-events.html"
+          ],
+          "id": "realtime-1"
+        },
+        {
+          "capability": "operations",
+          "existing_contract": "Existing HTML/CDN/service-worker policy, lazy chunks and open-tab unsaved state.",
+          "coexistence": "Recommendation: Keep prior hashed assets and compatible APIs while serving new HTML to a cohort; include any existing service worker's activation/cache rules.",
+          "target": "Recommendation: Revalidate HTML, retain old content-hashed chunks and handle vite:preloadError with a guarded refresh/update flow that preserves drafts.",
+          "benefits": [
+            {
+              "benefit": "Old tabs can continue loading their release's lazy chunks.",
+              "prerequisites": "Asset retention, correct base path and tested update UX.",
+              "tradeoffs": "Retention costs storage; refresh may lose state, and reload loops do not fix a wrong CDN policy."
+            }
+          ],
+          "checks": [
+            "After deployment an old tab lazy-loads its old route successfully.",
+            "If a chunk is intentionally unavailable, the update path retains the draft and recovers once.",
+            "Production HTML/cache headers and API compatibility match the rollout policy."
+          ],
+          "rollback": "Restore the prior HTML and retained assets, roll service-worker changes through their actual lifecycle, and keep new-client API support.",
+          "sources": [
+            "https://vite.dev/guide/build",
+            "https://vite.dev/guide/static-deploy"
+          ],
+          "id": "operations-1"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://react.dev/learn/build-a-react-app-from-scratch",
+          "title": "React Build an app from Scratch",
+          "claim": "A Vite client-only starter requires deliberate routing/data tools; SSR/RSC are additional architecture work."
+        },
+        {
+          "url": "https://vite.dev/guide/",
+          "title": "Vite Getting Started",
+          "claim": "Scaffold command and runtime requirements must be checked against resolved Vite version."
+        },
+        {
+          "url": "https://vite.dev/guide/env-and-mode",
+          "title": "Vite Environment Variables and Modes",
+          "claim": "VITE_ values are bundled into client code and must not contain secrets."
+        },
+        {
+          "url": "https://vite.dev/guide/build",
+          "title": "Vite Building for Production",
+          "claim": "Deleted old chunks can fail dynamic imports; vite:preloadError and HTML cache policy support recovery design."
+        },
+        {
+          "url": "https://vite.dev/guide/static-deploy",
+          "title": "Vite Deploying a Static Site",
+          "claim": "Build output needs a chosen production host; vite preview is for local preview."
+        },
+        {
+          "url": "https://tanstack.com/query/latest/docs/framework/react/guides/important-defaults",
+          "title": "TanStack Query Important Defaults",
+          "claim": "Staleness, mount/focus/reconnect refetch, garbage collection and retries require explicit application choices."
+        },
+        {
+          "url": "https://fetch.spec.whatwg.org/",
+          "title": "WHATWG Fetch Standard",
+          "claim": "Cross-origin response sharing and credential handling are browser protocol rules, separate from application authorization."
+        },
+        {
+          "url": "https://html.spec.whatwg.org/multipage/server-sent-events.html",
+          "title": "WHATWG Server-sent Events",
+          "claim": "EventSource provides reconnect and event IDs; constructor options include withCredentials, not arbitrary headers."
+        }
+      ]
+    },
+    {
+      "id": "swift-swiftui-ios",
+      "version_scope": "Documentation reviewed 11 October 2026. SwiftUI Observation and SwiftData are iOS/iPadOS 17+; support older OS targets through compatible alternatives. Pin Xcode/SDK/Swift/package resolution and retain the minimum OS/device matrix. No simulator, archive or store-release check was executed.",
+      "operating_model": "An installed iOS client persists across backend releases and is suspended or terminated under OS control. Recommendation: SwiftUI views render observable presentation state while repositories own URLSession DTOs and local persistence. Store rollout, API compatibility and local-store migration are separate adoption gates.",
+      "architecture": [
+        "Use SwiftUI state/Observation according to minimum OS availability; keep view rendering separate from asynchronous repositories and business decisions. Observation is UI dependency tracking, not disk persistence.",
+        "Recommendation: version API DTOs separately from SwiftData/Core Data entities; preserve old installed-client contracts and authorize all privileged operations on the backend.",
+        "Use a versioned local schema and reviewed migration plan for SwiftData. Recommendation: store unacknowledged user intents durably before claiming an offline write succeeded; reconcile conflicts with an explicit server policy.",
+        "Separate foreground structured concurrency, OS-scheduled refresh/processing, background URLSession transfers and server durable jobs. Each has different completion and cancellation semantics.",
+        "Recommendation: Keychain stores credential material; isolate account-local data and clear/lock the appropriate state on account switch. Keep backend provider secrets out of the app bundle."
+      ],
+      "developer_workflow": [
+        "Start in the external Xcode source checkout. Read README, minimum OS, shared scheme, signing owner, capabilities, API fixtures and every persisted schema version.",
+        "Record xcodebuild -version and xcode-select -p; use xcodebuild -list -project App.xcodeproj and xcodebuild -showdestinations -project App.xcodeproj -scheme App with the actual names. Resolve packages with xcodebuild -resolvePackageDependencies -project App.xcodeproj -scheme App. Check current flags with the pinned xcodebuild -help; the linked command-line FAQ is archived.",
+        "After choosing an installed simulator UUID, run xcodebuild test -project App.xcodeproj -scheme App -destination 'platform=iOS Simulator,id=<UUID>' -resultBundlePath <new-path>.xcresult. Placeholders require substitution; simulator results do not establish device background behavior.",
+        "Recommendation: use Instruments/network diagnostics, physical-device background checks, upgrade fixtures, VoiceOver and large text. Produce a signed archive/TestFlight update under the established release workflow; record exact old/new client builds and compatible backend revisions."
+      ],
+      "avoid": [
+        "Assuming users update when the backend deploys strands old installed clients and offline requests.",
+        "Assuming an older executable can read a migrated store confuses binary rollback with data rollback.",
+        "Keeping pending offline writes only in view state loses work after suspension or termination.",
+        "Using BGAppRefreshTask as an exact timer or unlimited durable worker ignores OS scheduling and expiration.",
+        "Using phased release as install reversal overlooks manual downloads and devices already running the new version."
+      ],
+      "transitions": [
+        {
+          "capability": "client",
+          "existing_contract": "Installed versions, minimum OS, URLSession DTOs/errors, deep links, auth expiry and old/offline writes.",
+          "coexistence": "Recommendation: Ship additive backend responses and versioned fixtures before the new client; retain old contracts until measured adoption and an explicit support policy permit retirement.",
+          "target": "Recommendation: Separate API DTOs from local models and use capability negotiation for optional features; authorization remains backend-owned.",
+          "benefits": [
+            {
+              "benefit": "Independent backend/client deployment can preserve supported installations.",
+              "prerequisites": "Inventory of real installed versions, API fixtures and release/support owners.",
+              "tradeoffs": "Long-lived version support costs maintenance; a new store release cannot force immediate adoption."
+            }
+          ],
+          "checks": [
+            "Old and new builds run against the same new backend.",
+            "Unknown optional fields and absent new fields do not break supported clients.",
+            "A delayed old-client mutation receives the documented success/conflict/upgrade response."
+          ],
+          "rollback": "Disable the new server feature and retain both API contracts; already-installed clients require a compatible forward fix when needed.",
+          "sources": [
+            "https://developer.apple.com/documentation/foundation/urlsession",
+            "https://developer.apple.com/help/app-store-connect/update-your-app/release-a-version-update-in-phases/"
+          ],
+          "id": "client-1"
+        },
+        {
+          "capability": "data",
+          "existing_contract": "Existing on-device store versions, entity meaning, relationships, pending local writes and upgrade paths.",
+          "coexistence": "Recommendation: Add compatible fields/stages before removing representations; migration fixtures include every supported historical store and unacknowledged operations.",
+          "target": "Recommendation: Use SwiftData VersionedSchema and SchemaMigrationPlan when OS support permits; preserve the established Core Data/store choice if migration value is unproven.",
+          "benefits": [
+            {
+              "benefit": "An explicit schema history makes upgrade behavior inspectable.",
+              "prerequisites": "Reviewed stages and fixtures proving values/relationships/pending writes survive.",
+              "tradeoffs": "Forward migration does not establish older-binary readability; cross-store conversion is application work."
+            }
+          ],
+          "checks": [
+            "Open each supported old store with the new build and compare user data and pending operations.",
+            "Interrupt migration and verify recovery behavior.",
+            "Attempt the intended rollback build against the migrated fixture; reject release rollback if unreadable."
+          ],
+          "rollback": "Prefer a compatible forward repair if downgrade is unqualified. Restore a pre-upgrade copy only under a reconciled policy that does not erase later local writes.",
+          "sources": [
+            "https://developer.apple.com/documentation/swiftdata/schemamigrationplan",
+            "https://developer.apple.com/documentation/swiftdata/versionedschema"
+          ],
+          "id": "data-1"
+        },
+        {
+          "capability": "cache",
+          "existing_contract": "Local reads, pending offline changes, tombstones/cursors and server conflict semantics.",
+          "coexistence": "Recommendation: Keep the server as shared-domain reconciler; record each local mutation durably with a stable operation ID and schema version while old clients use the same conflict policy.",
+          "target": "Recommendation: Use repository-owned local reads and a persistent operation log when offline writes are required; choose revision checks, merge or user resolution per domain instead of accidental timestamp wins.",
+          "benefits": [
+            {
+              "benefit": "Users can retain local work through intermittent connectivity.",
+              "prerequisites": "Durable local storage, replay-safe backend, explicit conflict/tombstone protocol.",
+              "tradeoffs": "This is a proposed application design; SwiftData does not automatically provide arbitrary backend synchronization."
+            }
+          ],
+          "checks": [
+            "Two devices edit the same record offline; the declared policy preserves or exposes both intents.",
+            "Disconnect after server commit but before acknowledgement; replay does not duplicate the effect.",
+            "Restart/sign-out does not silently replay account A operations as account B."
+          ],
+          "rollback": "Stop the new synchronizer, retain pending operations and translate/reconcile them before returning to old logic; never clear the log as a rollback shortcut.",
+          "sources": [
+            "https://developer.apple.com/documentation/swiftdata/schemamigrationplan",
+            "https://developer.apple.com/documentation/foundation/urlsession"
+          ],
+          "id": "cache-1"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Foreground task cancellation, pending intents and any existing background task identifiers/handlers.",
+          "coexistence": "Recommendation: Retain old handler identifiers and persisted payload readers while new code is installed; use one owner per sync operation.",
+          "target": "Recommendation: Choose BGAppRefreshTask/BGProcessingTask for eligible opportunistic device work, foreground tasks for interactive work and backend durable jobs for server completion obligations.",
+          "benefits": [
+            {
+              "benefit": "Eligible refresh/maintenance can execute while the app is backgrounded.",
+              "prerequisites": "Capabilities, registered handlers, durable checkpoints and expiration handling.",
+              "tradeoffs": "The OS selects launch time; device scheduling does not satisfy a fixed backend completion SLA."
+            }
+          ],
+          "checks": [
+            "Expire a task midway; it checkpoints/cancels and marks completion correctly.",
+            "Suspend/terminate/relaunch and resume without a duplicated business effect.",
+            "Offline, battery and permission constraints show honest pending state."
+          ],
+          "rollback": "Disable new task submission while preserving payload readers/handlers long enough to reconcile pending work; continue foreground sync or a server job where appropriate.",
+          "sources": [
+            "https://developer.apple.com/documentation/backgroundtasks",
+            "https://developer.apple.com/documentation/backgroundtasks/choosing-background-strategies-for-your-app"
+          ],
+          "id": "jobs-1"
+        },
+        {
+          "capability": "files",
+          "existing_contract": "Existing upload/download IDs, authorized object keys, file hashes, task identifiers and completion acknowledgements.",
+          "coexistence": "Recommendation: Keep server upload endpoints/object ownership compatible; persist mapping from background task to logical operation and retain file-backed upload payloads.",
+          "target": "Recommendation: Use an identified background URLSession for eligible HTTP(S) transfer; recreate it after system termination and move completed temporary downloads before delegate return.",
+          "benefits": [
+            {
+              "benefit": "Transfers can continue during suspension without holding the app process.",
+              "prerequisites": "Delegate lifecycle, stable session identifier, protected files and authorized retry/acknowledgement contract.",
+              "tradeoffs": "Background uploads require files; scheduling is not exact and transfer completion differs from domain acceptance."
+            }
+          ],
+          "checks": [
+            "Suspend during upload/download and restore the same session after system termination.",
+            "Verify file integrity and durable location after completion.",
+            "Retry an ambiguous response without producing duplicate owned objects."
+          ],
+          "rollback": "Stop creating new transfers, inspect/cancel or finish existing tasks and reconcile server objects; keep session callbacks until all retained tasks are accounted for.",
+          "sources": [
+            "https://developer.apple.com/documentation/foundation/downloading-files-in-the-background"
+          ],
+          "id": "files-1"
+        },
+        {
+          "capability": "operations",
+          "existing_contract": "Store release ownership, supported devices, adoption, crash reports and persisted-data compatibility.",
+          "coexistence": "Recommendation: Verify TestFlight install-over-existing fixtures; retain server compatibility through phased adoption and include manual downloads in risk assessment.",
+          "target": "Recommendation: Use phased release with explicit crash/data-loss/compatibility stop criteria; assess adoption before retiring old API behavior.",
+          "benefits": [
+            {
+              "benefit": "Gradual automatic-update distribution can limit initial exposure.",
+              "prerequisites": "Signed reviewed build, live telemetry and a compatible recovery release.",
+              "tradeoffs": "Apple's seven-day phases cover eligible automatic updates; anyone can manually download, and pausing does not reverse installs."
+            }
+          ],
+          "checks": [
+            "Verify real install/update preserves store, credentials and deep links.",
+            "Track old/new build support and migration failures separately.",
+            "Pause/recovery procedure leaves already-updated clients functional."
+          ],
+          "rollback": "Pause further distribution and disable affected server capabilities if safe; ship a compatible repair rather than assuming an installed-version/store downgrade.",
+          "sources": [
+            "https://developer.apple.com/help/app-store-connect/update-your-app/release-a-version-update-in-phases/"
+          ],
+          "id": "operations-1"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://developer.apple.com/documentation/swiftui/managing-model-data-in-your-app",
+          "title": "SwiftUI Managing Model Data",
+          "claim": "Observation connects model changes to UI and requires iOS/iPadOS 17+; it is not local persistence."
+        },
+        {
+          "url": "https://developer.apple.com/documentation/swiftdata/schemamigrationplan",
+          "title": "SwiftData SchemaMigrationPlan",
+          "claim": "Versioned schemas and migration stages explicitly model local schema evolution; iOS/iPadOS 17+."
+        },
+        {
+          "url": "https://developer.apple.com/documentation/swiftdata/versionedschema",
+          "title": "SwiftData VersionedSchema",
+          "claim": "A schema records a particular version and its model set."
+        },
+        {
+          "url": "https://developer.apple.com/documentation/foundation/urlsession",
+          "title": "Foundation URLSession",
+          "claim": "Configured sessions own data/upload/download/WebSocket tasks, authentication callbacks and asynchronous transfer behavior."
+        },
+        {
+          "url": "https://developer.apple.com/documentation/backgroundtasks",
+          "title": "Background Tasks",
+          "claim": "Register and schedule task handlers for eligible background processing; the framework has multiple task types."
+        },
+        {
+          "url": "https://developer.apple.com/documentation/backgroundtasks/choosing-background-strategies-for-your-app",
+          "title": "Choosing Background Strategies",
+          "claim": "Select task strategy by workload, handle expiration and completion; the OS decides refresh/processing launch time."
+        },
+        {
+          "url": "https://developer.apple.com/documentation/foundation/downloading-files-in-the-background",
+          "title": "Downloading Files in the Background",
+          "claim": "Background sessions require delegates/stable identifiers, support file-backed uploads and need completion-file lifecycle handling."
+        },
+        {
+          "url": "https://developer.apple.com/documentation/security/keychain-services",
+          "title": "Keychain Services",
+          "claim": "Encrypted Keychain items can store small credential secrets."
+        },
+        {
+          "url": "https://developer.apple.com/help/app-store-connect/update-your-app/release-a-version-update-in-phases/",
+          "title": "App Store Connect Phased Release",
+          "claim": "Automatic updates progress over seven days; manual downloads remain possible and phases can be paused."
+        },
+        {
+          "url": "https://developer.apple.com/documentation/xcode/testing",
+          "title": "Xcode Testing",
+          "claim": "Swift Testing and XCTest/UI tests have complementary roles; testing is separate from distribution."
+        },
+        {
+          "url": "https://developer.apple.com/library/archive/technotes/tn2339/_index.html",
+          "title": "Archived Xcode Command-line FAQ",
+          "claim": "Documents command shapes for scheme/project/destination tests and archives; recheck options with the pinned Xcode toolchain."
+        }
+      ]
+    },
+    {
+      "id": "kotlin-compose-android",
+      "version_scope": "Documentation reviewed 11 October 2026. Use the project's minimum/target SDK, compatible Kotlin/Compose/AGP/Gradle/JDK/Room/WorkManager versions and version catalog. Current guidance is conditional on supported platform behavior; no APK, App Bundle, emulator or store release was tested.",
+      "operating_model": "An installed Android client renders immutable screen state with lifecycle-aware collection and persists important data separately. Recommendation: repositories mediate Room/API data and WorkManager handles selected persistent work; backend services own privileged domain effects. Installed versions coexist through staged distribution.",
+      "architecture": [
+        "Android guidance recommends separate UI and data layers, repositories, unidirectional data flow and lifecycle-aware Flow collection. Add a domain layer only when complexity/reuse warrants it.",
+        "Recommendation: keep API DTOs distinct from Room entities, and local observable data authoritative for offline screen reads while the backend owns shared-domain reconciliation.",
+        "Room owns schema versions and migrations; DataStore serves preferences rather than a general relational substitute. Record durable user operations and acknowledgement state when offline writes are required.",
+        "Coroutines serve lifecycle/in-process async work; WorkManager persists scheduled work across restart/reboot and remains subject to constraints and power policy.",
+        "Recommendation: use Keystore-backed keys to protect separately stored app-private credentials. A Keystore key is not arbitrary token storage, nor a guarantee that a revoked backend session remains usable."
+      ],
+      "developer_workflow": [
+        "Start at the external source README, API and database fixtures, version catalog and Gradle wrapper. Record package identity, SDK/device matrix, signing owner and release track.",
+        "Use ./gradlew --version and ./gradlew tasks --all; with an actual app module run ./gradlew :app:lintDebug :app:testDebugUnitTest :app:assembleDebug. Keep wrapper/JDK/SDK inputs reproducible.",
+        "After adb devices identifies an authorized emulator/device, run ./gradlew :app:connectedDebugAndroidTest. Configure Room's migration testing/exported schemas; assertions must check preserved data as well as schema shape.",
+        "Recommendation: use Android Studio profilers/inspection, coroutine fakes, Compose navigation/accessibility tests and physical-device reboot/offline checks. Build ./gradlew :app:bundleRelease only with reviewed signing, then verify an internal-track install/update before staged promotion."
+      ],
+      "avoid": [
+        "Collecting Flow without lifecycle ownership can keep work running when a screen is stopped; repeating effects inside recomposition can duplicate requests.",
+        "Treating a ViewModel or coroutine as disk persistence loses work on process death.",
+        "Using destructive migration for user-created offline data deletes the only copy.",
+        "Expecting WorkManager to execute at an exact wall-clock deadline ignores scheduling windows and power constraints.",
+        "Halt rollout is not uninstall or downgrade; already-updated users stay on the new build."
+      ],
+      "transitions": [
+        {
+          "capability": "client",
+          "existing_contract": "Supported installed APK versions/OS levels, DTOs/errors, auth, deep links and delayed old-client operations.",
+          "coexistence": "Recommendation: Deploy backward-compatible server behavior first; run old/new clients against it and retain contracts through explicit adoption/support gates.",
+          "target": "Recommendation: Version API DTOs independently of Room entities and gate optional features by negotiated capability; keep backend authorization authoritative.",
+          "benefits": [
+            {
+              "benefit": "Client releases and backend changes can progress independently.",
+              "prerequisites": "Installed-version inventory, shared API fixtures and support ownership.",
+              "tradeoffs": "Maintaining old contracts costs work; Compose adoption does not upgrade installed clients."
+            }
+          ],
+          "checks": [
+            "Old/new builds decode missing/unknown fields and documented errors.",
+            "A delayed old offline operation succeeds or returns the declared conflict.",
+            "Deep links, session expiry and denied resources work across supported releases."
+          ],
+          "rollback": "Disable the new capability and preserve old/new APIs; repair already-installed clients with a compatible higher-version release when needed.",
+          "sources": [
+            "https://developer.android.com/topic/architecture/recommendations",
+            "https://support.google.com/googleplay/android-developer/answer/6346149"
+          ],
+          "id": "client-1"
+        },
+        {
+          "capability": "data",
+          "existing_contract": "Room schema versions, exported schemas, all upgrade paths and user-owned unsynced records.",
+          "coexistence": "Recommendation: Add migrations without discarding old fields until adoption permits; include direct upgrades from every supported starting version.",
+          "target": "Recommendation: Keep exported Room schemas and explicit migration tests; use automatic or manual migrations according to the actual change.",
+          "benefits": [
+            {
+              "benefit": "Reviewed migrations preserve local user data across updates.",
+              "prerequisites": "Complete paths plus assertions on data/relationships/pending work.",
+              "tradeoffs": "Schema validation alone does not establish value preservation; destructive fallback permanently deletes table data."
+            }
+          ],
+          "checks": [
+            "MigrationTestHelper exercises each path and earliest-to-current upgrade.",
+            "Assert unsynced rows, IDs and relationships remain meaningful.",
+            "Verify intended downgrade behavior; prohibit destructive fallback for the only copy of user work."
+          ],
+          "rollback": "Ship a forward repair when older code cannot read the new store; any restore requires reconciling writes made after upgrade.",
+          "sources": [
+            "https://developer.android.com/training/data-storage/room/migrating-db-versions"
+          ],
+          "id": "data-1"
+        },
+        {
+          "capability": "cache",
+          "existing_contract": "Local source-of-truth reads, pending offline operations, revision/cursor/tombstone and conflict rules.",
+          "coexistence": "Recommendation: Use one repository and one reconciler for each data category; persist queued mutations with operation IDs before reporting success.",
+          "target": "Recommendation: Use Room-backed local reads and a durable operation queue when offline writes are needed; select push/pull/hybrid sync and a domain-specific conflict policy.",
+          "benefits": [
+            {
+              "benefit": "Cached local data can keep required reads available and preserve offline intent.",
+              "prerequisites": "Server sync support, retry-safe writes and an explicit conflict policy.",
+              "tradeoffs": "Offline-first reads do not imply offline writes; last-write-wins can discard intent and depends on metadata semantics."
+            }
+          ],
+          "checks": [
+            "Two offline devices make conflicting changes and obtain the documented resolution.",
+            "Kill process after local commit and before network send; operation survives.",
+            "Repeat server-committed/unacknowledged mutation without duplication; honor deletes/tombstones."
+          ],
+          "rollback": "Stop the new synchronizer and retain its queue; map remaining operations/cursors to old semantics before resume.",
+          "sources": [
+            "https://developer.android.com/topic/architecture/data-layer/offline-first"
+          ],
+          "id": "cache-1"
+        },
+        {
+          "capability": "jobs",
+          "existing_contract": "Existing queued Worker class names, input Data versions, unique-work identities and external effects.",
+          "coexistence": "Recommendation: Retain readers/worker entry points for already-enqueued payloads; transfer one job category and prevent duplicate schedulers.",
+          "target": "Recommendation: Use WorkManager for eligible persistent device work with constraints/backoff; keep server completion obligations in a backend durable job.",
+          "benefits": [
+            {
+              "benefit": "Scheduled work persists across restart and device reboot.",
+              "prerequisites": "Compatible worker payloads, stable unique names, replay-safe effects and documented constraints.",
+              "tradeoffs": "Scheduling windows/power policy affect timing; unique work does not provide exactly-once remote effects."
+            }
+          ],
+          "checks": [
+            "Reboot with queued work and verify it resumes when constraints permit.",
+            "Update app with old queued input; the new worker decodes it.",
+            "Crash after remote effect/before acknowledgement and confirm retry is safe."
+          ],
+          "rollback": "Cancel new scheduling and account for pending/running work; keep compatibility workers until drained or safely transformed.",
+          "sources": [
+            "https://developer.android.com/develop/background-work/background-tasks/persistent",
+            "https://developer.android.com/topic/architecture/data-layer/offline-first"
+          ],
+          "id": "jobs-1"
+        },
+        {
+          "capability": "identity",
+          "existing_contract": "Existing stored credential encryption, key alias/access constraints, backup exclusions, issuer expiry/revocation.",
+          "coexistence": "Recommendation: Retain the backend issuer and read old encrypted credential formats during a bounded transition; isolate account-local data.",
+          "target": "Recommendation: Use Keystore-backed cryptographic keys with reviewed encrypted app-private credential storage and backend revocation.",
+          "benefits": [
+            {
+              "benefit": "OS key protection can reduce key extraction exposure.",
+              "prerequisites": "Qualified device/API support, key invalidation handling and a reviewed storage/backup policy.",
+              "tradeoffs": "Keystore stores keys rather than arbitrary tokens; device protection does not replace backend authorization."
+            }
+          ],
+          "checks": [
+            "Key invalidation produces a controlled sign-in path.",
+            "Backup/restore cannot silently expose unusable/plain credentials.",
+            "Sign-out/account switch stops old-account queued work and backend revocation is enforced."
+          ],
+          "rollback": "Retain compatibility decryption only while secure; require sign-in if the old format/key cannot be restored safely.",
+          "sources": [
+            "https://developer.android.com/privacy-and-security/keystore"
+          ],
+          "id": "identity-1"
+        },
+        {
+          "capability": "operations",
+          "existing_contract": "Play tracks, signing/version codes, adoption, crash metrics and schema/API compatibility.",
+          "coexistence": "Recommendation: Verify an internal/closed-track update over supported old builds and preserve compatible backend behavior for the whole mixed-version population.",
+          "target": "Recommendation: Use a staged rollout with explicit crash/data-loss thresholds and a higher-version compatible repair path.",
+          "benefits": [
+            {
+              "benefit": "Percentage-based adoption can limit initial exposure.",
+              "prerequisites": "Signed build, account/track owner, telemetry and recovery artifact.",
+              "tradeoffs": "Halting only prevents further rollout; users who already updated remain on that version."
+            }
+          ],
+          "checks": [
+            "Install-over-old-build retains unsynced data and auth.",
+            "Track failures by app/OS/schema version.",
+            "Halt/recovery rehearsal keeps already-updated users functional."
+          ],
+          "rollback": "Halt additional rollout and disable the affected capability if safe; publish a compatible fixed build without assuming a downgrade of installed clients.",
+          "sources": [
+            "https://support.google.com/googleplay/android-developer/answer/6346149"
+          ],
+          "id": "operations-1"
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://developer.android.com/topic/architecture/recommendations",
+          "title": "Android Architecture Recommendations",
+          "claim": "Separate UI/data layers, repositories, immutable state and lifecycle-aware collection are documented recommendations."
+        },
+        {
+          "url": "https://developer.android.com/topic/architecture/data-layer/offline-first",
+          "title": "Android Offline-first Architecture",
+          "claim": "Local sources, queues, sync and conflict resolution need explicit policies; offline reads need not imply offline writes."
+        },
+        {
+          "url": "https://developer.android.com/training/data-storage/room/migrating-db-versions",
+          "title": "Migrate Your Room Database",
+          "claim": "Migration testing should cover all paths; destructive fallback can permanently delete local table data."
+        },
+        {
+          "url": "https://developer.android.com/develop/background-work/background-tasks/persistent",
+          "title": "Android WorkManager Task Scheduling",
+          "claim": "Work is persisted and rescheduled across reboots with constraints/retries; it is not an exact timer or all immediate work."
+        },
+        {
+          "url": "https://developer.android.com/privacy-and-security/keystore",
+          "title": "Android Keystore System",
+          "claim": "Keystore protects cryptographic key material and usage constraints; arbitrary credentials need their own protected storage design."
+        },
+        {
+          "url": "https://developer.android.com/build/building-cmdline",
+          "title": "Build Android Apps from the Command Line",
+          "claim": "Gradle wrapper build/test tasks and signed release artifacts require configured inputs."
+        },
+        {
+          "url": "https://support.google.com/googleplay/android-developer/answer/6346149",
+          "title": "Play Console Staged Rollouts",
+          "claim": "Halting stops additional staged installs; already-updated users remain on that version."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "format_version": "0.1-research",
+  "title": "Stack Menu stack preparation research",
+  "research_date": "2026-10-10",
+  "status": "documentation-reviewed research input",
+  "record_files": [
+    "typescript.json",
+    "go-rust.json",
+    "rails-laravel.json",
+    "native-mobile.json",
+    "python.json",
+    "elixir.json"
+  ],
+  "reading_entry": "README.md",
+  "migration_files": [
+    "migrations.json",
+    "migrations-server.json",
+    "migrations-systems.json",
+    "migrations-clients.json"
+  ],
+  "migration_reviewed_at": "2026-10-11",
+  "selection_order": [
+    "Read requirements and existing project constraints",
+    "Reject stacks that fail hard requirements",
+    "Compare suitable compositions and their tradeoffs",
+    "Identify unresolved integration and compatibility questions",
+    "Prototype consequential uncertainties before commitment"
+  ],
+  "requirements_to_collect": [
+    "Existing stack and migration authority",
+    "Product and target operating systems",
+    "Platform-native UI and accessibility requirements",
+    "Offline behavior and synchronization",
+    "Required integrations and platform APIs",
+    "Data ownership, authorization and authentication",
+    "Realtime interaction and durable job requirements",
+    "Deployment environment, cost and operational constraints",
+    "Latency, throughput and memory requirements",
+    "Maintenance and distribution constraints"
+  ],
+  "evidence_policy": {
+    "documentation-reviewed": "Primary documentation or source reviewed; no integrated-build claim",
+    "integration_tested": false,
+    "new_benchmarks_run": false,
+    "published": false,
+    "setup_commands_executed": false
+  },
+  "coverage_gaps": [
+    "Desktop stack preparation",
+    "C# and .NET stack preparation",
+    "Embedded and game development preparation",
+    "Exact dependency compatibility qualification",
+    "Executable starter projects",
+    "Representative cross-stack agent delivery comparisons"
+  ],
+  "freshness_file": "freshness.json"
+}

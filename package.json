@@ -1,0 +1,21 @@
+{
+  "name": "stack-menu",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=9.6.5"
+  },
+  "scripts": {
+    "build": "python3 scripts/build-menu.py && node scripts/build-schema.mjs && astro build && python3 scripts/build-agent-content.py && python3 scripts/finalize.py",
+    "preview": "node scripts/preview.mjs",
+    "export:share": "node scripts/export-share.mjs"
+  },
+  "dependencies": {
+    "astro": "7.3.8",
+    "sharp": "0.35.5"
+  },
+  "devDependencies": {
+    "wrangler": "4.150.0"
+  }
+}

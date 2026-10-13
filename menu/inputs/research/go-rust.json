@@ -1,0 +1,1145 @@
+[
+  {
+    "id": "go-service",
+    "name": "Go service: net/http + PostgreSQL + sqlc + River",
+    "use_cases": [
+      "APIs",
+      "control planes",
+      "concurrent network services",
+      "background workers"
+    ],
+    "choose_when": [
+      "Prefer explicit service code and standard tooling",
+      "Kubernetes or Go infrastructure integration matters",
+      "PostgreSQL already owns business state"
+    ],
+    "avoid_when": [
+      "Need a batteries-included product framework",
+      "Hard real-time or no-GC constraints",
+      "Rich client UI is the primary product"
+    ],
+    "tools": [
+      {
+        "job": "HTTP server",
+        "default": "net/http",
+        "alternatives": [
+          "Existing project router when justified"
+        ],
+        "reason": "Standard handlers and request contexts minimize routing infrastructure.",
+        "limits": "Set request/body limits, deadlines and graceful shutdown; middleware and authorization remain application work.",
+        "source_urls": [
+          "https://pkg.go.dev/net/http"
+        ]
+      },
+      {
+        "job": "Optional server-rendered UI",
+        "default": "templ + HTMX",
+        "alternatives": [
+          "No UI for API-only services"
+        ],
+        "reason": "Compiled components and HTML-fragment updates suit forms and dashboards.",
+        "limits": "Generation adds a build step; advanced client state still needs browser-side design and testing.",
+        "source_urls": [
+          "https://templ.guide/",
+          "https://htmx.org/docs/"
+        ]
+      },
+      {
+        "job": "Database and migrations",
+        "default": "PostgreSQL + pgx + sqlc + goose",
+        "alternatives": [
+          "pgx without sqlc for small query sets",
+          "golang-migrate when already established"
+        ],
+        "reason": "Visible SQL, generated typed access and one migration owner.",
+        "limits": "Generators do not prove query efficiency; review transaction boundaries, pool budgets and online migration behavior. Never mix migration owners.",
+        "source_urls": [
+          "https://github.com/jackc/pgx",
+          "https://docs.sqlc.dev/en/latest/",
+          "https://github.com/pressly/goose",
+          "https://github.com/golang-migrate/migrate"
+        ]
+      },
+      {
+        "job": "Configuration",
+        "default": "Typed settings loaded with os.LookupEnv",
+        "alternatives": [
+          "flag for small command surfaces"
+        ],
+        "reason": "Explicit startup validation and standard structured logs.",
+        "limits": "Define precedence; reject malformed required values; redact secrets. Environment access alone is not validation or secret management.",
+        "source_urls": [
+          "https://pkg.go.dev/os",
+          "https://pkg.go.dev/flag",
+          "https://pkg.go.dev/log/slog"
+        ]
+      },
+      {
+        "job": "Application logging",
+        "default": "log/slog",
+        "alternatives": [],
+        "reason": "Explicit startup validation and standard structured logs.",
+        "limits": "Define precedence; reject malformed required values; redact secrets. Environment access alone is not validation or secret management.",
+        "source_urls": [
+          "https://pkg.go.dev/os",
+          "https://pkg.go.dev/flag",
+          "https://pkg.go.dev/log/slog"
+        ]
+      },
+      {
+        "job": "Tests and static checks",
+        "default": "testing; go vet; race detector; govulncheck",
+        "alternatives": [],
+        "reason": "Standard toolchain feedback plus exercised concurrency and known-vulnerability checks.",
+        "limits": "Race detector requires supported target/toolchain and exercised code; no scanner proves absence of vulnerabilities.",
+        "source_urls": [
+          "https://pkg.go.dev/testing",
+          "https://go.dev/doc/articles/race_detector",
+          "https://golangci-lint.run/docs/welcome/quick-start/",
+          "https://go.dev/doc/security/vuln/"
+        ]
+      },
+      {
+        "job": "HTTP and database integration tests",
+        "default": "httptest + real disposable PostgreSQL",
+        "alternatives": [
+          "In-process handler tests for pure routing"
+        ],
+        "reason": "Exercise protocols and actual SQL/migrations.",
+        "limits": "Database tests need an isolated database; mocks cannot establish PostgreSQL semantics.",
+        "source_urls": [
+          "https://pkg.go.dev/net/http/httptest",
+          "https://github.com/jackc/pgx"
+        ]
+      },
+      {
+        "job": "Durable work",
+        "default": "River for PostgreSQL-backed jobs",
+        "alternatives": [
+          "Temporal Go SDK for workflow requirements needing its service"
+        ],
+        "reason": "Transactional enqueueing ties work to committed business data.",
+        "limits": "External effects need idempotency. Default resumable checkpoints may be lost on crash; use transactional checkpoints where required. Inspect Pro feature boundaries.",
+        "source_urls": [
+          "https://riverqueue.com/docs/transactional-enqueueing",
+          "https://riverqueue.com/docs/resumable-jobs",
+          "https://docs.temporal.io/develop/go"
+        ]
+      },
+      {
+        "job": "Deployment and distribution",
+        "default": "Go build binary in a supervised process or container; GoReleaser for releases",
+        "alternatives": [],
+        "reason": "Small explicit runtime boundary; release automation builds target artifacts.",
+        "limits": "Target OS/architecture, libc/cgo, CA certificates, timezone data and signing need explicit verification. Snapshot builds are not publication.",
+        "source_urls": [
+          "https://goreleaser.com/getting-started/quick-start/"
+        ]
+      },
+      {
+        "job": "Browser identity",
+        "default": "go-oidc + existing OIDC provider",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Provider discovery and ID-token verification support owned login sessions",
+        "limits": "Use v3 module; configure issuer/client, OAuth callback state and session lifecycle. go-oidc verifies ID tokens; API access-token validation follows the provider contract. Authorization stays near data.",
+        "source_urls": [
+          "https://github.com/coreos/go-oidc"
+        ]
+      },
+      {
+        "job": "Transactional email",
+        "default": "go-mail + project-selected SMTP provider",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Typed mail construction and SMTP transport support application messages",
+        "limits": "Configure TLS, sender credentials and timeouts; send required mail through durable jobs with duplicate protection. Validate chosen async/runtime features in Rust; delivery receipts and bounces need provider handling.",
+        "source_urls": [
+          "https://pkg.go.dev/github.com/wneessen/go-mail"
+        ]
+      },
+      {
+        "job": "Uploads and object storage",
+        "default": "AWS SDK for Go S3 client",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Durable object storage avoids dependence on service-local disk",
+        "limits": "Configure runtime credentials, region and least-privilege bucket access; authorize object keys and uploads, bound size/concurrency and define retention. Test multipart cleanup and selected provider compatibility.",
+        "source_urls": [
+          "https://docs.aws.amazon.com/sdk-for-go/v2/developer-guide/go_s3_code_examples.html"
+        ]
+      },
+      {
+        "job": "Realtime transport",
+        "default": "coder/websocket",
+        "alternatives": [
+          "Server-sent events for one-way feeds",
+          "Polling for infrequent updates"
+        ],
+        "reason": "WebSocket support fits bidirectional connected clients",
+        "limits": "Enable the documented module/feature; authorize handshake and every protected message, bound queues/message size and implement heartbeat/shutdown. Socket delivery is not durable history; define reconnect/resync.",
+        "source_urls": [
+          "https://pkg.go.dev/github.com/coder/websocket"
+        ]
+      }
+    ],
+    "setup_steps": [
+      "Start in a new source checkout in a local development workspace; run go mod init example.com/project using the real module path.",
+      "Resolve and record Go/tool versions and dependencies; go get github.com/jackc/pgx/v5; add River only if jobs are needed.",
+      "Create cmd/server plus application packages, typed settings, explicit http.Server limits, health/readiness and shutdown handling.",
+      "Install selected sqlc and goose releases; write migrations and sqlc configuration; run sqlc generate. Configure a disposable PostgreSQL database through environment/secrets.",
+      "With GOOSE_DRIVER=postgres and GOOSE_DBSTRING targeting only the disposable database, run goose -dir migrations up. Add business transaction and River enqueue tests.",
+      "Add the chosen release configuration, pin tools and preserve go.mod/go.sum; document build and rollback. These steps have not been run."
+    ],
+    "verification_commands": [
+      "gofmt -l .",
+      "go test ./...",
+      "go test -race ./...",
+      "go vet ./...",
+      "govulncheck ./...",
+      "sqlc generate",
+      "goose -dir migrations status",
+      "go build ./cmd/server"
+    ],
+    "evidence_status": "documentation-reviewed",
+    "sources": [
+      {
+        "url": "https://pkg.go.dev/net/http",
+        "title": "Go net/http",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://templ.guide/",
+        "title": "templ",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://htmx.org/docs/",
+        "title": "HTMX",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/jackc/pgx",
+        "title": "pgx PostgreSQL driver",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.sqlc.dev/en/latest/",
+        "title": "sqlc documentation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/pressly/goose",
+        "title": "goose migrations",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/golang-migrate/migrate",
+        "title": "golang-migrate",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/os",
+        "title": "Go os configuration primitives",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/flag",
+        "title": "Go flag",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/log/slog",
+        "title": "Go structured logging",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/testing",
+        "title": "Go testing",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://go.dev/doc/articles/race_detector",
+        "title": "Go data race detector",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://golangci-lint.run/docs/welcome/quick-start/",
+        "title": "golangci-lint quick start",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://go.dev/doc/security/vuln/",
+        "title": "Go vulnerability management",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/net/http/httptest",
+        "title": "Go HTTP testing",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://riverqueue.com/docs/transactional-enqueueing",
+        "title": "River transactional enqueueing",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://riverqueue.com/docs/resumable-jobs",
+        "title": "River resumable jobs",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.temporal.io/develop/go",
+        "title": "Temporal Go SDK",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://goreleaser.com/getting-started/quick-start/",
+        "title": "GoReleaser quick start",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/coreos/go-oidc",
+        "title": "go-oidc repository",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/github.com/wneessen/go-mail",
+        "title": "go-mail documentation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.aws.amazon.com/sdk-for-go/v2/developer-guide/go_s3_code_examples.html",
+        "title": "AWS Go S3 examples",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/github.com/coder/websocket",
+        "title": "coder/websocket documentation",
+        "checked_date": "2026-10-10"
+      }
+    ],
+    "open_questions": [
+      "Which API contracts, browser login or service-token requirements apply?",
+      "Does realtime need one-way updates or bidirectional sockets?",
+      "Which database pool, worker throughput, storage and deployment/restore budgets apply?"
+    ]
+  },
+  {
+    "id": "go-cli",
+    "name": "Go CLI/TUI: Cobra + Bubble Tea + GoReleaser",
+    "use_cases": [
+      "Shipped command-line products",
+      "infrastructure administration tools",
+      "terminal dashboards"
+    ],
+    "choose_when": [
+      "Want compiled distribution with Go ecosystem access",
+      "Command structure and terminal UX matter more than tight low-level control"
+    ],
+    "avoid_when": [
+      "Primarily a short disposable script",
+      "Host SDK or native UI framework mandates another language",
+      "Strict no-GC constraints"
+    ],
+    "tools": [
+      {
+        "job": "Command parsing",
+        "default": "Cobra",
+        "alternatives": [
+          "flag for a small single command"
+        ],
+        "reason": "Command/help/completion structure plus event-driven terminal UI.",
+        "limits": "Keep noninteractive and machine-readable modes; test TTY absence, cancellation and terminal restoration.",
+        "source_urls": [
+          "https://github.com/spf13/cobra",
+          "https://github.com/charmbracelet/bubbletea",
+          "https://pkg.go.dev/flag"
+        ]
+      },
+      {
+        "job": "Terminal UI",
+        "default": "Bubble Tea only for interactive screens",
+        "alternatives": [
+          "Line-oriented output when no interactive screen is needed"
+        ],
+        "reason": "Command/help/completion structure plus event-driven terminal UI.",
+        "limits": "Keep noninteractive and machine-readable modes; test TTY absence, cancellation and terminal restoration.",
+        "source_urls": [
+          "https://github.com/spf13/cobra",
+          "https://github.com/charmbracelet/bubbletea",
+          "https://pkg.go.dev/flag"
+        ]
+      },
+      {
+        "job": "HTTP client",
+        "default": "net/http Client",
+        "alternatives": [],
+        "reason": "Standard client with contexts and transport reuse.",
+        "limits": "Set timeouts, bound responses and close bodies; retry only when operation semantics allow.",
+        "source_urls": [
+          "https://pkg.go.dev/net/http"
+        ]
+      },
+      {
+        "job": "Persistence and migrations",
+        "default": "None for stateless tools",
+        "alternatives": [
+          "Use service API for shared state"
+        ],
+        "reason": "Avoid introducing a database into a command wrapper.",
+        "limits": "Local durable state requires a separately selected storage/schema policy; never assume flat-file writes are atomic.",
+        "source_urls": [
+          "https://pkg.go.dev/os"
+        ]
+      },
+      {
+        "job": "Configuration",
+        "default": "Typed settings loaded with os.LookupEnv",
+        "alternatives": [
+          "flag for small command surfaces"
+        ],
+        "reason": "Explicit startup validation and standard structured logs.",
+        "limits": "Define precedence; reject malformed required values; redact secrets. Environment access alone is not validation or secret management.",
+        "source_urls": [
+          "https://pkg.go.dev/os",
+          "https://pkg.go.dev/flag",
+          "https://pkg.go.dev/log/slog"
+        ]
+      },
+      {
+        "job": "Application logging",
+        "default": "log/slog",
+        "alternatives": [],
+        "reason": "Explicit startup validation and standard structured logs.",
+        "limits": "Define precedence; reject malformed required values; redact secrets. Environment access alone is not validation or secret management.",
+        "source_urls": [
+          "https://pkg.go.dev/os",
+          "https://pkg.go.dev/flag",
+          "https://pkg.go.dev/log/slog"
+        ]
+      },
+      {
+        "job": "Tests and static checks",
+        "default": "testing; go vet; race detector; govulncheck",
+        "alternatives": [],
+        "reason": "Standard toolchain feedback plus exercised concurrency and known-vulnerability checks.",
+        "limits": "Race detector requires supported target/toolchain and exercised code; no scanner proves absence of vulnerabilities.",
+        "source_urls": [
+          "https://pkg.go.dev/testing",
+          "https://go.dev/doc/articles/race_detector",
+          "https://golangci-lint.run/docs/welcome/quick-start/",
+          "https://go.dev/doc/security/vuln/"
+        ]
+      },
+      {
+        "job": "Durable work",
+        "default": "Delegate long jobs to a service; persist its job ID",
+        "alternatives": [
+          "River-backed Go service"
+        ],
+        "reason": "Work survives the terminal process only through an explicit durable owner.",
+        "limits": "A goroutine or TUI background command dies with the process; reconnection needs a stable job identity.",
+        "source_urls": [
+          "https://riverqueue.com/docs/transactional-enqueueing",
+          "https://github.com/charmbracelet/bubbletea"
+        ]
+      },
+      {
+        "job": "Distribution",
+        "default": "GoReleaser",
+        "alternatives": [
+          "Manual go build for one internal target"
+        ],
+        "reason": "Target builds and release artifact automation.",
+        "limits": "Review generated release actions, supported targets, signing and updater policy. cgo can complicate cross-building.",
+        "source_urls": [
+          "https://goreleaser.com/getting-started/quick-start/"
+        ]
+      },
+      {
+        "job": "Machine-readable output",
+        "default": "encoding/json/v2 on a supporting pinned Go toolchain",
+        "alternatives": [
+          "encoding/json for established output contracts or older supported toolchains"
+        ],
+        "reason": "Stable JSON output lets scripts consume commands without parsing terminal text",
+        "limits": "Add an explicit --json/output mode and document schema/exit codes; reserve stdout for results, stderr for diagnostics, and disable interactive/color output for pipelines. Confirm API availability on the pinned Go version; v2 changes encoding/decoding defaults, so test schema/null/omission compatibility before migrating.",
+        "source_urls": [
+          "https://pkg.go.dev/encoding/json",
+          "https://pkg.go.dev/encoding/json/v2"
+        ]
+      },
+      {
+        "job": "Cancellation and shutdown",
+        "default": "signal.NotifyContext",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "User interrupts should cancel outbound work and leave terminal/files usable",
+        "limits": "Propagate cancellation through work; bound cleanup time and test interrupts during writes. Avoid adding an async runtime to a synchronous Rust CLI solely for signals.",
+        "source_urls": [
+          "https://pkg.go.dev/os/signal"
+        ]
+      }
+    ],
+    "setup_steps": [
+      "Start in a source checkout; go mod init example.com/tool using its intended module path.",
+      "Run go get github.com/spf13/cobra; resolve a supported Bubble Tea release only if a TUI is required.",
+      "Build cmd/tool with injectable I/O, configuration validation, stable exit codes and explicit noninteractive behavior.",
+      "Write command tests covering malformed input, stdout/stderr, cancellation and safe retries; use isolated temporary paths.",
+      "Run goreleaser init, then review and pin the generated configuration and target matrix. No setup or publishing has been executed."
+    ],
+    "verification_commands": [
+      "gofmt -l .",
+      "go test ./...",
+      "go test -race ./...",
+      "go vet ./...",
+      "govulncheck ./...",
+      "go build ./cmd/tool",
+      "goreleaser check",
+      "goreleaser build --snapshot --clean"
+    ],
+    "evidence_status": "documentation-reviewed",
+    "sources": [
+      {
+        "url": "https://github.com/spf13/cobra",
+        "title": "Cobra",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/charmbracelet/bubbletea",
+        "title": "Bubble Tea",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/flag",
+        "title": "Go flag",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/net/http",
+        "title": "Go net/http",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/os",
+        "title": "Go os configuration primitives",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/log/slog",
+        "title": "Go structured logging",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/testing",
+        "title": "Go testing",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://go.dev/doc/articles/race_detector",
+        "title": "Go data race detector",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://golangci-lint.run/docs/welcome/quick-start/",
+        "title": "golangci-lint quick start",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://go.dev/doc/security/vuln/",
+        "title": "Go vulnerability management",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://riverqueue.com/docs/transactional-enqueueing",
+        "title": "River transactional enqueueing",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://goreleaser.com/getting-started/quick-start/",
+        "title": "GoReleaser quick start",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/encoding/json",
+        "title": "Go JSON API",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/os/signal",
+        "title": "Go signal API",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://pkg.go.dev/encoding/json/v2",
+        "title": "Go JSON v2",
+        "checked_date": "2026-10-10"
+      }
+    ],
+    "open_questions": [
+      "Which OS/architectures and terminals must be supported?",
+      "What stable exit codes, JSON schema, configuration precedence and noninteractive behavior are required?",
+      "Which signing, package managers and update mechanism will own distribution?"
+    ]
+  },
+  {
+    "id": "rust-service",
+    "name": "Rust service: Axum + Tokio + PostgreSQL + SQLx",
+    "use_cases": [
+      "Native network services",
+      "resource-sensitive APIs",
+      "services sharing a Rust core"
+    ],
+    "choose_when": [
+      "Memory/resource control or Rust library reuse is important",
+      "Team accepts ownership/async complexity for compile-time guarantees"
+    ],
+    "avoid_when": [
+      "Primary goal is conventional CRUD delivery with minimal framework assembly",
+      "Team cannot maintain Rust async code",
+      "A full product framework is needed immediately"
+    ],
+    "tools": [
+      {
+        "job": "HTTP server",
+        "default": "Axum + Tokio + tower-http",
+        "alternatives": [
+          "Direct Hyper only for transport-specific needs"
+        ],
+        "reason": "Typed extractors/state and Tower middleware compose with Tokio networking.",
+        "limits": "Configure limits, timeout/error mapping and graceful shutdown. Blocking work must not monopolize async workers.",
+        "source_urls": [
+          "https://docs.rs/axum/latest/axum/",
+          "https://tokio.rs/"
+        ]
+      },
+      {
+        "job": "Database and migrations",
+        "default": "PostgreSQL + SQLx; sqlx-cli migrations",
+        "alternatives": [],
+        "reason": "SQL-oriented async access with optional checked query macros and migration tooling.",
+        "limits": "Select runtime/TLS/database features for the resolved release. Checked macros need a database or maintained offline metadata; runtime queries are not compile-time checked.",
+        "source_urls": [
+          "https://docs.rs/sqlx/latest/sqlx/",
+          "https://github.com/transact-rs/sqlx/blob/main/sqlx-cli/README.md"
+        ]
+      },
+      {
+        "job": "Configuration",
+        "default": "Serde-backed settings + config",
+        "alternatives": [
+          "std::env for a small fixed settings set"
+        ],
+        "reason": "Typed settings plus structured events/spans.",
+        "limits": "Set precedence explicitly; validate semantics; install a tracing subscriber; never log secrets.",
+        "source_urls": [
+          "https://docs.rs/config/latest/config/",
+          "https://doc.rust-lang.org/std/env/fn.var.html",
+          "https://docs.rs/tracing/latest/tracing/"
+        ]
+      },
+      {
+        "job": "Application logging",
+        "default": "tracing + configured subscriber",
+        "alternatives": [],
+        "reason": "Typed settings plus structured events/spans.",
+        "limits": "Set precedence explicitly; validate semantics; install a tracing subscriber; never log secrets.",
+        "source_urls": [
+          "https://docs.rs/config/latest/config/",
+          "https://doc.rust-lang.org/std/env/fn.var.html",
+          "https://docs.rs/tracing/latest/tracing/"
+        ]
+      },
+      {
+        "job": "Tests and static checks",
+        "default": "cargo test; rustfmt; Clippy; cargo audit",
+        "alternatives": [],
+        "reason": "Compiler, style, behavior and known-advisory checks complement each other.",
+        "limits": "Audit coverage is advisory-driven; compile success does not establish behavior or security. Test supported feature combinations rather than blindly enabling incompatible features.",
+        "source_urls": [
+          "https://doc.rust-lang.org/cargo/commands/cargo-test.html",
+          "https://github.com/rust-lang/rustfmt",
+          "https://doc.rust-lang.org/clippy/usage.html",
+          "https://rustsec.org/",
+          "https://docs.rs/assert_cmd/latest/assert_cmd/"
+        ]
+      },
+      {
+        "job": "Durable work",
+        "default": "None for request-only service; Restate Rust SDK when durable workflows are required",
+        "alternatives": [],
+        "reason": "Durable handlers and persisted workflow progress address work outliving a process.",
+        "limits": "Requires a Restate service and adoption test. Journal external operations correctly; idempotency and business transactions remain explicit. Tokio tasks alone are not durable.",
+        "source_urls": [
+          "https://docs.rs/restate-sdk/latest/restate_sdk/"
+        ]
+      },
+      {
+        "job": "Deployment",
+        "default": "cargo build --release --locked in a target-specific build pipeline",
+        "alternatives": [
+          "Container with explicit runtime libraries"
+        ],
+        "reason": "Reproducible dependency resolution from committed lockfile; native executable artifact.",
+        "limits": "Not universally static: verify libc, TLS/native libraries, target support, certificates and container runtime needs.",
+        "source_urls": [
+          "https://doc.rust-lang.org/cargo/commands/cargo-build.html"
+        ]
+      },
+      {
+        "job": "API token verification",
+        "default": "jsonwebtoken + selected identity provider contract",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Typed claims and signature checks fit JWT-bearing service APIs",
+        "limits": "Configure accepted algorithms, issuer/audience, expiry and trusted key rotation; select required crypto features for resolved release. This is a verifier, not an OIDC login/session solution; opaque tokens need provider introspection.",
+        "source_urls": [
+          "https://docs.rs/jsonwebtoken/latest/jsonwebtoken/"
+        ]
+      },
+      {
+        "job": "Transactional email",
+        "default": "lettre + project-selected SMTP provider",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Typed mail construction and SMTP transport support application messages",
+        "limits": "Configure TLS, sender credentials and timeouts; send required mail through durable jobs with duplicate protection. Validate chosen async/runtime features in Rust; delivery receipts and bounces need provider handling.",
+        "source_urls": [
+          "https://docs.rs/lettre/latest/lettre/"
+        ]
+      },
+      {
+        "job": "Uploads and object storage",
+        "default": "AWS SDK for Rust S3 client",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Durable object storage avoids dependence on service-local disk",
+        "limits": "Configure runtime credentials, region and least-privilege bucket access; authorize object keys and uploads, bound size/concurrency and define retention. Test multipart cleanup and selected provider compatibility.",
+        "source_urls": [
+          "https://docs.aws.amazon.com/sdk-for-rust/latest/dg/rust_s3_code_examples.html"
+        ]
+      },
+      {
+        "job": "Realtime transport",
+        "default": "Axum WebSocket extractor",
+        "alternatives": [
+          "Server-sent events for one-way feeds",
+          "Polling for infrequent updates"
+        ],
+        "reason": "WebSocket support fits bidirectional connected clients",
+        "limits": "Enable the documented module/feature; authorize handshake and every protected message, bound queues/message size and implement heartbeat/shutdown. Socket delivery is not durable history; define reconnect/resync.",
+        "source_urls": [
+          "https://docs.rs/axum/latest/axum/extract/ws/index.html"
+        ]
+      }
+    ],
+    "setup_steps": [
+      "Create source in a local development workspace: cargo new service; enter service and commit the generated application Cargo.lock after dependency resolution.",
+      "Run cargo add axum; cargo add tokio --features macros,rt-multi-thread; add required tower-http middleware after selecting compatible releases.",
+      "Add SQLx selecting PostgreSQL, Tokio and a supported TLS configuration from that release; install matching sqlx-cli. Create config validation and tracing subscriber.",
+      "Use a disposable database in DATABASE_URL. Create migrations with sqlx migrate add initial; write SQL and run sqlx migrate run.",
+      "For checked query macros, run cargo sqlx prepare after schema/query changes and commit offline metadata. Implement HTTP, real-database and cancellation tests.",
+      "Introduce Restate only after a separate restart/retry/idempotency proof. Pin toolchain and release targets. These instructions were not executed."
+    ],
+    "verification_commands": [
+      "cargo fmt --all -- --check",
+      "cargo clippy --workspace --all-targets --locked -- -D warnings",
+      "cargo test --workspace --locked",
+      "cargo audit",
+      "sqlx migrate info",
+      "cargo sqlx prepare --check",
+      "cargo build --release --locked"
+    ],
+    "evidence_status": "documentation-reviewed",
+    "sources": [
+      {
+        "url": "https://docs.rs/axum/latest/axum/",
+        "title": "Axum",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://tokio.rs/",
+        "title": "Tokio",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/sqlx/latest/sqlx/",
+        "title": "SQLx",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/transact-rs/sqlx/blob/main/sqlx-cli/README.md",
+        "title": "SQLx CLI",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/config/latest/config/",
+        "title": "Rust config crate",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://doc.rust-lang.org/std/env/fn.var.html",
+        "title": "Rust environment variables",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/tracing/latest/tracing/",
+        "title": "Rust tracing",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://doc.rust-lang.org/cargo/commands/cargo-test.html",
+        "title": "Cargo test",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/rust-lang/rustfmt",
+        "title": "rustfmt",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://doc.rust-lang.org/clippy/usage.html",
+        "title": "Clippy usage",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://rustsec.org/",
+        "title": "RustSec",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/assert_cmd/latest/assert_cmd/",
+        "title": "assert_cmd",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/restate-sdk/latest/restate_sdk/",
+        "title": "Restate Rust SDK",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://doc.rust-lang.org/cargo/commands/cargo-build.html",
+        "title": "Cargo build",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/jsonwebtoken/latest/jsonwebtoken/",
+        "title": "jsonwebtoken API",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/lettre/latest/lettre/",
+        "title": "lettre documentation",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.aws.amazon.com/sdk-for-rust/latest/dg/rust_s3_code_examples.html",
+        "title": "AWS Rust S3 examples",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/axum/latest/axum/extract/ws/index.html",
+        "title": "Axum WebSocket extractor documentation",
+        "checked_date": "2026-10-10"
+      }
+    ],
+    "open_questions": [
+      "Which API/token contract and trusted key-rotation mechanism apply?",
+      "Which target/runtime/TLS and database configurations must ship?",
+      "Does durable work justify a separate Restate service and its operation?",
+      "Which workload, realtime capacity and restore objectives must be met?"
+    ]
+  },
+  {
+    "id": "rust-cli",
+    "name": "Rust CLI/TUI: clap + Ratatui + dist",
+    "use_cases": [
+      "Fast native developer tools",
+      "parsers and analyzers",
+      "shipped terminal applications"
+    ],
+    "choose_when": [
+      "Need native performance or reuse of Rust libraries",
+      "Want ownership/type checks around complex transformations"
+    ],
+    "avoid_when": [
+      "Disposable automation would be simpler in Python or shell",
+      "Build latency and cross-toolchains outweigh runtime needs"
+    ],
+    "tools": [
+      {
+        "job": "Command parsing",
+        "default": "clap",
+        "alternatives": [
+          "A simple std::env argument parser for tiny internal tools"
+        ],
+        "reason": "Typed commands plus a mature terminal widget/rendering ecosystem.",
+        "limits": "Keep domain code separate from rendering and support non-TTY output; restore terminal on errors and interruption.",
+        "source_urls": [
+          "https://docs.rs/clap/latest/clap/",
+          "https://ratatui.rs/"
+        ]
+      },
+      {
+        "job": "Terminal UI",
+        "default": "Ratatui only for interactive screens",
+        "alternatives": [
+          "Line-oriented output when no interactive screen is needed"
+        ],
+        "reason": "Typed commands plus a mature terminal widget/rendering ecosystem.",
+        "limits": "Keep domain code separate from rendering and support non-TTY output; restore terminal on errors and interruption.",
+        "source_urls": [
+          "https://docs.rs/clap/latest/clap/",
+          "https://ratatui.rs/"
+        ]
+      },
+      {
+        "job": "HTTP client",
+        "default": "reqwest",
+        "alternatives": [
+          "No network dependency for offline tools"
+        ],
+        "reason": "Reusable typed HTTP client APIs.",
+        "limits": "Choose blocking or async deliberately; configure timeouts, TLS and response bounds. Never call blocking client inside an async runtime indiscriminately.",
+        "source_urls": [
+          "https://docs.rs/reqwest/latest/reqwest/"
+        ]
+      },
+      {
+        "job": "Persistence and migrations",
+        "default": "None for stateless tools",
+        "alternatives": [
+          "SQLx with SQLite when local relational state is a real requirement"
+        ],
+        "reason": "Start without a database; add schema ownership only for persistent products.",
+        "limits": "SQLite feature/driver and migration setup require target testing; durable local state is not shared distributed workflow state.",
+        "source_urls": [
+          "https://docs.rs/sqlx/latest/sqlx/",
+          "https://github.com/transact-rs/sqlx/blob/main/sqlx-cli/README.md"
+        ]
+      },
+      {
+        "job": "Configuration",
+        "default": "Serde-backed settings + config",
+        "alternatives": [
+          "std::env for a small fixed settings set"
+        ],
+        "reason": "Typed settings plus structured events/spans.",
+        "limits": "Set precedence explicitly; validate semantics; install a tracing subscriber; never log secrets.",
+        "source_urls": [
+          "https://docs.rs/config/latest/config/",
+          "https://doc.rust-lang.org/std/env/fn.var.html",
+          "https://docs.rs/tracing/latest/tracing/"
+        ]
+      },
+      {
+        "job": "Application logging",
+        "default": "tracing + configured subscriber",
+        "alternatives": [],
+        "reason": "Typed settings plus structured events/spans.",
+        "limits": "Set precedence explicitly; validate semantics; install a tracing subscriber; never log secrets.",
+        "source_urls": [
+          "https://docs.rs/config/latest/config/",
+          "https://doc.rust-lang.org/std/env/fn.var.html",
+          "https://docs.rs/tracing/latest/tracing/"
+        ]
+      },
+      {
+        "job": "Tests and static checks",
+        "default": "cargo test; rustfmt; Clippy; cargo audit",
+        "alternatives": [],
+        "reason": "Compiler, style, behavior and known-advisory checks complement each other.",
+        "limits": "Audit coverage is advisory-driven; compile success does not establish behavior or security. Test supported feature combinations rather than blindly enabling incompatible features.",
+        "source_urls": [
+          "https://doc.rust-lang.org/cargo/commands/cargo-test.html",
+          "https://github.com/rust-lang/rustfmt",
+          "https://doc.rust-lang.org/clippy/usage.html",
+          "https://rustsec.org/",
+          "https://docs.rs/assert_cmd/latest/assert_cmd/"
+        ]
+      },
+      {
+        "job": "Executable behavior tests",
+        "default": "assert_cmd",
+        "alternatives": [
+          "clap-linked snapshot tools for stable help output"
+        ],
+        "reason": "Tests real exit codes, stdout/stderr and command contracts.",
+        "limits": "Snapshot changes need review; also test actual error and side-effect behavior.",
+        "source_urls": [
+          "https://docs.rs/assert_cmd/latest/assert_cmd/",
+          "https://docs.rs/clap/latest/clap/"
+        ]
+      },
+      {
+        "job": "Durable work",
+        "default": "Delegate to a durable service; retain resumable job identity",
+        "alternatives": [
+          "Local checkpoints for explicitly local resumable work"
+        ],
+        "reason": "CLI lifetime does not own remote work lifetime.",
+        "limits": "Checkpoint schema, atomic persistence and external idempotency must be designed; async execution alone adds no durability.",
+        "source_urls": [
+          "https://docs.rs/restate-sdk/latest/restate_sdk/"
+        ]
+      },
+      {
+        "job": "Distribution",
+        "default": "dist (formerly cargo-dist) + Cargo release builds",
+        "alternatives": [
+          "Manual artifacts for one internal target"
+        ],
+        "reason": "Generates multi-platform release pipelines and installers.",
+        "limits": "Review generated CI before tags can publish; test installers and target-native dependencies. Signing and notarization are separate platform work.",
+        "source_urls": [
+          "https://github.com/axodotdev/cargo-dist",
+          "https://doc.rust-lang.org/cargo/commands/cargo-build.html"
+        ]
+      },
+      {
+        "job": "Machine-readable output",
+        "default": "serde_json",
+        "alternatives": [
+          "Preserve an existing compatible project choice"
+        ],
+        "reason": "Stable JSON output lets scripts consume commands without parsing terminal text",
+        "limits": "Add an explicit --json/output mode and document schema/exit codes; reserve stdout for results, stderr for diagnostics, and disable interactive/color output for pipelines.",
+        "source_urls": [
+          "https://docs.rs/serde_json/latest/serde_json/"
+        ]
+      },
+      {
+        "job": "Cancellation and shutdown",
+        "default": "Tokio signal handling for async commands",
+        "alternatives": [
+          "Existing synchronous shutdown strategy in synchronous Rust tools"
+        ],
+        "reason": "User interrupts should cancel outbound work and leave terminal/files usable",
+        "limits": "Propagate cancellation through work; bound cleanup time and test interrupts during writes. Avoid adding an async runtime to a synchronous Rust CLI solely for signals.",
+        "source_urls": [
+          "https://docs.rs/tokio/latest/tokio/signal/index.html"
+        ]
+      }
+    ],
+    "setup_steps": [
+      "Create source in a local development workspace with cargo new tool; enter tool; run cargo add clap --features derive.",
+      "Resolve Ratatui and its supported terminal backend only if interactive rendering is required; add reqwest only if network access is needed.",
+      "Implement typed commands, injected/configured settings, stable output/exit codes and domain logic independent of terminal rendering.",
+      "Add tests with cargo add --dev assert_cmd; cover missing files, invalid input, stdin, cancellation, stdout/stderr and terminal cleanup.",
+      "Install a selected dist release and run dist init; review target list and generated CI. Lock dependencies/toolchain; no release tags or publication were executed."
+    ],
+    "verification_commands": [
+      "cargo fmt --all -- --check",
+      "cargo clippy --workspace --all-targets --locked -- -D warnings",
+      "cargo test --workspace --locked",
+      "cargo audit",
+      "cargo build --release --locked"
+    ],
+    "evidence_status": "documentation-reviewed",
+    "sources": [
+      {
+        "url": "https://docs.rs/clap/latest/clap/",
+        "title": "clap",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://ratatui.rs/",
+        "title": "Ratatui",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/reqwest/latest/reqwest/",
+        "title": "reqwest",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/sqlx/latest/sqlx/",
+        "title": "SQLx",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/transact-rs/sqlx/blob/main/sqlx-cli/README.md",
+        "title": "SQLx CLI",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/config/latest/config/",
+        "title": "Rust config crate",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://doc.rust-lang.org/std/env/fn.var.html",
+        "title": "Rust environment variables",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/tracing/latest/tracing/",
+        "title": "Rust tracing",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://doc.rust-lang.org/cargo/commands/cargo-test.html",
+        "title": "Cargo test",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/rust-lang/rustfmt",
+        "title": "rustfmt",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://doc.rust-lang.org/clippy/usage.html",
+        "title": "Clippy usage",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://rustsec.org/",
+        "title": "RustSec",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/assert_cmd/latest/assert_cmd/",
+        "title": "assert_cmd",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/restate-sdk/latest/restate_sdk/",
+        "title": "Restate Rust SDK",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://github.com/axodotdev/cargo-dist",
+        "title": "dist binary distribution",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://doc.rust-lang.org/cargo/commands/cargo-build.html",
+        "title": "Cargo build",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/serde_json/latest/serde_json/",
+        "title": "Rust JSON API",
+        "checked_date": "2026-10-10"
+      },
+      {
+        "url": "https://docs.rs/tokio/latest/tokio/signal/index.html",
+        "title": "Rust signal API",
+        "checked_date": "2026-10-10"
+      }
+    ],
+    "open_questions": [
+      "Which terminals, non-TTY consumers and OS/architectures must be supported?",
+      "What output schema, cancellation and configuration precedence will consumers rely on?",
+      "Which native dependencies, signing/notarization and update channels are required?"
+    ]
+  }
+]

@@ -1,0 +1,6 @@
+{
+  "name": "Stack Menu",
+  "origin": "https://stack.menu",
+  "description": "Tools and guidance for choosing, building and migrating application stacks.",
+  "whenToUse": "Use your existing project context to choose, build with, or reconsider a stack. Begin at /agents/guide.md; read only the relevant profiles."
+}
