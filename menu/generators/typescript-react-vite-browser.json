@@ -1,0 +1,73 @@
+{
+  "profile_id": "typescript-react-vite-browser",
+  "reviewed_on": "2026-10-18",
+  "evidence_status": "documentation-reviewed; commands not executed",
+  "starting_points": [
+    {
+      "name": "create-vite React TypeScript template",
+      "when": "A new browser React application backed by an existing or separately owned API.",
+      "steps": [
+        "Choose a supported Node runtime and package manager; inspect create-vite help and template requirements.",
+        "Create in an unused local source directory with the official react-ts template, then install dependencies inside the generated project.",
+        "Record generator/runtime versions and template choice in README; use the generated lockfile for subsequent installs."
+      ],
+      "commands": [
+        {
+          "run": "node --version",
+          "cwd": "A local source-workspace parent outside synchronized storage; my-app must not already exist",
+          "purpose": "Check Node against the resolved Vite/template requirements."
+        },
+        {
+          "run": "npm create vite@latest -- --help",
+          "cwd": "A local source-workspace parent outside synchronized storage; my-app must not already exist",
+          "purpose": "Inspect current create-vite flags."
+        },
+        {
+          "run": "npm create vite@latest my-app -- --template react-ts",
+          "cwd": "A local source-workspace parent outside synchronized storage; my-app must not already exist",
+          "purpose": "Generate the React TypeScript template."
+        },
+        {
+          "run": "npm install",
+          "cwd": "The generated my-app directory",
+          "purpose": "Install generated dependencies and create the npm lockfile."
+        }
+      ],
+      "notes": [
+        "Replace my-app with the unused intended directory. Preserve an established package manager in existing work.",
+        "This template creates the client application, not an API server, database, authentication service or production hosting setup. Do not put secrets or database credentials in browser code."
+      ]
+    }
+  ],
+  "follow_up_generators": [
+    {
+      "name": "Feature generation boundary",
+      "when": "Adding client components/routes or integrating the selected API after scaffolding.",
+      "commands": [],
+      "notes": [
+        "Vite does not provide a general component/model/controller generator. Use installed router/UI tooling only if the project has selected it; ordinary React components follow the generated module and TypeScript conventions.",
+        "Database migration generators belong in the API/backend repository that owns the data. Do not add PostgreSQL/Drizzle tooling to a browser-only bundle."
+      ]
+    }
+  ],
+  "preserve": [
+    "Generated .gitignore, index.html entry, Vite/React plugin setup, ESLint configuration, TypeScript project configuration and package scripts.",
+    "Lockfile and runtime constraints; adapt sample components while retaining the working scaffold."
+  ],
+  "verification": [
+    "Run npm run build and the generated lint script; confirm build includes the template TypeScript check rather than relying on transpilation alone.",
+    "Run npm run dev and inspect the actual browser UI; test API origins/authentication at the browser boundary.",
+    "Review ignore behavior and generated-file deviations before adding project files."
+  ],
+  "sources": [
+    {
+      "title": "Vite Getting Started and templates",
+      "url": "https://vite.dev/guide/"
+    }
+  ],
+  "integration_steps": [
+    "Extend the generated README with API/session owners, API contract, run/check commands and environment variable names. Confirm strict TypeScript and add router/query tooling only when needed.",
+    "Add Zod when validating runtime input or external data is required, and configure the selected test tools. Implement error/loading/session-expiry states and verify authoritative authorization in the API that owns the data.",
+    "Build static assets, configure the chosen production host for deep links and API origins, and verify browser navigation plus authentication/session behavior against the deployed API during an authorized release."
+  ]
+}

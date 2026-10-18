@@ -9,6 +9,7 @@ Tools and guidance for choosing an application stack, building with a known stac
 - [Build and contribute](docs/website-workflow.md) — editable owners, local preview, direct checks and recovery.
 - [Implementation scope](docs/current-state.md) — supported behavior and evidence limits.
 - [Agent instructions](content/agent-entry.md) — navigation and contextual guidance.
+- [Generator guidance](menu/generators/README.md) — official initializers, templates and conditional follow-up generators for all 14 profiles.
 - [Routing contract](content/routing.md) — structured context and optional endpoint.
 - [Content inputs](menu/README.md) — dated snapshots, research freshness and attribution.
 - [Artwork and surface map](branding/README.md) — editable masters, generated exports and font licenses.

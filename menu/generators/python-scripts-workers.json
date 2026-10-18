@@ -1,0 +1,156 @@
+{
+  "profile_id": "python-scripts-workers",
+  "reviewed_on": "2026-10-18",
+  "evidence_status": "documentation-reviewed; commands not executed",
+  "starting_points": [
+    {
+      "name": "Packaged uv application for maintained automation or a worker",
+      "when": "Reusable modules, a CLI entry point, tests or a long-lived worker warrant a maintained project.",
+      "steps": [
+        "Install uv and inspect uv --version and uv init --help. Replace /path/to/local/source with an existing local source parent; use a new, absent target directory. Set PYTHON_VERSION to a supported Python minor compatible with the selected framework and dependencies. Record generator versions, selected flags and deliberate deviations.",
+        "Generate the packaged application, retain its importable src/worker_app package and generated console entry point, and replace the sample behavior with the bounded task or worker.",
+        "Install only required SDKs and configure tests, explicit inputs, credentials, timeouts and restart/checkpoint behavior. A Python project generator does not provision a queue, scheduler or orchestration service."
+      ],
+      "commands": [
+        {
+          "run": "uv init --app --package --python \"$PYTHON_VERSION\" worker-app",
+          "cwd": "/path/to/local/source",
+          "purpose": "Generate a packaged application and console entry point, explicitly selecting packaging across uv versions."
+        },
+        {
+          "run": "uv sync",
+          "cwd": "/path/to/local/source/worker-app",
+          "purpose": "Resolve the project lock/environment and install the generated package."
+        },
+        {
+          "run": "uv run worker-app",
+          "cwd": "/path/to/local/source/worker-app",
+          "purpose": "Smoke-test the generated console entry point before adapting it to application behavior."
+        }
+      ],
+      "notes": [
+        "Use --lib instead when the actual deliverable is a distributable library consumed by other projects. Do not choose library semantics solely because the code contains reusable functions.",
+        "The generic package generator supplies structure, not Celery tasks, Temporal workflows or safe retry semantics. Add the chosen worker integration only when required.",
+        "Choose a source parent outside another uv workspace, or intentionally use --no-workspace for an independent project under parent project metadata."
+      ]
+    },
+    {
+      "name": "Standalone script with inline dependency metadata",
+      "when": "A small, independently executable file is the actual deliverable; promote shared logic to a package when it grows.",
+      "steps": [
+        "Install uv, choose a supported Python minor, and set PYTHON_VERSION accordingly. Use an existing local script folder and a new task.py; replace /path/to/local/scripts with that folder.",
+        "Generate the script, add only its required dependencies, implement the task, and create its adjacent lockfile for reproducible execution."
+      ],
+      "commands": [
+        {
+          "run": "uv init --script task.py --python \"$PYTHON_VERSION\"",
+          "cwd": "/path/to/local/scripts",
+          "purpose": "Generate a standalone Python script with inline metadata."
+        },
+        {
+          "run": "uv add --script task.py httpx",
+          "cwd": "/path/to/local/scripts",
+          "purpose": "Example only when HTTPX is required: declare a script dependency in its metadata."
+        },
+        {
+          "run": "uv lock --script task.py",
+          "cwd": "/path/to/local/scripts",
+          "purpose": "Generate task.py.lock; standalone scripts do not use a project uv.lock."
+        },
+        {
+          "run": "uv run --locked task.py",
+          "cwd": "/path/to/local/scripts",
+          "purpose": "Execute the script with its declared and locked dependencies after fixture-safe implementation."
+        }
+      ],
+      "notes": [
+        "The HTTPX dependency is conditional. A standard-library-only script needs no extra package. Inline script metadata owns script dependencies; do not add a redundant pyproject.toml merely to run one file.",
+        "Keep task.py.lock with the script when reproducibility is required. For execution within a surrounding uv project, inspect project discovery and choose --no-project when the script should be independent."
+      ]
+    }
+  ],
+  "follow_up_generators": [
+    {
+      "name": "Conditional Alembic migration environment and revisions",
+      "when": "SQLAlchemy-backed persistent state is required; skip for stateless APIs/workers and preserve an existing migration owner.",
+      "commands": [
+        {
+          "run": "uv add sqlalchemy alembic \"psycopg[binary]\"",
+          "cwd": "/path/to/local/source/worker-app",
+          "purpose": "Install the selected PostgreSQL data dependencies; use a compatible driver for another chosen database."
+        },
+        {
+          "run": "uv run alembic init migrations",
+          "cwd": "/path/to/local/source/worker-app",
+          "purpose": "Generate the standard migration environment and config."
+        },
+        {
+          "run": "uv run alembic revision --autogenerate -m \"initial schema\"",
+          "cwd": "/path/to/local/source/worker-app",
+          "purpose": "After configuring env.py metadata and database access, generate a candidate schema revision."
+        },
+        {
+          "run": "uv run alembic upgrade head",
+          "cwd": "/path/to/local/source/worker-app",
+          "purpose": "After manual review, apply the candidate migration to a disposable development database."
+        }
+      ],
+      "notes": [
+        "Between init and revision, configure the database URL from environment-owned secrets and target_metadata from the application models. The default generic template is synchronous; use alembic list_templates and choose the async template only for an actual async DBAPI.",
+        "Autogeneration cannot reliably infer every rename, constraint or data transformation. Review upgrade/downgrade operations and write data migrations intentionally; do not blindly apply its output.",
+        "Commit migrations, env.py and the non-secret configuration, while keeping database credentials out of source. Verify upgrades and required rollback behavior before release."
+      ]
+    }
+  ],
+  "preserve": [
+    "Keep generator-created project metadata, Python requirements, version selection and ignore rules; extend them rather than replacing them with a handwritten approximation.",
+    "Commit the resolved uv.lock for projects; exclude .venv, caches, secrets and platform debris such as .DS_Store. Do not hand-edit lockfiles.",
+    "Keep source repositories, virtual environments and caches in a local development workspace outside cloud-synced document folders.",
+    "For the packaged application, retain its generated build backend, src layout and console-script mapping; resolve dependency changes through uv.",
+    "For standalone scripts, preserve inline metadata and the adjacent task.py.lock rather than substituting a project uv.lock.",
+    "Keep fixtures and dry-run modes separate from live side effects; document scheduling, non-overlap and failure-resume behavior before operational use."
+  ],
+  "verification": [
+    "For the packaged branch, from /path/to/local/source/worker-app run uv sync --locked and uv run worker-app using fixtures or an implemented dry-run mode; verify the packaged import and entry point after build/install when distributing.",
+    "For the script branch, from /path/to/local/scripts run uv run --locked task.py in a fixture-safe mode; verify its adjacent lockfile and Python requirement.",
+    "Run configured lint/type/test checks, then test explicit exit codes, malformed inputs, cancellation, bounded retries and partial failures at real effect boundaries.",
+    "Compare the same uv-version/flag scaffold in a disposable folder; inspect tracked/staged files for environments, caches, secrets and .DS_Store. Conditional Alembic checks require a configured disposable database."
+  ],
+  "sources": [
+    {
+      "title": "uv project creation and layout choices",
+      "url": "https://docs.astral.sh/uv/concepts/projects/init/"
+    },
+    {
+      "title": "uv project dependency and environment workflow",
+      "url": "https://docs.astral.sh/uv/guides/projects/"
+    },
+    {
+      "title": "uv locking and syncing",
+      "url": "https://docs.astral.sh/uv/concepts/projects/sync/"
+    },
+    {
+      "title": "uv script generation, inline metadata and adjacent lockfiles",
+      "url": "https://docs.astral.sh/uv/guides/scripts/"
+    },
+    {
+      "title": "Alembic environment generation and templates",
+      "url": "https://alembic.sqlalchemy.org/en/latest/tutorial.html"
+    },
+    {
+      "title": "Alembic candidate revision generation and limitations",
+      "url": "https://alembic.sqlalchemy.org/en/latest/autogenerate.html"
+    },
+    {
+      "title": "uv command reference: explicit package and workspace options",
+      "url": "https://docs.astral.sh/uv/reference/cli/"
+    }
+  ],
+  "integration_steps": [
+    "After completing the selected generated baseline, keep its package layout and console entry point for maintained workers. From that project root, run uv add httpx pydantic pydantic-settings only for required HTTP/validation/settings capabilities, and uv add --dev ruff mypy pytest for the configured checks.",
+    "For the standalone-file baseline, declare required dependencies with uv add --script task.py httpx pydantic rather than project uv add, then refresh task.py.lock using uv lock --script task.py. Skip unused dependencies and promote shared logic into a package when reuse warrants it.",
+    "Implement explicit inputs, a dry-run or fixture mode, bounded external calls, structured result/error output and credentials injected by the environment.",
+    "Only when shared persistent state is required, use the conditional SQLAlchemy/Alembic follow-up generators and reviewed migrations. For durable orchestration, add temporalio to the maintained project and implement workflows/activities plus a worker connected to a separately provisioned Temporal service.",
+    "Package the locked environment for the chosen scheduler or worker platform. Record startup, non-overlap, cancellation, retry, checkpoint and failure-resume behavior; verify fixture execution before live access."
+  ]
+}

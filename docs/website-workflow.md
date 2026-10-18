@@ -10,6 +10,7 @@ Start at the checkout root with Node 24 (minimum 22.12), npm 9.6.5+ and Python 3
 | --- | --- |
 | Agent instructions and reference discovery | [`content/agent-entry.md`](../content/agent-entry.md) |
 | Context fields and selection behavior | [`content/routing.md`](../content/routing.md), [`lib/router.js`](../lib/router.js) |
+| Generator workflow and per-profile recipes | [`content/generation-policy.json`](../content/generation-policy.json), [`menu/generators/`](../menu/generators/), rendered by [`scripts/generator_content.py`](../scripts/generator_content.py) |
 | Profile summaries | [`menu/profiles.json`](../menu/profiles.json) |
 | Dated research and imported attribution | [`menu/inputs/`](../menu/inputs/) and [`menu/README.md`](../menu/README.md) |
 | Contact, company identity and mailbox purposes | [`content/contact.json`](../content/contact.json) |
@@ -37,3 +38,20 @@ On failure, retain the diagnostic, repair the failed prerequisite, rebuild and r
 Serve essential answers in initial HTML with ordinary links and a canonical sitemap. Preserve real statuses, legitimate public crawler access and direct text resources. Markdown must come from the same content owner, with correct MIME and format-specific cache behavior. Only advertise resources that exist. Reference sites need no invented MCP, payment or login capability. Scanner observations supplement direct access and content checks; neither proves indexing, ranking or successful application setup.
 
 Implementation references: [Pages Functions routing](https://developers.cloudflare.com/pages/functions/routing/), [Functions API](https://developers.cloudflare.com/pages/functions/api-reference/), [Pages headers](https://developers.cloudflare.com/pages/configuration/headers/), [Google search guidance](https://developers.google.com/search/docs/fundamentals/seo-starter-guide).
+
+## Maintain generator guidance
+
+Inputs: affected profile, actual application role, generator/toolchain version and current primary documentation. Start at the checkout root; read the [generator owner](../menu/generators/README.md) and its matching source record. Tools: official documentation, JSON editor, normal build, local preview and direct HTTP inspection.
+
+1. Check official creation and incremental-generator documentation, including installed-version help, option defaults, required tools and whether initialization creates version control or commits. Record the reviewed date and source URLs in the affected `menu/generators/<profile-id>.json`. Distinguish language/module initialization, framework scaffolding and IDE templates. Do not invent a generator where none is documented.
+2. Include the appropriate starting points, prerequisites, command working directories, consequential choices, generated files to preserve and conditional follow-up generators. Keep `integration_steps` consistent with those starting points; it replaces dated imported setup instructions in served profiles. Put the shared requirement and generation receipt only in `content/generation-policy.json`; imported historical snapshots retain their original dates and owners.
+3. Keep `evidence_status` accurate. Source review alone leaves commands unexecuted; a later actual trial must name the exact toolchain/options and results before claiming execution. Do not treat a single trial as qualification of all dependency combinations.
+4. Build. The compiler requires one generator record per curated profile and includes each in its HTML, complete Markdown, structured JSON and full bundle. `/generators.json` exposes the shared workflow and all generator records. Check affected HTML and text/JSON directly, including negotiated Markdown, then inspect desktop and phone rendering.
+5. Verify the entry guidance and discovery links reach the generator section. Review that examples cannot be mistaken for an instruction to run all generators or overwrite an existing application. Update implementation scope with what was actually checked.
+
+Outputs: reviewed editable generator records, synchronized representations and a checked local candidate. On missing docs or a failed build, retain the gap/diagnostic, repair the affected owner and resume that step. Completion means all curated profiles have explicit generation guidance, representation agreement passes, and execution limits remain visible. This site publishes instructions; the consuming agent or build system must execute and enforce them.
+
+
+## Repository commits
+
+For `KogenAI/stack.menu`, use short sentence-case imperative subjects, at most 50 characters, with signed commits and one commit per complete problem. Verified 18 October 2026: the preceding history contained only `b73921ad95e33099f8373296ae30cb2cfd233da2` (`Initial commit`), so no broader convention was established. Almir accepted `Require official generators in stack guides` for the generator-guidance change and explicitly requested its push. Commit/push authorization remains specific to each requested change.

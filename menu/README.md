@@ -11,3 +11,6 @@ This website was prepared from the retained research in the local design checkou
 Architecture/migration records retain the 11 October source date and not-run application checks. A shared capability or tool name does not establish source/target compatibility. Per-stack Markdown and JSON retain the full extended reference and transition research; HTML presents the same recommendations with direct complete-resource links.
 
 `inputs/research/freshness.json` owns the imported check scope, core-guidance dates, corrections and source availability. The compiler exposes `/research-freshness.json` and each record’s `research_freshness`; original review dates are preserved. `/coverage.json`, the homepage directory and coverage page derive all use cases from those same records.
+
+
+[Generator guidance](generators/README.md) is a first-party current layer, separate from the imported research snapshots. It owns creation/template choices and conditional follow-up generation for all 14 profiles; `content/generation-policy.json` owns the common requirement. The compiler merges it into every profile representation and publishes `/generators.json`. Its source-review dates do not update or imply execution of older setup recipes.

@@ -3,6 +3,7 @@
 from pathlib import Path
 import json, html, re, shutil, hashlib
 import migration_content
+import generator_content
 R=Path(__file__).resolve().parent.parent
 RESEARCH=R/'menu/inputs/research'
 ELIXIR=R/'menu/inputs/elixir'
@@ -28,6 +29,10 @@ for fn in manifest['record_files']:
   d['json_url']=f"/stacks/{d['id']}/record.json"
   records[d['id']]=d
 records={i:records[i] for i in meta}
+generator_policy,generators=generator_content.load(R,records)
+for sid,d in records.items():
+ d['generators']={**generators[sid], 'policy':generator_policy}
+ d['setup_steps']=['Complete the selected starting point and baseline checks in the Generators section first; then continue with the integration steps appropriate to the chosen component.']+generators[sid]['integration_steps']
 migration_shared,migration_profiles=migration_content.load(RESEARCH,manifest,records)
 for sid,d in records.items():
  d['architecture_and_migration']=migration_profiles[sid]
@@ -48,6 +53,7 @@ elixir['extended_reference']=normalize_reference(elixir['extended_reference'])
 # Documentation instructions are distinct from installing every recommended tool.
 COMMON=[
 'Read README, dependency manifests, lockfiles, runtime pins and the maintained project workflow before changing anything. Preserve an existing stack unless reconsidering it is part of the request.',
+'For a new component, read the Generators section before writing application files. Use its appropriate official initializer and retain its generated baseline; follow-up generators are conditional on the selected feature.',
 'Use this guide to select tools by requirement. Resolve compatible versions from official and installed-version documentation; record the actual lockfile and runtime versions.',
 'Create a plan for schema changes, identity, authorization, external effects and deployment. A library choice does not complete its integration.',
 'Run relevant checks after configuration. Exercise the real interface, failure paths and packaged artifact on the intended target. Report commands, versions, results and untested behavior.',
@@ -135,7 +141,7 @@ def reference_markdown(ref):
  return '\n'.join(lines)
 
 def markdown(d):
- lines=[f"# {d['title']}",'',d['summary'],'',f"Language: {d['language']} | Reviewed: {d['reviewed']} | Evidence: documentation-reviewed",'', 'Core guidance checked: '+d['research_freshness'].get('core_guidance_checked_on',d['reviewed'])+'. See /research-freshness.json for review scope. These recipes and selected dependency combinations need qualification in the actual project.','','## Application role', 'Components: '+', '.join(d['kind']), 'UI: '+d['ui'], 'Deployment: '+d['host'], '', '## Use cases', *['- '+x for x in d['use_cases']], '', '## Fit',*['- '+x for x in d['choose_when']],'','## Choose something else when',*['- '+x for x in d['avoid_when']],'','## Agent workflow',*['- '+x for x in COMMON],'','## Best practices',*['- '+x for x in d['best_practices']],'','## Tools']
+ lines=[f"# {d['title']}",'',d['summary'],'',f"Language: {d['language']} | Reviewed: {d['reviewed']} | Evidence: documentation-reviewed",'', 'Core guidance checked: '+d['research_freshness'].get('core_guidance_checked_on',d['reviewed'])+'. See /research-freshness.json for review scope. These recipes and selected dependency combinations need qualification in the actual project.','','## Application role', 'Components: '+', '.join(d['kind']), 'UI: '+d['ui'], 'Deployment: '+d['host'], '', '## Use cases', *['- '+x for x in d['use_cases']], '', '## Fit',*['- '+x for x in d['choose_when']],'','## Choose something else when',*['- '+x for x in d['avoid_when']],'','## Agent workflow',*['- '+x for x in COMMON],'','## Best practices',*['- '+x for x in d['best_practices']],'',generator_content.markdown(d['generators'],generator_policy),'## Tools']
  for t in d['tools']:
   lines+=['',f"### {t['job']}: {t['default']}",'',t['reason'],'','Limits and integration: '+t['limits'],'','',*['- '+u for u in t.get('source_urls',[])]]
   if t.get('alternatives'):lines+=['','Alternatives: '+'; '.join(str(x) for x in t['alternatives'])]
@@ -154,12 +160,13 @@ for d in records.values():
  write(base/'record.json',json.dumps(d,ensure_ascii=False,indent=2)+'\n')
  write(base/'guide.md',markdown(d))
 
+write('generators.json',json.dumps({'schema_version':'1.0','policy':generator_policy,'profiles':generators},ensure_ascii=False,indent=2)+'\n')
 write('choose.md',CHOOSE)
 write('llms-full.txt',CHOOSE+'\n\n'+migration_content.workflow_markdown(migration_shared,records)+'\n\n'+'\n\n---\n\n'.join(markdown(d) for d in records.values()))
 RULES={'component':{'field':'kind','match':'includes'},'ui_preference':{'field':'ui','match':'equals'},'static_hosting':{'field':'host','values':['static']},'offline_browser':{'field':'ui','values':['client','full']},'native_both':['ios','android'],'unknown_is_supported':False}
-index={'schema_version':'1.1','reviewed':'2026-10-10','selection_guide':'/choose.md','selection_rules':RULES,'coverage_gaps':manifest['coverage_gaps'],'profiles':[{k:d[k] for k in ['id','title','language','group','summary','shape','kind','ui','host','selection','use_cases','choose_when','avoid_when','tradeoff','guide_url','markdown_url','json_url']} for d in records.values()]}
+index={'schema_version':'1.1','reviewed':'2026-10-10','selection_guide':'/choose.md','generators_url':'/generators.json','selection_rules':RULES,'coverage_gaps':manifest['coverage_gaps'],'profiles':[{k:d[k] for k in ['id','title','language','group','summary','shape','kind','ui','host','selection','use_cases','choose_when','avoid_when','tradeoff','guide_url','markdown_url','json_url']} for d in records.values()]}
 write('selection-index.json',json.dumps(index,ensure_ascii=False,separators=(',',':'))+'\n')
-cat={'schema_version':'1.1','selection_rules':RULES,'reviewed':'2026-10-10','evidence_status':'documentation-reviewed','selection_guide':'/choose.md','agent_entry':'/llms.txt','requirements':[{ 'key':k,'label':t,'description':v} for k,t,v in REQUIREMENTS], 'coverage_gaps':manifest['coverage_gaps'],'field_semantics':{'kind':'Recommended application component; not exhaustive language capability.','host':'Deployment class for this profile; runtime adapters need separate qualification.','ui':'Recommended UI architecture. none means this profile provides no client UI.','best_practices':'Editorial summary of the linked research guide; verify installed-version documentation.'},'profiles':list(records.values())}
+cat={'schema_version':'1.1','selection_rules':RULES,'reviewed':'2026-10-10','evidence_status':'documentation-reviewed','selection_guide':'/choose.md','agent_entry':'/llms.txt','generators_url':'/generators.json','requirements':[{ 'key':k,'label':t,'description':v} for k,t,v in REQUIREMENTS], 'coverage_gaps':manifest['coverage_gaps'],'field_semantics':{'kind':'Recommended application component; not exhaustive language capability.','host':'Deployment class for this profile; runtime adapters need separate qualification.','ui':'Recommended UI architecture. none means this profile provides no client UI.','generators':'Official initializer/template choices and conditional follow-up generation; documentation-reviewed, not executed.','best_practices':'Editorial summary of the linked research guide; verify installed-version documentation.'},'profiles':list(records.values())}
 cat['research_freshness']=freshness
 write('research-freshness.json',json.dumps(freshness,ensure_ascii=False,indent=2)+'\n')
 cat['migration_reviewed_at']=migration_shared['reviewed_at']

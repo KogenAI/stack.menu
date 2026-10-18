@@ -1,0 +1,125 @@
+{
+  "profile_id": "rails-hotwire-postgresql",
+  "reviewed_on": "2026-10-18",
+  "evidence_status": "documentation-reviewed; commands not executed",
+  "starting_points": [
+    {
+      "name": "rails new PostgreSQL application",
+      "when": "A new server-rendered Rails application with the normal Hotwire stack.",
+      "steps": [
+        "Install/select a supported Ruby and Rails version, Bundler, PostgreSQL and the native prerequisites for the pg gem; record versions.",
+        "Inspect rails new help. Generate the full application with PostgreSQL; keep Hotwire and test/security defaults unless the actual brief requires an exception.",
+        "Configure development/test credentials through environment or ignored configuration, then prepare the intended development database."
+      ],
+      "commands": [
+        {
+          "run": "rails new --help",
+          "cwd": "A local source-workspace parent outside synchronized storage; my-app must not already exist",
+          "purpose": "Inspect the installed application generator."
+        },
+        {
+          "run": "rails new my_app --database=postgresql",
+          "cwd": "A local source-workspace parent outside synchronized storage; my-app must not already exist",
+          "purpose": "Create the conventional Rails application and PostgreSQL configuration."
+        },
+        {
+          "run": "bin/rails db:prepare",
+          "cwd": "The generated my_app directory, after database configuration",
+          "purpose": "Prepare the intended local database and schema."
+        }
+      ],
+      "notes": [
+        "Replace my_app with the intended unused Rails name. The normal generator initializes Git without committing; review any custom application templates for extra effects.",
+        "Do not add --skip-git just to avoid a commit: it also skips generated .gitignore/.gitattributes. Rails defaults already include Turbo/Stimulus; do not install a separate SPA or skip Hotwire without a product reason."
+      ]
+    }
+  ],
+  "follow_up_generators": [
+    {
+      "name": "Authentication",
+      "when": "A new application needs Rails built-in session authentication and has not already selected another identity solution.",
+      "commands": [
+        {
+          "run": "bin/rails generate authentication",
+          "cwd": "The generated my_app directory",
+          "purpose": "Generate session authentication support using the installed Rails version."
+        },
+        {
+          "run": "bin/rails db:migrate",
+          "cwd": "The generated my_app directory, after reviewing the new migrations and database target",
+          "purpose": "Apply the generated authentication migrations locally."
+        }
+      ],
+      "notes": [
+        "Inspect bin/rails generate authentication --help first. Implement signup, mail configuration and per-resource authorization deliberately; generated login is not a complete product identity policy."
+      ]
+    },
+    {
+      "name": "Model or scaffold",
+      "when": "A new domain resource is required; choose a model for custom workflows or scaffold when generated CRUD screens fit.",
+      "commands": [
+        {
+          "run": "bin/rails generate model Product name:string",
+          "cwd": "The generated my_app directory",
+          "purpose": "Generate an example model with migration and test/fixture support."
+        }
+      ],
+      "notes": [
+        "Product and name:string are examples; replace them with the actual domain design. Review constraints and indexes before migrating.",
+        "Alternative: bin/rails generate scaffold Product name:string generates CRUD layers as well; choose it instead of generating the same model twice. Inspect generator help or --pretend before writes."
+      ]
+    },
+    {
+      "name": "Additive migration",
+      "when": "An existing Product model/table needs the example description column.",
+      "commands": [
+        {
+          "run": "bin/rails generate migration AddDescriptionToProducts description:text",
+          "cwd": "The generated my_app directory with an existing Product table",
+          "purpose": "Generate a migration for an existing resource."
+        }
+      ],
+      "notes": [
+        "Review the generated migration before bin/rails db:migrate; do not edit a migration already shared/applied to disguise a later schema change. Names/attributes are examples."
+      ]
+    }
+  ],
+  "preserve": [
+    "Generated .gitignore/.gitattributes, binstubs, Gemfile.lock, database configuration, credential exclusions, test/fixture layout, Hotwire/import-map setup and generated security/CI checks.",
+    "Do not replace generated Rails defaults with a small handwritten skeleton; record brief-driven omissions and additions."
+  ],
+  "verification": [
+    "Inspect bin/rails generate and the relevant generator --help for the installed version.",
+    "Run database migration status, bin/rails zeitwerk:check, domain/system tests and generated security/style checks that are present.",
+    "Run the generated server and inspect a browser journey; authentication/authorization still require behavior tests."
+  ],
+  "sources": [
+    {
+      "title": "Rails command line and generators",
+      "url": "https://guides.rubyonrails.org/command_line.html"
+    },
+    {
+      "title": "Rails getting started, authentication and Hotwire",
+      "url": "https://guides.rubyonrails.org/getting_started.html"
+    },
+    {
+      "title": "Rails migrations",
+      "url": "https://guides.rubyonrails.org/active_record_migrations.html"
+    },
+    {
+      "title": "Rails application generator source: Git and ignore-file behavior",
+      "url": "https://raw.githubusercontent.com/rails/rails/main/railties/lib/rails/generators/rails/app/app_generator.rb"
+    },
+    {
+      "title": "Pundit installation and policy generator",
+      "url": "https://github.com/varvet/pundit"
+    }
+  ],
+  "integration_steps": [
+    "Configure ignored development/test database credentials and prepare the intended databases using the generated configuration. Use the conditional authentication generator when login is required; implement signup and resource-level permissions deliberately.",
+    "If Pundit is the selected authorization library, add it through Bundler and run bin/rails generate pundit:install after reviewing installed help; implement and invoke policies rather than relying on authentication alone.",
+    "Start bin/rails server and inspect a browser journey. Configure Solid Queue using the installed-version guide and run its bin/jobs worker only when background work is required and enabled.",
+    "Preserve Gemfile.lock and the generated checks. Add bundler-audit in development only if it is required and absent. Define authorization, duplicate-job and migration tests for the features present.",
+    "Prepare the chosen deployment configuration, secret ownership, database persistence and backup/restore procedure. When Kamal is the selected host tooling and deployment is authorized, use bundle exec kamal setup for initial setup or bundle exec kamal deploy for a subsequent release."
+  ]
+}

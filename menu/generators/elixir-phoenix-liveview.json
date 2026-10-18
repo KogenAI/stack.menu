@@ -1,0 +1,351 @@
+{
+  "profile_id": "elixir-phoenix-liveview",
+  "reviewed_on": "2026-10-18",
+  "evidence_status": "documentation-reviewed; commands not executed",
+  "starting_points": [
+    {
+      "name": "Phoenix browser application with LiveView and PostgreSQL",
+      "when": "A new connected browser application uses this profile. Generate the skeleton before adding application code.",
+      "steps": [
+        "Read the repository README, runtime pins and existing mix.exs/mix.lock first. Existing applications keep their structure; do not regenerate over them.",
+        "Choose a local source workspace and a new destination. Replace my_app with the chosen snake_case application name throughout these examples.",
+        "Install a compatible Erlang/OTP and Elixir pair using official installation guidance; check the chosen Phoenix release requirements. Set up PostgreSQL access for development and tests.",
+        "Check installed tools. Install Hex only if missing, and install the Phoenix archive only if missing or deliberately changing its version. Check installed generator help before choosing switches.",
+        "Generate the project, respond to the dependency-install prompt, then enter my_app. Review the generated README, mix.exs aliases, configuration and any agent guidance.",
+        "Configure database credentials outside committed secrets. Inspect the generated mix setup alias before running it; it can fetch dependencies, create/migrate the database and build assets. Resolve failures in place and retain their output."
+      ],
+      "commands": [
+        {
+          "run": "elixir --version",
+          "cwd": "chosen local workspace",
+          "purpose": "Inspect the active Elixir and Erlang/OTP versions"
+        },
+        {
+          "run": "mix --version",
+          "cwd": "chosen local workspace",
+          "purpose": "Inspect the active Mix runtime"
+        },
+        {
+          "run": "mix local.hex --if-missing",
+          "cwd": "chosen local workspace",
+          "purpose": "Install Hex only when missing; review the installation prompt"
+        },
+        {
+          "run": "mix archive.install hex phx_new",
+          "cwd": "chosen local workspace; only if installer is missing or a deliberate update is needed",
+          "purpose": "Install the Phoenix generator; select/record a compatible version according to project policy"
+        },
+        {
+          "run": "mix phx.new --version",
+          "cwd": "chosen local workspace",
+          "purpose": "Record the installed Phoenix generator version"
+        },
+        {
+          "run": "mix help phx.new",
+          "cwd": "chosen local workspace",
+          "purpose": "Confirm installed options and defaults"
+        },
+        {
+          "run": "mix phx.new my_app --database postgres",
+          "cwd": "parent directory of the new my_app directory",
+          "purpose": "Generate the Phoenix application, including LiveView and asset defaults"
+        },
+        {
+          "run": "mix setup",
+          "cwd": "my_app project root, after inspecting the generated alias and configuring local database access",
+          "purpose": "Run the generated setup alias"
+        }
+      ],
+      "notes": [
+        "LiveView is included by the normal Phoenix generator. Keep HTML and assets for this browser path.",
+        "Dependency installation is interactive by default; installed help documents --install and --no-install. These examples do not request a Git commit.",
+        "Use --no-agents-md only for an explicit repository instruction policy; preserve the generated guidance in its maintained README-linked owner when that policy requires it."
+      ]
+    },
+    {
+      "name": "Phoenix JSON API application",
+      "when": "The deliverable is an HTTP API with a separate client and does not need generated browser UI.",
+      "steps": [
+        "Use the runtime, Hex, Phoenix archive and PostgreSQL prerequisite checks from the browser starting point.",
+        "Generate into a new destination; configure the database, inspect the generated setup alias and run it from the project root.",
+        "Select mailer, dashboard, Ecto and other omissions separately from actual requirements. Do not remove persistence simply because the interface is JSON."
+      ],
+      "commands": [
+        {
+          "run": "mix phx.new my_app --database postgres --no-html --no-assets",
+          "cwd": "parent directory of the new my_app directory",
+          "purpose": "Generate an API skeleton without HTML views or asset build tools"
+        }
+      ],
+      "notes": [
+        "--no-html disables the generated LiveView setup; this is an alternative to the browser starting point.",
+        "--no-ecto changes what resource generators can provide. Use it only when the application truly does not need Ecto; inspect --no-context handling for later generators.",
+        "Browser authentication scaffolding is not an API-token or external identity implementation. Choose API authentication explicitly."
+      ]
+    },
+    {
+      "name": "Plain Mix library or supervised OTP service",
+      "when": "The project needs Elixir without a Phoenix web application. Choose the variant from process-lifecycle requirements.",
+      "steps": [
+        "Verify compatible Elixir/Erlang and Mix; choose a new source destination. Replace my_library or my_service with the selected snake_case name.",
+        "For a library with no owned supervision tree, use mix new. For an application that owns long-lived processes, use mix new --sup.",
+        "Run only the selected creation command. Enter its generated directory, preserve its scaffold and implement application behavior after generation."
+      ],
+      "commands": [
+        {
+          "run": "mix help new",
+          "cwd": "chosen local workspace",
+          "purpose": "Inspect installed Mix generator options"
+        },
+        {
+          "run": "mix new my_library",
+          "cwd": "parent directory of the new my_library directory",
+          "purpose": "Generate a plain Elixir project without an application callback/supervisor"
+        },
+        {
+          "run": "mix new my_service --sup",
+          "cwd": "parent directory of the new my_service directory",
+          "purpose": "Alternative: generate an OTP application callback and supervision tree"
+        }
+      ],
+      "notes": [
+        "--sup is conditional, not a universal Elixir requirement. Do not hand-write mix.exs, formatter, test helper or supervision boilerplate when Mix supplies the appropriate base.",
+        "Use --umbrella only for a justified multi-application boundary; do not introduce it as a default."
+      ]
+    }
+  ],
+  "follow_up_generators": [
+    {
+      "name": "Phoenix authentication",
+      "when": "Application-owned browser accounts are required, after Phoenix setup.",
+      "commands": [
+        {
+          "run": "mix phx.gen.auth Accounts User users --live",
+          "cwd": "my_app project root (directory containing mix.exs)",
+          "purpose": "Phoenix authentication"
+        }
+      ],
+      "notes": [
+        "Run mix help phx.gen.auth first; substitute the context/schema/table deliberately. --live selects LiveView views; --no-live is the controller-view alternative.",
+        "Follow the generated routing/configuration instructions, fetch new dependencies with mix deps.get, inspect migrations and apply them to the intended local database with mix ecto.migrate.",
+        "Review delivery, scope and authorization requirements. Generated email authentication assumes email-account ownership; preserve its token-revocation and confirmation safeguards when customizing.",
+        "Do not run multiple auth generators blindly: scopes and browser-pipeline assignments can conflict. Use external identity integration when that is the actual requirement."
+      ]
+    },
+    {
+      "name": "LiveView resource",
+      "when": "A new browser CRUD resource should follow Phoenix conventions.",
+      "commands": [
+        {
+          "run": "mix phx.gen.live Catalog Product products name:string",
+          "cwd": "my_app project root (directory containing mix.exs)",
+          "purpose": "LiveView resource"
+        }
+      ],
+      "notes": [
+        "Example names/fields are substitutions, not a domain prescription. Run mix help phx.gen.live and decide context boundaries before generating.",
+        "This generates the context/schema/migration and LiveView files/tests. Apply the printed router changes and inspect/migrate the local database.",
+        "Preserve configured scope behavior and add permission/domain checks. --no-context implies --no-schema and leaves implementation work, including failing generated tests, to complete.",
+        "Use this or the other resource variants below; do not generate the same resource repeatedly with each variant."
+      ]
+    },
+    {
+      "name": "Controller HTML resource",
+      "when": "The resource uses conventional server-rendered controllers/templates rather than LiveView.",
+      "commands": [
+        {
+          "run": "mix phx.gen.html Catalog Product products name:string",
+          "cwd": "my_app project root (directory containing mix.exs)",
+          "purpose": "Controller HTML resource"
+        }
+      ],
+      "notes": [
+        "Alternative to phx.gen.live, requiring the HTML components omitted by --no-html. Run installed task help first.",
+        "Review generated context, schema, migration, controller/templates and tests; complete the printed routing instructions and migration steps."
+      ]
+    },
+    {
+      "name": "JSON API resource",
+      "when": "The resource is exposed as JSON.",
+      "commands": [
+        {
+          "run": "mix phx.gen.json Catalog Product products name:string",
+          "cwd": "my_app project root (directory containing mix.exs)",
+          "purpose": "JSON API resource"
+        }
+      ],
+      "notes": [
+        "Alternative to HTML/LiveView resource generation. Run installed task help; review generated controller/JSON rendering, context, schema, migration and tests.",
+        "Complete printed routing instructions and migrations. Add actual API authentication/authorization, validation and response-contract tests."
+      ]
+    },
+    {
+      "name": "Domain context without web UI",
+      "when": "The application needs a new domain resource/API boundary without generated HTTP or LiveView files.",
+      "commands": [
+        {
+          "run": "mix phx.gen.context Catalog Product products name:string",
+          "cwd": "my_app project root (directory containing mix.exs)",
+          "purpose": "Domain context without web UI"
+        }
+      ],
+      "notes": [
+        "Run installed task help and review context boundaries. The generator adds schema, migration and context tests.",
+        "An existing context can be extended; inspect the merge prompt instead of blindly accepting it. Choose --no-schema only when intentionally supplying that implementation."
+      ]
+    },
+    {
+      "name": "Ecto schema without context scaffolding",
+      "when": "A schema and migration are needed within a deliberately maintained domain boundary.",
+      "commands": [
+        {
+          "run": "mix phx.gen.schema Catalog.Product products name:string",
+          "cwd": "my_app project root (directory containing mix.exs)",
+          "purpose": "Ecto schema without context scaffolding"
+        }
+      ],
+      "notes": [
+        "Run installed task help; choose attribute types, references, ID strategy and table names explicitly.",
+        "Review changesets and migration constraints/indexes. This generator does not provide the enclosing context API or authorization."
+      ]
+    },
+    {
+      "name": "Ecto migration",
+      "when": "An existing persisted resource requires a schema change, without duplicating its resource generator.",
+      "commands": [
+        {
+          "run": "mix ecto.gen.migration add_product_status",
+          "cwd": "my_app project root (directory containing mix.exs)",
+          "purpose": "Ecto migration"
+        }
+      ],
+      "notes": [
+        "Requires an Ecto repository configured under :ecto_repos, or choose it with --repo. Run installed task help before use.",
+        "Edit the generated timestamped migration; review reversibility, data and locking effects. Apply it to the intended local database, then test the changed behavior. Do not rewrite migrations already deployed to shared databases."
+      ]
+    },
+    {
+      "name": "Phoenix release helpers",
+      "when": "Release-based deployment has been selected.",
+      "commands": [
+        {
+          "run": "mix phx.gen.release",
+          "cwd": "my_app project root (directory containing mix.exs)",
+          "purpose": "Phoenix release helpers"
+        }
+      ],
+      "notes": [
+        "Run installed task help first. Review migration/server scripts and runtime configuration before building the release.",
+        "Use --docker only when a container is required; inspect generated base-image/runtime versions and add any external asset package-manager steps.",
+        "Generation/build success does not prove deployment, migrations, backup/restore or runtime compatibility."
+      ]
+    }
+  ],
+  "integration_steps": [
+    "After completing the selected starting point, read its generated README, mix.exs, mix.lock and runtime pins. Preserve the chosen plain Mix or Phoenix architecture; the following Phoenix integrations apply only when Phoenix is present.",
+    "For a Phoenix application, inspect and complete the generated setup alias after configuring development/test database access. Keep credentials outside committed secrets; follow the generator output when a selected omission means an alias or integration is unavailable.",
+    "If dependency guidance synchronization is useful, add usage_rules as a development dependency, choose the relevant dependency rules in mix.exs and review mix usage_rules.sync output. Preserve maintained generated guidance; an explicit README-only policy may configure a README-linked alternate file such as docs/dependency-rules.md.",
+    "If Phoenix browser accounts are required, complete the authentication follow-up recipe, review its generated instructions and configure transactional email delivery. Keep local/test delivery adapters in their intended environments; verify scopes and permission checks for application operations.",
+    "If durable background jobs are required, follow the installed Oban version\u2019s installation and migration instructions, supervise Oban and configure bounded queues. Use supported persistence and idempotent workers; test retry and duplicate-effect handling. A Task is suitable only for explicitly disposable work.",
+    "Add development and test checks selected for this project. Formatter, compiler warnings and ExUnit apply to plain Mix applications; Ecto SQL Sandbox, LiveViewTest, Sobelow and other Phoenix-specific checks require their corresponding dependencies and application architecture.",
+    "For Phoenix applications that need real-browser verification, install/configure PhoenixTest.Playwright or the selected browser suite with its matching JavaScript dependency and browser binaries. Configure the test endpoint and SQL sandbox as documented; server-side LiveView tests do not establish browser JavaScript or visual correctness.",
+    "Run the applicable verification commands and actual application flows, fixing failures in place and retaining evidence. Skip tools whose dependency was not selected rather than claiming their checks passed; do not regenerate over existing work to hide failures.",
+    "For deployment qualification, select the intended host and runtime configuration. In Phoenix applications follow the release-helper recipe; build production assets only when the selected application has assets. Build a release compatible with the target OS, architecture and native dependencies.",
+    "Before claiming production readiness, rehearse startup, migrations and any applicable reconnect/job-retry behavior on the selected host. Establish secrets, TLS, backups, restore and rollback ownership; a generated release or passing local tests do not establish those outcomes.",
+    "Completion: record exact runtime/dependency versions, the application lockfile, selected generation/integration steps, check results and observed flows in README-linked evidence. State any untested deployment or native-mobile paths explicitly."
+  ],
+  "preserve": [
+    "Keep generated mix.exs aliases, .formatter.exs, tests/helpers, configuration, runtime supervision and project documentation as the starting base; make deliberate, reviewable changes rather than recreating the scaffold by hand.",
+    "Preserve the complete generated .gitignore and add project/platform entries such as .DS_Store as supplements. Do not claim every generator version already ignores macOS metadata.",
+    "Retain dependency lockfiles for application reproducibility according to repository policy. Keep credentials, build outputs and dependency caches out of commits.",
+    "Existing project conventions and maintained README-linked guidance remain authoritative; generator commands are for new projects or deliberate scoped additions, not destructive replacement.",
+    "Record the generator command, versions, selected switches and reasons for deviations with the project setup evidence."
+  ],
+  "verification": [
+    "Before generation, inspect installed mix help for each selected task and check the chosen runtime/generator requirements against installed versions; unversioned documentation can describe a newer release.",
+    "Inspect the generated files and pending repository diff, including hidden files. Check that formatter configuration, tests/helpers, ignore rules and required application supervision are present for the selected variant.",
+    "Run mix format --check-formatted, mix compile --warnings-as-errors and mix test from the generated project root after dependency/database setup. Repair failures in place and record actual results.",
+    "For Phoenix browser applications, run mix phx.server and inspect the actual local page and generated flows; for APIs, exercise the intended requests. A server process starting is not a completed interaction check.",
+    "Use git status --short --untracked-files=all and git check-ignore -v .DS_Store _build deps to review the selected ignore rules. In a disposable copy or separate index, inspect what staging all files would include; never alter the user index merely to test hygiene.",
+    "Confirm generated authentication/scopes and application operations reject unauthorized access; generated CRUD does not settle domain permissions.",
+    "This record is documentation-reviewed only. No application generator, setup command, database operation, test suite or release build was executed for this research."
+  ],
+  "sources": [
+    {
+      "title": "Mix new project task",
+      "url": "https://hexdocs.pm/mix/Mix.Tasks.New.html"
+    },
+    {
+      "title": "Mix local Hex installer",
+      "url": "https://hexdocs.pm/mix/Mix.Tasks.Local.Hex.html"
+    },
+    {
+      "title": "Phoenix prerequisites and generator installation",
+      "url": "https://hexdocs.pm/phoenix/installation.html"
+    },
+    {
+      "title": "Phoenix first application and generated setup",
+      "url": "https://hexdocs.pm/phoenix/up_and_running.html"
+    },
+    {
+      "title": "Phoenix new project task and switches",
+      "url": "https://hexdocs.pm/phoenix/Mix.Tasks.Phx.New.html"
+    },
+    {
+      "title": "Phoenix authentication generator",
+      "url": "https://hexdocs.pm/phoenix/Mix.Tasks.Phx.Gen.Auth.html"
+    },
+    {
+      "title": "Phoenix LiveView resource generator",
+      "url": "https://hexdocs.pm/phoenix/Mix.Tasks.Phx.Gen.Live.html"
+    },
+    {
+      "title": "Phoenix HTML resource generator",
+      "url": "https://hexdocs.pm/phoenix/Mix.Tasks.Phx.Gen.Html.html"
+    },
+    {
+      "title": "Phoenix JSON resource generator",
+      "url": "https://hexdocs.pm/phoenix/Mix.Tasks.Phx.Gen.Json.html"
+    },
+    {
+      "title": "Phoenix context generator",
+      "url": "https://hexdocs.pm/phoenix/Mix.Tasks.Phx.Gen.Context.html"
+    },
+    {
+      "title": "Phoenix schema generator",
+      "url": "https://hexdocs.pm/phoenix/Mix.Tasks.Phx.Gen.Schema.html"
+    },
+    {
+      "title": "Ecto migration generator",
+      "url": "https://hexdocs.pm/ecto_sql/Mix.Tasks.Ecto.Gen.Migration.html"
+    },
+    {
+      "title": "Ecto migration behavior",
+      "url": "https://hexdocs.pm/ecto_sql/Ecto.Migration.html"
+    },
+    {
+      "title": "Phoenix release generator",
+      "url": "https://hexdocs.pm/phoenix/Mix.Tasks.Phx.Gen.Release.html"
+    },
+    {
+      "title": "usage_rules configuration and dependency guidance",
+      "url": "https://hexdocs.pm/usage_rules/readme.html"
+    },
+    {
+      "title": "usage_rules synchronization task",
+      "url": "https://hexdocs.pm/usage_rules/Mix.Tasks.UsageRules.Sync.html"
+    },
+    {
+      "title": "Oban persistence and installation overview",
+      "url": "https://hexdocs.pm/oban/Oban.html"
+    },
+    {
+      "title": "PhoenixTest.Playwright setup and scope",
+      "url": "https://hexdocs.pm/phoenix_test_playwright/readme.html"
+    },
+    {
+      "title": "Phoenix release deployment guide",
+      "url": "https://hexdocs.pm/phoenix/releases.html"
+    }
+  ]
+}

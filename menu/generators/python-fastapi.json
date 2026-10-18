@@ -1,0 +1,151 @@
+{
+  "profile_id": "python-fastapi",
+  "reviewed_on": "2026-10-18",
+  "evidence_status": "documentation-reviewed; commands not executed",
+  "starting_points": [
+    {
+      "name": "uv project initialization with explicit minimal FastAPI assembly",
+      "when": "A new API/service requiring FastAPI without an entire full-stack template.",
+      "steps": [
+        "Install uv and inspect uv --version and uv init --help. Replace /path/to/local/source with an existing local source parent; use a new, absent target directory. Set PYTHON_VERSION to a supported Python minor compatible with the selected framework and dependencies. Record generator versions, selected flags and deliberate deviations.",
+        "Run uv initialization and dependency installation, then implement the minimal FastAPI application in app/main.py with app/__init__.py. This application file is deliberate assembly, not output of a nonexistent fastapi new command.",
+        "Use the official first-steps example as the initial app, add the required endpoint and test, then start the development server. Configure [tool.fastapi] entrypoint when the project uses a different import path."
+      ],
+      "commands": [
+        {
+          "run": "uv init --no-package --python \"$PYTHON_VERSION\" api-service",
+          "cwd": "/path/to/local/source",
+          "purpose": "Generate managed project metadata for the conventional flat app/ layout."
+        },
+        {
+          "run": "uv add \"fastapi[standard]\"",
+          "cwd": "/path/to/local/source/api-service",
+          "purpose": "Resolve FastAPI and its CLI/server dependencies."
+        },
+        {
+          "run": "uv run fastapi dev app/main.py",
+          "cwd": "/path/to/local/source/api-service",
+          "purpose": "After the app file exists, run the development server; this command does not scaffold an application."
+        }
+      ],
+      "notes": [
+        "FastAPI documents a small application assembled from Python modules. The official fastapi dev and fastapi run commands serve existing apps; neither is a universal project generator.",
+        "Inspect the generated uv sample main.py; adapt/remove it explicitly if app/main.py replaces it. Document any chosen package layout instead of letting two entry points drift.",
+        "Choose a source parent outside another uv workspace, or intentionally use --no-workspace when creating an independent project under a directory with parent pyproject.toml metadata."
+      ]
+    },
+    {
+      "name": "Official Full Stack FastAPI Template",
+      "when": "The requested product explicitly needs the template\u2019s React frontend, SQLModel/PostgreSQL, accounts and deployment structure.",
+      "steps": [
+        "Review the official repository README and its current development documentation. Record the selected revision and verify its actual dependency/layout choices.",
+        "Use GitHub Use this template to create the requested repository, then clone it into a local source workspace and follow its own initialization instructions.",
+        "Configure project identity and environment-owned secrets; replace example credentials and inspect generated workflows before enabling external effects."
+      ],
+      "commands": [],
+      "notes": [
+        "This is an official optional template, not the default for every API. Its extra frontend, ORM and infrastructure choices must match the application.",
+        "The reviewed official README uses GitHub template creation; no unsupported Copier command is prescribed. Do not run another uv init over the template or replace its maintained lock/environment workflow."
+      ]
+    }
+  ],
+  "follow_up_generators": [
+    {
+      "name": "Conditional Alembic migration environment and revisions",
+      "when": "SQLAlchemy-backed persistent state is required; skip for stateless APIs/workers and preserve an existing migration owner.",
+      "commands": [
+        {
+          "run": "uv add sqlalchemy alembic \"psycopg[binary]\"",
+          "cwd": "/path/to/local/source/api-service",
+          "purpose": "Install the selected PostgreSQL data dependencies; use a compatible driver for another chosen database."
+        },
+        {
+          "run": "uv run alembic init migrations",
+          "cwd": "/path/to/local/source/api-service",
+          "purpose": "Generate the standard migration environment and config."
+        },
+        {
+          "run": "uv run alembic revision --autogenerate -m \"initial schema\"",
+          "cwd": "/path/to/local/source/api-service",
+          "purpose": "After configuring env.py metadata and database access, generate a candidate schema revision."
+        },
+        {
+          "run": "uv run alembic upgrade head",
+          "cwd": "/path/to/local/source/api-service",
+          "purpose": "After manual review, apply the candidate migration to a disposable development database."
+        }
+      ],
+      "notes": [
+        "Between init and revision, configure the database URL from environment-owned secrets and target_metadata from the application models. The default generic template is synchronous; use alembic list_templates and choose the async template only for an actual async DBAPI.",
+        "Autogeneration cannot reliably infer every rename, constraint or data transformation. Review upgrade/downgrade operations and write data migrations intentionally; do not blindly apply its output.",
+        "Commit migrations, env.py and the non-secret configuration, while keeping database credentials out of source. Verify upgrades and required rollback behavior before release."
+      ]
+    }
+  ],
+  "preserve": [
+    "Keep generator-created project metadata, Python requirements, version selection and ignore rules; extend them rather than replacing them with a handwritten approximation.",
+    "Commit the resolved uv.lock for projects; exclude .venv, caches, secrets and platform debris such as .DS_Store. Do not hand-edit lockfiles.",
+    "Keep source repositories, virtual environments and caches in a local development workspace outside cloud-synced document folders.",
+    "Preserve the selected application layout, explicit FastAPI entrypoint and any chosen template tests/configuration; record template revision and changes.",
+    "Do not add an ORM, database, frontend or queue solely to imitate a full-stack template."
+  ],
+  "verification": [
+    "From /path/to/local/source/api-service: uv sync --locked. Import the implemented app and exercise its API tests after installing/configuring the selected test tooling.",
+    "With uv run fastapi dev app/main.py running locally, verify a real endpoint and /openapi.json. Choose and document production startup separately; development reload is not a deployment check.",
+    "When Alembic is configured, run uv run alembic check and uv run alembic current against the disposable development database; verify migration behavior.",
+    "Compare project metadata with a disposable scaffold from the same uv version and flags, or the selected official template revision. Review tracked/staged files and ensure local environments, secrets and .DS_Store are excluded."
+  ],
+  "sources": [
+    {
+      "title": "uv project creation and layout choices",
+      "url": "https://docs.astral.sh/uv/concepts/projects/init/"
+    },
+    {
+      "title": "uv project dependency and environment workflow",
+      "url": "https://docs.astral.sh/uv/guides/projects/"
+    },
+    {
+      "title": "uv locking and syncing",
+      "url": "https://docs.astral.sh/uv/concepts/projects/sync/"
+    },
+    {
+      "title": "uv FastAPI integration with explicit unpackaged layout",
+      "url": "https://docs.astral.sh/uv/guides/integration/fastapi/"
+    },
+    {
+      "title": "FastAPI first application",
+      "url": "https://fastapi.tiangolo.com/tutorial/first-steps/"
+    },
+    {
+      "title": "FastAPI CLI: development and production serving",
+      "url": "https://fastapi.tiangolo.com/fastapi-cli/"
+    },
+    {
+      "title": "Official Full Stack FastAPI Template overview",
+      "url": "https://fastapi.tiangolo.com/project-generation/"
+    },
+    {
+      "title": "Official Full Stack FastAPI Template repository and creation instructions",
+      "url": "https://github.com/fastapi/full-stack-fastapi-template"
+    },
+    {
+      "title": "Alembic environment generation and templates",
+      "url": "https://alembic.sqlalchemy.org/en/latest/tutorial.html"
+    },
+    {
+      "title": "Alembic candidate revision generation and limitations",
+      "url": "https://alembic.sqlalchemy.org/en/latest/autogenerate.html"
+    },
+    {
+      "title": "uv command reference: explicit package and workspace options",
+      "url": "https://docs.astral.sh/uv/reference/cli/"
+    }
+  ],
+  "integration_steps": [
+    "After completing the selected generated baseline, use uv add pydantic-settings when environment-backed typed settings are required, and uv add --dev ruff mypy pytest httpx for the configured checks/tests. Resolve compatible versions and commit uv.lock; for the optional full-stack template preserve its own declared dependency workflow.",
+    "Extend the generated or explicitly assembled FastAPI entry point with request/response models, one authorized API slice and a health endpoint. Use the actual application path chosen by the baseline.",
+    "Only when persistent SQL state is required, use the follow-up Alembic environment and revision generators. Configure an environment-owned connection URL and target_metadata, then implement per-request/task sessions and domain transaction boundaries; manually review migrations before applying to a disposable development database.",
+    "Configure the selected identity provider and token verification; implement tenant/object authorization before exposing protected endpoints.",
+    "Use uv run fastapi dev app/main.py only for the minimal baseline development server, adapting the path for another layout. Prepare the release with uv sync --locked --no-dev and an explicit production start command for the chosen host; add workers separately when needed."
+  ]
+}

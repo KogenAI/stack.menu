@@ -1,0 +1,111 @@
+{
+  "profile_id": "rust-service",
+  "reviewed_on": "2026-10-18",
+  "evidence_status": "documentation-reviewed; commands not executed",
+  "starting_points": [
+    {
+      "name": "Cargo binary package",
+      "when": "A new Rust service needs a new directory.",
+      "steps": [
+        "Install the chosen Rust toolchain. Replace /path/to/workspace with the actual local source parent; choose the real package name.",
+        "Generate a binary package; use --lib only for a reusable library rather than an executable."
+      ],
+      "commands": [
+        {
+          "run": "cargo new project --bin",
+          "cwd": "/path/to/workspace (existing local source parent)",
+          "purpose": "Generate the executable package baseline."
+        }
+      ],
+      "notes": [
+        "A Cargo package is not a full framework application. Preserve generated defaults and add only selected dependencies."
+      ]
+    },
+    {
+      "name": "Cargo in an existing directory",
+      "when": "An existing source directory has no Cargo.toml and must become a package; choose this instead of cargo new.",
+      "steps": [
+        "Inspect existing files and parent VCS before initialization; preserve existing code."
+      ],
+      "commands": [
+        {
+          "run": "cargo init --bin",
+          "cwd": "/path/to/workspace/project (existing directory without Cargo.toml)",
+          "purpose": "Initialize a binary package in place."
+        }
+      ],
+      "notes": [
+        "Use --lib for a library target. Do not run cargo init over an already initialized package."
+      ]
+    }
+  ],
+  "follow_up_generators": [
+    {
+      "name": "SQLx migrations and checked-query metadata",
+      "when": "Only when SQLx is selected and owns schema migrations; metadata applies when checked query macros are used.",
+      "commands": [
+        {
+          "run": "sqlx migrate add initial",
+          "cwd": "/path/to/workspace/project (matching sqlx-cli installed)",
+          "purpose": "Create an editable migration file."
+        },
+        {
+          "run": "sqlx migrate run",
+          "cwd": "/path/to/workspace/project (DATABASE_URL targets a disposable database; migration SQL reviewed)",
+          "purpose": "Apply migrations to the disposable database."
+        },
+        {
+          "run": "cargo sqlx prepare",
+          "cwd": "/path/to/workspace/project (checked query macros and matching disposable schema available)",
+          "purpose": "Generate offline query metadata."
+        }
+      ],
+      "notes": [
+        "Install a selected sqlx-cli release compatible with the application and selected database/TLS features. Set DATABASE_URL through the environment or an untracked local file.",
+        "Preserve migrations and commit .sqlx metadata for offline builds. Run cargo sqlx prepare --check after changes; pass workspace/feature/target options matching the project."
+      ]
+    }
+  ],
+  "preserve": [
+    "Preserve Cargo.toml, generated source structure and Cargo.lock after dependency resolution for shipped applications. Record the chosen Rust toolchain and generator versions.",
+    "Retain the VCS ignore baseline when generated, including build-output exclusions, and add project-specific OS metadata/secret rules. Cargo VCS behavior depends on parent repository and configuration; inspect actual output.",
+    "Record and justify changes from the same-version generator baseline instead of recreating its files from memory.",
+    "Preserve SQLx migrations and offline query metadata when selected; keep database credentials out of version control."
+  ],
+  "verification": [
+    "In the actual application, compare a fresh output from the recorded toolchain/options with the initial project and explain intentional differences.",
+    "After initial dependency resolution, run cargo fmt --all -- --check, cargo test --locked and cargo build --locked from the package root; run the project-selected Clippy checks.",
+    "In a disposable copy, inspect git add --dry-run -A and confirm source/manifests/lockfile are included while target/, credentials and .DS_Store are excluded.",
+    "Cargo creates the package; Axum routing, Tokio runtime, configuration and shutdown remain explicit implementation. No full Axum application generator is asserted here.",
+    "For SQLx, test migrations in the disposable database and run cargo sqlx prepare --check with the same relevant features and targets."
+  ],
+  "sources": [
+    {
+      "title": "Cargo new",
+      "url": "https://doc.rust-lang.org/cargo/commands/cargo-new.html"
+    },
+    {
+      "title": "Cargo init",
+      "url": "https://doc.rust-lang.org/cargo/commands/cargo-init.html"
+    },
+    {
+      "title": "Cargo package and first build",
+      "url": "https://doc.rust-lang.org/cargo/guide/creating-a-new-project.html"
+    },
+    {
+      "title": "Axum documentation",
+      "url": "https://docs.rs/axum/latest/axum/"
+    },
+    {
+      "title": "SQLx CLI migrations and prepare",
+      "url": "https://github.com/transact-rs/sqlx/blob/main/sqlx-cli/README.md"
+    }
+  ],
+  "integration_steps": [
+    "After the selected Cargo baseline, add compatible Axum and Tokio dependencies; the documented examples are cargo add axum and cargo add tokio --features macros,rt-multi-thread. Select required tower-http middleware explicitly.",
+    "Add SQLx with PostgreSQL, Tokio and the selected release's supported TLS configuration; install a compatible sqlx-cli release. Implement settings validation and a tracing subscriber.",
+    "Follow the selected SQLx migration instructions with DATABASE_URL pointing only to a disposable database. Write and review migration SQL before applying it; keep credentials outside tracked files.",
+    "For checked query macros, regenerate and commit .sqlx offline metadata after schema/query changes. Implement HTTP, real-database and cancellation tests, then run the profile verification checks with relevant features and targets.",
+    "Introduce Restate only after a separate restart/retry/idempotency proof. Pin the toolchain and release targets, preserve the application Cargo.lock after dependency resolution and qualify target/runtime/TLS dependencies. These application instructions were not executed."
+  ]
+}

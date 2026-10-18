@@ -1,0 +1,19 @@
+{
+  "reviewed_on": "2026-10-18",
+  "scope": "Project creation and conditional follow-up generation for the 14 curated profiles; documentation guidance, not an execution service or integration certification.",
+  "instructions": [
+    "Before writing a new project's application files, read its profile's starting points and use the official framework or language initializer appropriate to the component. Do not hand-recreate a generated skeleton. Where no full application generator exists, use the documented module/package initializer and assemble only the missing application pieces.",
+    "Choose one starting point per component. Check the installed generator's version and help, prerequisites, template, database, UI, test and runtime options. Commands are examples: replace names and paths, resolve compatible versions, and record the exact invocation and selected options. Do not blindly run every listed generator.",
+    "Generate in a new empty destination. For an existing repository, preserve its conventions and use relevant incremental generators. If a baseline comparison is needed, generate a separate disposable reference with matching versions/options and reconcile deliberately; never regenerate over existing work.",
+    "Keep applicable generated configuration, hidden files, formatter/linter settings, ignore rules, manifests, lockfiles, tests, wrappers and entry points. Extend them for the project instead of replacing them with abbreviated handwritten copies. A generator may initialize version control or offer a commit; respect the user's Git instructions.",
+    "Run the generated baseline's documented checks before feature changes, then relevant checks after configuration and implementation. Inspect what version control would include, including hidden files, build output, local secrets and operating-system metadata. Add needed ignore rules explicitly: no generator guarantees that .DS_Store or every local artifact is ignored.",
+    "Use follow-up generators only when their feature or tool is selected. Review generated changes and dependencies, apply required migrations in the intended environment, and exercise the generated behavior. Scaffolding does not establish authorization, safe retries, production readiness or every best practice.",
+    "If the required generator, template or IDE is unavailable, report the missing prerequisite and the documented route. Do not silently substitute a handwritten scaffold. Keep documentation review, generator execution, baseline checks and application qualification as separate evidence."
+  ],
+  "receipt": [
+    "Component and selected starting point, or the documented absence of a full application generator",
+    "Generator/toolchain versions, exact commands or IDE template/settings, working directory and generated destination",
+    "Generated files retained, deliberate deviations with reasons, and required supplemental ignore rules",
+    "Baseline checks and later checks actually run, results and remaining prerequisites or untested behavior"
+  ]
+}

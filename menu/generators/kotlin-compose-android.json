@@ -1,0 +1,157 @@
+{
+  "profile_id": "kotlin-compose-android",
+  "reviewed_on": "2026-10-18",
+  "evidence_status": "documentation-reviewed; commands not executed",
+  "starting_points": [
+    {
+      "name": "Android Studio Empty Activity template",
+      "when": "Creating a new Kotlin/Jetpack Compose Android app with Android Studio, an installed compatible SDK/JDK and a new destination.",
+      "steps": [
+        "Record application ID/namespace, minimum SDK, target devices and release ownership. Choose a source workspace outside synchronized storage.",
+        "In Android Studio use New Project from the welcome screen or File > New > New Project. Select the phone/tablet Empty Activity template for Compose.",
+        "Set the app name, package, save location and required minimum SDK; use Kotlin. Finish the wizard and allow dependency resolution/Gradle sync to complete.",
+        "Record Android Studio/template version and generated options. Inspect the generated wrapper, Gradle scripts, version catalog if supplied, manifest, activity, resources and test source sets before adding app behavior."
+      ],
+      "commands": [],
+      "notes": [
+        "Preserve the generated compatible toolchain/dependency combination initially; verify the selected SDK and JDK. A fixed minimum SDK copied from a tutorial does not replace the product's support requirements.",
+        "For existing projects, open/import the current project and inspect its modules and variants; do not run a new-project generator over it. gradle init --type kotlin-application creates a Kotlin/JVM command-line app, not an Android/Compose application."
+      ]
+    },
+    {
+      "name": "Official Android CLI project templates",
+      "when": "Creating a new Compose app without IDE interaction, when the current official Android CLI is installed and its create help/template listing confirms support.",
+      "steps": [
+        "Obtain the Android CLI from the official Android developer tools page, complete its documented SDK/JDK prerequisites and record its installed version.",
+        "Inspect create help and available templates. The reviewed reference documents an empty Compose activity default when no template is supplied; verify this in the installed release before creation.",
+        "Run creation into a new or empty destination using the agreed identity and minimum SDK. Inspect generated files and run the baseline checks before customizing."
+      ],
+      "commands": [
+        {
+          "run": "android --version",
+          "cwd": "<new-project-parent>",
+          "purpose": "Record the installed official Android CLI version after installation."
+        },
+        {
+          "run": "android create --help",
+          "cwd": "<new-project-parent>",
+          "purpose": "Verify current creation flags and default template behavior."
+        },
+        {
+          "run": "android create --list",
+          "cwd": "<new-project-parent>",
+          "purpose": "List the installed official templates without creating a project."
+        },
+        {
+          "run": "android create --name='<App Name>' --application-id='<owned.application.id>' --namespace='<agreed.kotlin.namespace>' --min-sdk='<required-api-level>' --output='<new-project-directory>'",
+          "cwd": "<new-project-parent>",
+          "purpose": "Create the documented default Compose template after confirming the installed CLI's default and replacing all placeholders."
+        }
+      ],
+      "notes": [
+        "The current official documentation offers this CLI route; it is distinct from obsolete Android SDK android commands. Never use --force to scaffold into an existing app.",
+        "Reviewed pages differ in example template spelling, so this recipe uses the documented default and requires installed help/list verification instead of guessing a template identifier.",
+        "If neither the official CLI nor Android Studio project wizard is accessible, report the missing prerequisite and request a generated baseline/operator handoff. Do not silently hand-scaffold Gradle and Android configuration."
+      ]
+    }
+  ],
+  "follow_up_generators": [
+    {
+      "name": "Android Studio component and module templates",
+      "when": "An existing project needs another compatible activity, Compose component, resource or module.",
+      "commands": [],
+      "notes": [
+        "Right-click the intended package/folder in the Project window and select New, or use File > New. Select an applicable template, configure it and inspect all generated changes after Gradle sync.",
+        "Use New Module for a new app/library module only when the architecture requires it; do not create another activity for every Compose screen. Review manifest registrations, resource names and target module dependencies."
+      ]
+    },
+    {
+      "name": "Generated wrapper verification",
+      "when": "After project generation/sync, with a compatible JDK/SDK; discover the actual module and variant before substituting placeholders.",
+      "commands": [
+        {
+          "run": "./gradlew --version",
+          "cwd": "<generated-project-root>",
+          "purpose": "Verify the generated Gradle wrapper and active JVM; use gradlew.bat on Windows."
+        },
+        {
+          "run": "./gradlew projects",
+          "cwd": "<generated-project-root>",
+          "purpose": "Discover actual modules before choosing the application module."
+        },
+        {
+          "run": "./gradlew tasks --all",
+          "cwd": "<generated-project-root>",
+          "purpose": "Discover tasks and variants before selecting build/test commands."
+        },
+        {
+          "run": "./gradlew :<actual-app-module>:lintDebug :<actual-app-module>:testDebugUnitTest :<actual-app-module>:assembleDebug",
+          "cwd": "<generated-project-root>",
+          "purpose": "Lint, unit-test and build the discovered debug application variant; adapt task suffixes for actual variants."
+        },
+        {
+          "run": "./gradlew :<actual-app-module>:connectedDebugAndroidTest",
+          "cwd": "<generated-project-root>",
+          "purpose": "Run instrumentation/Compose tests after starting a compatible emulator or connecting an authorized device; adapt the variant."
+        }
+      ],
+      "notes": [
+        "These commands consume the generated project; they are not app generators. Review task availability before running, especially with product flavors or nonstandard module names.",
+        "Use the generated version catalog when present; when adding dependencies, centralize compatible versions and sync/build. A wrapper or catalog alone does not prove AGP/JDK/Kotlin/Compose compatibility."
+      ]
+    }
+  ],
+  "preserve": [
+    "Keep generated gradlew/gradlew.bat and gradle/wrapper files, settings and module build scripts, gradle.properties, version catalog when present, and repository configuration; record intentional deviations.",
+    "Keep the app manifest, Kotlin activity/Compose theme, resources and generated unit/instrumentation test setup until deliberate product changes replace them.",
+    "Retain generated ignore rules and extend them for workspace needs; exclude local.properties, SDK paths, caches/build outputs, private signing keys and .DS_Store without ignoring the wrapper JAR or source/resources."
+  ],
+  "verification": [
+    "Record which official template and tool version created the project, its identity/minimum SDK choices, and the generated dependency/toolchain baseline.",
+    "Confirm wrapper files and application source sets are included in version control; review Git's candidate file set and ignore behavior without changing an existing user's index.",
+    "Run the discovered lint/unit/build tasks, then instrumentation tests with an emulator/device; inspect reports and distinguish missing environment prerequisites from failing app checks.",
+    "Template generation and a debug build do not establish signed release readiness, production architecture or complete accessibility; complete the profile's product/device/release checks."
+  ],
+  "sources": [
+    {
+      "title": "Android: Create a project",
+      "url": "https://developer.android.com/studio/projects/create-project"
+    },
+    {
+      "title": "Android: Compose quick start",
+      "url": "https://developer.android.com/develop/ui/compose/setup"
+    },
+    {
+      "title": "Android: Official CLI create command",
+      "url": "https://developer.android.com/tools/agents/android-cli/commands/create"
+    },
+    {
+      "title": "Android: Agent tools and resources",
+      "url": "https://developer.android.com/tools/agents"
+    },
+    {
+      "title": "Android: Add code from a template",
+      "url": "https://developer.android.com/studio/projects/templates"
+    },
+    {
+      "title": "Android: Build your app from the command line",
+      "url": "https://developer.android.com/build/building-cmdline"
+    },
+    {
+      "title": "Android: Migrate your build to version catalogs",
+      "url": "https://developer.android.com/build/migrate-to-catalogs"
+    },
+    {
+      "title": "Gradle: Build Init Plugin (Kotlin/JVM scope)",
+      "url": "https://docs.gradle.org/current/userguide/build_init_plugin.html"
+    }
+  ],
+  "integration_steps": [
+    "Record package/application identity, minimum and target SDKs, supported form factors, API contract, permissions and release owner; verify the generated toolchain matches these requirements.",
+    "Use the generated Gradle wrapper and record compatible JDK, SDK, Gradle, AGP, Kotlin and Compose versions. Maintain dependency/plugin versions in the project version catalog when present; introduce catalog changes deliberately in existing builds.",
+    "Implement screen state and ViewModels behind repositories. Add Room migrations, a typed HTTP client and deterministic fake data. Keep secrets out of version control and app resources.",
+    "Run discovered JVM test, lint and debug build tasks. Start a documented emulator or connect an authorized device, then run instrumentation and Compose checks.",
+    "Exercise process death, offline/reconnect, rotation, permission denial, TalkBack, large fonts and every supported form factor on appropriate devices.",
+    "Have the account owner establish package ownership, upload-key custody and Play App Signing. Follow the authorized release workflow to build a signed bundle and verify internal-track install/update; retain reports and distribution receipts. Build success is not store publication."
+  ]
+}

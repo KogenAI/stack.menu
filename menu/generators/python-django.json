@@ -1,0 +1,139 @@
+{
+  "profile_id": "python-django",
+  "reviewed_on": "2026-10-18",
+  "evidence_status": "documentation-reviewed; commands not executed",
+  "starting_points": [
+    {
+      "name": "uv environment plus native Django project generator",
+      "when": "A new Django product application; preserve the established layout and packaging workflow when extending an existing app.",
+      "steps": [
+        "Install uv and inspect uv --version and uv init --help. Replace /path/to/local/source with an existing local source parent; use a new, absent target directory. Set PYTHON_VERSION to a supported Python minor compatible with the selected framework and dependencies. Record generator versions, selected flags and deliberate deviations.",
+        "Run commands in the stated directories in order. Use explicit --no-package for the conventional root manage.py layout; uv default application layouts vary by version.",
+        "After scaffolding, inspect the uv sample main.py and deliberately remove or repurpose that sample if Django manage.py is the only entry point. Configure secrets, database and installed apps before feature work."
+      ],
+      "commands": [
+        {
+          "run": "uv init --no-package --python \"$PYTHON_VERSION\" django-app",
+          "cwd": "/path/to/local/source",
+          "purpose": "Create the managed project metadata and selected Python environment."
+        },
+        {
+          "run": "uv add django",
+          "cwd": "/path/to/local/source/django-app",
+          "purpose": "Resolve Django into the project environment and lock."
+        },
+        {
+          "run": "uv run django-admin startproject config .",
+          "cwd": "/path/to/local/source/django-app",
+          "purpose": "Generate manage.py and the Django settings, URLs, WSGI and ASGI package."
+        }
+      ],
+      "notes": [
+        "This is a composed bootstrap: uv owns Python packaging; django-admin owns framework scaffolding. Do not hand-create a substitute Django skeleton.",
+        "Django scaffolding does not make production settings safe. Configure environment-owned secrets, DEBUG, ALLOWED_HOSTS and the selected production database/server.",
+        "Choose a source parent outside another uv workspace, or intentionally use --no-workspace when creating an independent project under a directory with parent pyproject.toml metadata."
+      ]
+    }
+  ],
+  "follow_up_generators": [
+    {
+      "name": "Django application module",
+      "when": "A new domain app is needed inside the existing project; substitute a domain name for core.",
+      "commands": [
+        {
+          "run": "uv run python manage.py startapp core",
+          "cwd": "/path/to/local/source/django-app",
+          "purpose": "Generate the app configuration, models, admin, tests and migrations package."
+        }
+      ],
+      "notes": [
+        "Register core.apps.CoreConfig in INSTALLED_APPS and implement the domain. The generator does not wire URLs, permissions or product behavior."
+      ]
+    },
+    {
+      "name": "Django schema and data migrations",
+      "when": "Registered application models change; use the configured disposable development database first.",
+      "commands": [
+        {
+          "run": "uv run python manage.py makemigrations core",
+          "cwd": "/path/to/local/source/django-app",
+          "purpose": "Generate a migration from implemented model changes."
+        },
+        {
+          "run": "uv run python manage.py makemigrations --empty core --name populate_reference_data",
+          "cwd": "/path/to/local/source/django-app",
+          "purpose": "Alternative for an intentional data migration: generate its empty revision."
+        },
+        {
+          "run": "uv run python manage.py migrate --plan",
+          "cwd": "/path/to/local/source/django-app",
+          "purpose": "Inspect the configured database migration plan."
+        },
+        {
+          "run": "uv run python manage.py migrate",
+          "cwd": "/path/to/local/source/django-app",
+          "purpose": "Apply reviewed migrations to the development database."
+        }
+      ],
+      "notes": [
+        "The empty data migration is conditional, not a mandatory extra step. Implement it using historical models and review reversibility. Review generated operations before applying; commit migration sources with model changes.",
+        "Use Django ORM/migrations for this profile; do not add a second default migration system. PostgreSQL requires its driver and settings before database commands."
+      ]
+    }
+  ],
+  "preserve": [
+    "Keep generator-created project metadata, Python requirements, version selection and ignore rules; extend them rather than replacing them with a handwritten approximation.",
+    "Commit the resolved uv.lock for projects; exclude .venv, caches, secrets and platform debris such as .DS_Store. Do not hand-edit lockfiles.",
+    "Keep source repositories, virtual environments and caches in a local development workspace outside cloud-synced document folders.",
+    "Retain the generated manage.py, app configuration, middleware/security defaults, URL setup and WSGI/ASGI interfaces unless a documented application need changes them.",
+    "Retain and review migration history; never regenerate an existing project over maintained code."
+  ],
+  "verification": [
+    "From /path/to/local/source/django-app: uv sync --locked; uv run python manage.py check; uv run python manage.py makemigrations --check --dry-run.",
+    "After reviewed migrations on the configured development database: uv run python manage.py migrate --check. Run application tests using its configured runner and a production-relevant isolated database.",
+    "Run uv run python manage.py check --deploy against the actual production settings module once it exists; runserver is a development server.",
+    "Compare a disposable scaffold made with the same uv/Django versions and flags; review the generated baseline and document deviations. Inspect tracked/staged files and verify ignore rules against local debris, caches and secrets."
+  ],
+  "sources": [
+    {
+      "title": "uv project creation and layout choices",
+      "url": "https://docs.astral.sh/uv/concepts/projects/init/"
+    },
+    {
+      "title": "uv project dependency and environment workflow",
+      "url": "https://docs.astral.sh/uv/guides/projects/"
+    },
+    {
+      "title": "uv locking and syncing",
+      "url": "https://docs.astral.sh/uv/concepts/projects/sync/"
+    },
+    {
+      "title": "Django tutorial: startproject and startapp",
+      "url": "https://docs.djangoproject.com/en/6.0/intro/tutorial01/"
+    },
+    {
+      "title": "Django tutorial: app registration and migrations",
+      "url": "https://docs.djangoproject.com/en/6.0/intro/tutorial02/"
+    },
+    {
+      "title": "Django management command reference",
+      "url": "https://docs.djangoproject.com/en/6.0/ref/django-admin/"
+    },
+    {
+      "title": "Django production deployment checklist",
+      "url": "https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/"
+    },
+    {
+      "title": "uv command reference: explicit package and workspace options",
+      "url": "https://docs.astral.sh/uv/reference/cli/"
+    }
+  ],
+  "integration_steps": [
+    "After completing the selected generated baseline, resolve compatible dependencies through uv. For the default PostgreSQL choice, run uv add \"psycopg[binary]\"; configure the selected development database before migrations. Preserve an existing maintained database choice.",
+    "From the project root, run uv add --dev ruff mypy django-stubs pytest pytest-django after checking the django-stubs compatibility table for the selected Django/Python/mypy combination.",
+    "Use the follow-up startapp generator when a domain app is needed; register its AppConfig and configure environment-owned PostgreSQL credentials, auth/session settings, pytest DJANGO_SETTINGS_MODULE and the django-stubs mypy plugin/settings module.",
+    "Implement one authorized vertical slice. Use the follow-up migration generator, inspect the resulting operations and apply reviewed migrations to the disposable development database.",
+    "Add Celery only for actual queued work; configure its broker, worker and after-commit enqueueing. Add Temporal only when durable multi-step recovery is required.",
+    "Document application server, static asset collection, migration release ordering, worker start/restart and rollback. Complete baseline and application verification before deployment."
+  ]
+}

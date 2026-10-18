@@ -1,0 +1,165 @@
+{
+  "profile_id": "laravel-livewire-postgresql",
+  "reviewed_on": "2026-10-18",
+  "evidence_status": "documentation-reviewed; commands not executed",
+  "starting_points": [
+    {
+      "name": "Laravel installer with Livewire starter kit",
+      "when": "A new Laravel application using the official Livewire authentication/UI starting point.",
+      "steps": [
+        "Select compatible PHP/Composer and Node/npm versions plus PostgreSQL and the PHP PostgreSQL PDO extension. Install the Laravel installer only if absent.",
+        "Inspect installed laravel new help; select Livewire and PostgreSQL explicitly. The example chooses Pest; use --phpunit instead if that is the project choice.",
+        "Configure ignored .env with the intended development database and secrets, review generated migrations, then migrate and build assets. Resume a failed installer database step from the generated project after correcting configuration; do not overwrite the project."
+      ],
+      "commands": [
+        {
+          "run": "composer global require laravel/installer",
+          "cwd": "A local source-workspace parent outside synchronized storage; my-app must not already exist",
+          "purpose": "Install the official installer only when it is not already available."
+        },
+        {
+          "run": "laravel new --help",
+          "cwd": "A local source-workspace parent outside synchronized storage; my-app must not already exist",
+          "purpose": "Confirm flags supported by the installed installer."
+        },
+        {
+          "run": "laravel new my-app --livewire --database=pgsql --pest --no-boost",
+          "cwd": "A local source-workspace parent outside synchronized storage; my-app must not already exist",
+          "purpose": "Generate the official Livewire starter with explicit PostgreSQL and test choices."
+        },
+        {
+          "run": "php artisan migrate",
+          "cwd": "The generated my-app directory after configuring its local .env and reviewing migrations",
+          "purpose": "Apply pending migrations to the intended development database."
+        },
+        {
+          "run": "npm install",
+          "cwd": "The generated my-app directory",
+          "purpose": "Install starter frontend dependencies if the installer has not already done so."
+        },
+        {
+          "run": "npm run build",
+          "cwd": "The generated my-app directory",
+          "purpose": "Build the generated frontend assets."
+        }
+      ],
+      "notes": [
+        "The installer may attempt database migration during creation; inspect its output and migrate:status before retrying. Database role/database provisioning and credential ownership must be established.",
+        "Omit --git/--github and decline repository-creation prompts: those optional modes commit files and GitHub mode can publish. --no-boost keeps optional agent integration separate; configure it afterward only if selected, honoring README/instruction-file policy.",
+        "Starter authentication is provided by Fortify. Resource policies, mail delivery and external identity choices remain application work; do not replace the starter auth by hand."
+      ]
+    }
+  ],
+  "follow_up_generators": [
+    {
+      "name": "Eloquent model and migration",
+      "when": "Adding an example Product domain resource.",
+      "commands": [
+        {
+          "run": "php artisan make:model Product --migration",
+          "cwd": "The generated my-app directory",
+          "purpose": "Generate an Eloquent model and companion migration."
+        }
+      ],
+      "notes": [
+        "Replace Product with the actual domain; inspect php artisan help make:model. Add constraints, relationships, allowed assignments and tests before applying migrations."
+      ]
+    },
+    {
+      "name": "Additive migration",
+      "when": "The existing products table needs an example description field.",
+      "commands": [
+        {
+          "run": "php artisan make:migration add_description_to_products_table",
+          "cwd": "The generated my-app directory",
+          "purpose": "Generate the next migration for an existing table."
+        }
+      ],
+      "notes": [
+        "Edit the generated up/down methods deliberately and review SQL/data impact before php artisan migrate. Do not use migrate:fresh against retained data."
+      ]
+    },
+    {
+      "name": "Livewire component/page",
+      "when": "A new interactive server-driven page is required.",
+      "commands": [
+        {
+          "run": "php artisan make:livewire pages::product.create",
+          "cwd": "The generated my-app directory with Livewire 4 installed",
+          "purpose": "Generate an example Livewire page component."
+        }
+      ],
+      "notes": [
+        "Confirm installed Livewire version and php artisan help make:livewire. Current Livewire 4 defaults differ from v3 class-based paths; retain the starter convention or deliberately choose the supported --class option."
+      ]
+    },
+    {
+      "name": "Authorization policy",
+      "when": "The Product model needs explicit per-resource permissions.",
+      "commands": [
+        {
+          "run": "php artisan make:policy ProductPolicy --model=Product",
+          "cwd": "The generated my-app directory with Product model present",
+          "purpose": "Generate a conventional policy for application-specific authorization logic."
+        }
+      ],
+      "notes": [
+        "Implement and invoke the policy, then test rejected requests; the generated stub does not establish access control."
+      ]
+    }
+  ],
+  "preserve": [
+    "Starter .gitignore, .env.example and secret exclusions, composer/package lockfiles, Artisan layout, Fortify auth flows, selected Pest/PHPUnit suite and Livewire/Tailwind/Flux integration.",
+    "Free versus paid Flux components remain a product decision. Preserve the working starter before customizing its UI or adding optional Boost/browser tooling."
+  ],
+  "verification": [
+    "Run composer check-platform-reqs, php artisan about, php artisan migrate:status, php artisan test and npm run build.",
+    "Run the generated style/security checks available in the project; verify database tests use a dedicated test database.",
+    "Use composer run dev and verify registration/login and one authorized plus one rejected browser flow. Record resolved versions and generation choices."
+  ],
+  "sources": [
+    {
+      "title": "Laravel starter kits",
+      "url": "https://laravel.com/framework/docs/13.x/starter-kits"
+    },
+    {
+      "title": "Laravel installation",
+      "url": "https://laravel.com/framework/docs/13.x/installation"
+    },
+    {
+      "title": "Laravel installer source: flags and optional commits",
+      "url": "https://raw.githubusercontent.com/laravel/installer/master/src/NewCommand.php"
+    },
+    {
+      "title": "Eloquent model generation",
+      "url": "https://laravel.com/framework/docs/13.x/eloquent"
+    },
+    {
+      "title": "Laravel migrations",
+      "url": "https://laravel.com/framework/docs/13.x/migrations"
+    },
+    {
+      "title": "Livewire 4 component generation",
+      "url": "https://livewire.laravel.com/docs/4.x/components"
+    },
+    {
+      "title": "Laravel policy generation",
+      "url": "https://laravel.com/framework/docs/13.x/authorization"
+    },
+    {
+      "title": "Laravel Boost",
+      "url": "https://laravel.com/framework/docs/13.x/boost"
+    },
+    {
+      "title": "Laravel Dusk",
+      "url": "https://laravel.com/framework/docs/13.x/dusk"
+    }
+  ],
+  "integration_steps": [
+    "Configure ignored .env database/mail/queue settings for the features selected and confirm application key generation. Review the target database and migration status before applying pending migrations; preserve the starter authentication and selected test framework.",
+    "Build frontend assets and start composer run dev for local verification. Configure a supervised queue worker and scheduler separately for production when the application uses them.",
+    "If Laravel Boost is selected, add composer require laravel/boost --dev only if absent, inspect php artisan help boost:install and configure the chosen integration. Honor repository instruction ownership; for README-only policies inspect installer opt-outs or configure supported MCP integration manually.",
+    "When static analysis is selected, install a compatible Larastan development dependency and configure phpstan.neon from its installed-version guide. For selected browser testing, install laravel/dusk as a development dependency and run php artisan dusk:install; keep database/browser tests isolated.",
+    "For an authorized release, install locked production dependencies, build assets, review migrations, run php artisan optimize and reload supervised services. Confirm backup/restore and rollback compatibility before production migrations."
+  ]
+}

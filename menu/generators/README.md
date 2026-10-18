@@ -1,0 +1,11 @@
+# Generator guidance
+
+[Project home](../../README.md) · [Content owners](../README.md) · [Maintenance workflow](../../docs/website-workflow.md#maintain-generator-guidance)
+
+One `<profile-id>.json` file owns each curated profile's official starting points, conditional follow-up generators, generated files to preserve, baseline checks and primary sources. The profile IDs are owned by [`profiles.json`](../profiles.json); the build requires generator coverage for every profile. Plain Elixir and supervised OTP creation choices live with the Phoenix profile rather than adding an unresearched profile.
+
+[`content/generation-policy.json`](../../content/generation-policy.json) owns the shared requirement to use the appropriate initializer/template, preserve generated defaults, avoid overwriting existing work and report actual generation evidence. [`scripts/generator_content.py`](../../scripts/generator_content.py) compiles that policy and these records into HTML and Markdown; the main compiler also includes them in structured profiles, `/catalogue.json`, `/generators.json` and `/llms-full.txt`. Edit sources here, never generated output.
+
+Each starting point supplies `name`, `when`, ordered `steps` (including IDE instructions where relevant), `commands` with `run`, `cwd` and `purpose`, and `notes`. Follow-up entries use the same fields except optional `steps`. Empty command lists represent a documented GUI/template route rather than a guessed shell command. `integration_steps` owns current post-generation configuration and application work; it replaces historical imported setup instructions in served profiles so creation advice stays consistent. Sources and review/evidence fields apply to each record. Follow the linked maintenance procedure for refresh, checks and recovery.
+
+Reviewed 18 October 2026 against official documentation. Commands and templates were not executed during this research. These records guide initialization; they do not certify all generated defaults, complete application combinations or every best practice. Installed-version help and the user's maintained project instructions govern actual execution. No generator is assumed to ignore `.DS_Store`; check project-specific local artifacts explicitly.

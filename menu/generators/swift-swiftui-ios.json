@@ -1,0 +1,106 @@
+{
+  "profile_id": "swift-swiftui-ios",
+  "reviewed_on": "2026-10-18",
+  "evidence_status": "documentation-reviewed; commands not executed",
+  "starting_points": [
+    {
+      "name": "Xcode iOS App template",
+      "when": "Creating a new native iOS/iPadOS SwiftUI application in a new destination; requires macOS, compatible Xcode, iOS platform support and access to its project wizard.",
+      "steps": [
+        "Record product name, organization/bundle identity, minimum OS, supported devices and signing owner; use a source workspace outside synchronized storage.",
+        "In Xcode choose File > New > Project, use Choose Template if offered, select iOS and the App template. Select SwiftUI and Swift where the template offers these options.",
+        "Set the product and organization identifier. Choose storage deliberately: enable SwiftData only when required and compatible with the deployment target; record the choice. Select a signing team only when the relevant account is available.",
+        "Choose the testing option that provides Swift Testing unit tests and XCTest UI tests; retain established XCTest choices when required. If this template/version omits testing options, add the targets using the follow-up template workflow.",
+        "Create/save into a new destination, inspect the generated project, sources and assets, and share the app scheme for CI. Record the actual Xcode version, template, options and generated baseline before editing application code."
+      ],
+      "commands": [],
+      "notes": [
+        "This is an official IDE template workflow; xcodebuild builds and tests existing projects and is not an iOS app initializer. swift package init creates a Swift package, not the Xcode iOS App project required here.",
+        "If the agent cannot access Xcode's wizard, report that prerequisite and request the template-generated project or an operator handoff. Do not silently substitute hand-written project files or an unreviewed third-party generator.",
+        "For an existing app, open and inspect its project/workspace, targets and schemes; do not rerun new-project creation over it. Compare against a separate disposable template project only when investigating missing defaults."
+      ]
+    }
+  ],
+  "follow_up_generators": [
+    {
+      "name": "Xcode test target and test file templates",
+      "when": "The app needs an additional test bundle or test file; inspect existing targets first.",
+      "commands": [],
+      "notes": [
+        "Use File > New > Target, filter for Test, and choose Unit Testing Bundle or UI Testing Bundle; configure the intended app target and finish. Add the resulting targets to the relevant scheme/test plan.",
+        "For a test file, use File > New > New File From Template and select Swift Testing Unit Test or XCTest Unit Test, assigning it to the intended test target.",
+        "Swift Testing and XCTest tests can coexist in a target; use XCTest/XCUIAutomation for UI tests. Do not recreate existing test bundles merely to add Swift Testing."
+      ]
+    },
+    {
+      "name": "Project and destination discovery before command-line verification",
+      "when": "After the generated project exists and full Xcode with an appropriate simulator runtime is selected; substitute discovered values for every placeholder.",
+      "commands": [
+        {
+          "run": "xcodebuild -version",
+          "cwd": "<generated-project-root>",
+          "purpose": "Record selected Xcode/toolchain version."
+        },
+        {
+          "run": "xcode-select -p",
+          "cwd": "<generated-project-root>",
+          "purpose": "Verify that the selected developer directory belongs to the required Xcode installation."
+        },
+        {
+          "run": "xcodebuild -list -project '<actual-project>.xcodeproj'",
+          "cwd": "<generated-project-root>",
+          "purpose": "Discover the generated targets and schemes; use -workspace for a workspace-owned app."
+        },
+        {
+          "run": "xcodebuild -showdestinations -project '<actual-project>.xcodeproj' -scheme '<actual-shared-scheme>'",
+          "cwd": "<generated-project-root>",
+          "purpose": "Discover a supported installed simulator destination after choosing the actual scheme."
+        },
+        {
+          "run": "xcodebuild test -project '<actual-project>.xcodeproj' -scheme '<actual-shared-scheme>' -destination 'platform=iOS Simulator,id=<installed-simulator-UUID>' -resultBundlePath '<new-result-path>.xcresult'",
+          "cwd": "<generated-project-root>",
+          "purpose": "Build and run the app's selected unit/UI tests and retain results; requires discovered targets and a simulator."
+        }
+      ],
+      "notes": [
+        "These commands inspect/build/test the generated app; they do not generate an app. Replace -project with -workspace consistently if that is the actual build owner.",
+        "Apple's command-line FAQ is archived: check the selected Xcode's local help for supported flags. Device signing, archives and App Store publication require their separate project release workflow."
+      ]
+    }
+  ],
+  "preserve": [
+    "Keep the generated Xcode project configuration, app entry point, asset catalog and selected test targets; document deliberate changes from the recorded template baseline.",
+    "Preserve shared schemes, test plans, required build settings, deployment targets and the app's dependency resolution policy; do not replace them with a minimal handwritten project skeleton.",
+    "Inspect repository ignore coverage separately: an IDE template is not evidence that .DS_Store, DerivedData, build outputs or personal xcuserdata cannot be staged. Preserve distributable source/assets and shared configuration."
+  ],
+  "verification": [
+    "Record template provenance and Xcode version; inspect the actual generated target membership, bundle ID, storage choice and signing configuration.",
+    "Confirm the shared app scheme includes the intended test targets, discover a simulator destination and run tests with retained results before claiming the baseline works.",
+    "Review Git's candidate file set and ignore behavior without modifying an existing user's index; ensure local caches and personal IDE state are excluded while project configuration and assets remain included.",
+    "A simulator pass does not prove device capabilities, signing, accessibility or release readiness. Those require the profile's device and distribution checks."
+  ],
+  "sources": [
+    {
+      "title": "Apple: Creating an Xcode project for an app",
+      "url": "https://developer.apple.com/documentation/xcode/creating-an-xcode-project-for-an-app"
+    },
+    {
+      "title": "Apple: Adding tests to your Xcode project",
+      "url": "https://developer.apple.com/documentation/xcode/adding-tests-to-your-xcode-project"
+    },
+    {
+      "title": "Apple: Building from the Command Line with Xcode FAQ (archived)",
+      "url": "https://developer.apple.com/library/archive/technotes/tn2339/_index.html"
+    },
+    {
+      "title": "Swift.org: Build a Command-line Tool (SwiftPM package initialization scope)",
+      "url": "https://www.swift.org/getting-started/cli-swiftpm/"
+    }
+  ],
+  "integration_steps": [
+    "Record minimum iOS/iPadOS versions, supported devices, capabilities, API schema and signing owner in the project documentation; confirm these choices against the generated baseline.",
+    "Pin package resolution and use only dependencies justified by a requirement. Separate SwiftUI views, observable presentation state, repositories and API DTOs; add migration fixtures, versioned network fixtures and a fake API for tests.",
+    "Run simulator checks and CI with the discovered shared scheme and actual destination. Verify representative physical devices, offline/reconnect, permissions, VoiceOver and large text.",
+    "Have the account owner establish team, bundle ID, capabilities and signing access. Follow the authorized release workflow to produce a signed archive and verify a TestFlight install; retain result bundles and release evidence. An archive is not publication."
+  ]
+}

@@ -1,0 +1,167 @@
+{
+  "profile_id": "rust-cli",
+  "reviewed_on": "2026-10-18",
+  "evidence_status": "documentation-reviewed; commands not executed",
+  "starting_points": [
+    {
+      "name": "Cargo binary package",
+      "when": "A new Rust CLI needs a new directory.",
+      "steps": [
+        "Install the chosen Rust toolchain. Replace /path/to/workspace with the actual local source parent; choose the real package name.",
+        "Generate a binary package; use --lib only for a reusable library rather than an executable."
+      ],
+      "commands": [
+        {
+          "run": "cargo new project --bin",
+          "cwd": "/path/to/workspace (existing local source parent)",
+          "purpose": "Generate the executable package baseline."
+        }
+      ],
+      "notes": [
+        "A Cargo package is not a full framework application. Preserve generated defaults and add only selected dependencies."
+      ]
+    },
+    {
+      "name": "Cargo in an existing directory",
+      "when": "An existing source directory has no Cargo.toml and must become a package; choose this instead of cargo new.",
+      "steps": [
+        "Inspect existing files and parent VCS before initialization; preserve existing code."
+      ],
+      "commands": [
+        {
+          "run": "cargo init --bin",
+          "cwd": "/path/to/workspace/project (existing directory without Cargo.toml)",
+          "purpose": "Initialize a binary package in place."
+        }
+      ],
+      "notes": [
+        "Use --lib for a library target. Do not run cargo init over an already initialized package."
+      ]
+    },
+    {
+      "name": "Ratatui maintained templates",
+      "when": "Interactive terminal UI is selected at project creation; use this alternative to the plain Cargo starter, rather than overlaying a template onto an existing app.",
+      "steps": [
+        "Install the selected Rust toolchain; set CARGO_GENERATE_VERSION to a chosen published version and ensure Cargo binaries are on PATH.",
+        "Run the maintained template selector from the intended parent. Choose the simplest suitable template and real app name; record template choice, resolved repository revision and answers.",
+        "Review generated dependencies, license and terminal setup before extending the application."
+      ],
+      "commands": [
+        {
+          "run": "cargo install cargo-generate --version \"${CARGO_GENERATE_VERSION:?Set the selected cargo-generate version}\" --locked",
+          "cwd": "/path/to/workspace (existing local source parent)",
+          "purpose": "Install the chosen template generator."
+        },
+        {
+          "run": "cargo generate ratatui/templates",
+          "cwd": "/path/to/workspace (parent of the new app; Git available)",
+          "purpose": "Choose and generate a maintained Ratatui template interactively."
+        }
+      ],
+      "notes": [
+        "These are Ratatui-maintained templates, not a universal Rust CLI scaffold. Their shape depends on the selected template; resolve and retain its revision for repeatability.",
+        "Preserve terminal restoration and error/panic handling; add clap only when the generated template does not already satisfy argument parsing."
+      ]
+    }
+  ],
+  "follow_up_generators": [
+    {
+      "name": "dist release setup",
+      "when": "Only when dist is selected for shipping binaries and no equivalent release owner exists.",
+      "commands": [
+        {
+          "run": "cargo install cargo-dist --version \"${DIST_VERSION:?Set the selected dist package version}\" --locked",
+          "cwd": "/path/to/workspace/project (Rust toolchain installed)",
+          "purpose": "Install the selected dist release from its cargo-dist package."
+        },
+        {
+          "run": "dist init",
+          "cwd": "/path/to/workspace/project (application package/workspace root)",
+          "purpose": "Generate release settings and selected CI."
+        }
+      ],
+      "notes": [
+        "Set DIST_VERSION to a chosen published version; ensure Cargo binaries are on PATH. Review target list, metadata, installers, hooks and generated CI before adopting it.",
+        "Release configuration generation does not publish. Test each supported target and installer separately."
+      ]
+    },
+    {
+      "name": "SQLx migrations and checked-query metadata",
+      "when": "Only when SQLx is selected and owns schema migrations; metadata applies when checked query macros are used.",
+      "commands": [
+        {
+          "run": "sqlx migrate add initial",
+          "cwd": "/path/to/workspace/project (matching sqlx-cli installed)",
+          "purpose": "Create an editable migration file."
+        },
+        {
+          "run": "sqlx migrate run",
+          "cwd": "/path/to/workspace/project (DATABASE_URL targets a disposable database; migration SQL reviewed)",
+          "purpose": "Apply migrations to the disposable database."
+        },
+        {
+          "run": "cargo sqlx prepare",
+          "cwd": "/path/to/workspace/project (checked query macros and matching disposable schema available)",
+          "purpose": "Generate offline query metadata."
+        }
+      ],
+      "notes": [
+        "Install a selected sqlx-cli release compatible with the application and selected database/TLS features. Set DATABASE_URL through the environment or an untracked local file.",
+        "Preserve migrations and commit .sqlx metadata for offline builds. Run cargo sqlx prepare --check after changes; pass workspace/feature/target options matching the project."
+      ]
+    }
+  ],
+  "preserve": [
+    "Preserve Cargo.toml, generated source structure and Cargo.lock after dependency resolution for shipped applications. Record the chosen Rust toolchain and generator versions.",
+    "Retain the VCS ignore baseline when generated, including build-output exclusions, and add project-specific OS metadata/secret rules. Cargo VCS behavior depends on parent repository and configuration; inspect actual output.",
+    "Record and justify changes from the same-version generator baseline instead of recreating its files from memory.",
+    "Preserve selected Ratatui template structure, terminal cleanup and license notices; keep generated dist configuration and reviewed CI synchronized."
+  ],
+  "verification": [
+    "In the actual application, compare a fresh output from the recorded toolchain/options with the initial project and explain intentional differences.",
+    "After initial dependency resolution, run cargo fmt --all -- --check, cargo test --locked and cargo build --locked from the package root; run the project-selected Clippy checks.",
+    "In a disposable copy, inspect git add --dry-run -A and confirm source/manifests/lockfile are included while target/, credentials and .DS_Store are excluded.",
+    "Test command help, exit codes, piped input/output, interruption and terminal restoration; a successful build is not proof of terminal behavior."
+  ],
+  "sources": [
+    {
+      "title": "Cargo new",
+      "url": "https://doc.rust-lang.org/cargo/commands/cargo-new.html"
+    },
+    {
+      "title": "Cargo init",
+      "url": "https://doc.rust-lang.org/cargo/commands/cargo-init.html"
+    },
+    {
+      "title": "Cargo package and first build",
+      "url": "https://doc.rust-lang.org/cargo/guide/creating-a-new-project.html"
+    },
+    {
+      "title": "Ratatui templates documentation",
+      "url": "https://ratatui.rs/templates/"
+    },
+    {
+      "title": "Ratatui maintained template repository",
+      "url": "https://github.com/ratatui/templates"
+    },
+    {
+      "title": "dist installation",
+      "url": "https://axodotdev.github.io/cargo-dist/book/install.html"
+    },
+    {
+      "title": "dist release setup and generated CI",
+      "url": "https://github.com/axodotdev/cargo-dist"
+    },
+    {
+      "title": "SQLx CLI migrations and prepare",
+      "url": "https://github.com/transact-rs/sqlx/blob/main/sqlx-cli/README.md"
+    }
+  ],
+  "integration_steps": [
+    "After the selected Cargo or Ratatui template baseline, add typed clap arguments when needed with cargo add clap --features derive; preserve equivalent argument parsing already supplied by the chosen template.",
+    "Resolve Ratatui and its supported terminal backend only when interactive rendering is required; preserve the selected template's compatible setup. Add reqwest only when network access is needed, deliberately selecting blocking or async behavior.",
+    "Implement typed commands, validated settings, stable output/exit codes and domain logic independent of terminal rendering; propagate cancellation and support non-TTY consumers.",
+    "Add executable behavior tests with cargo add --dev assert_cmd; cover missing files, invalid input, stdin, cancellation, stdout/stderr and terminal cleanup. Run the profile verification checks.",
+    "When dist is selected, follow its release generator instructions and review target list and generated CI. Lock dependencies/toolchain, qualify native dependencies and installers, and preserve Cargo.lock. No application setup, release tags or publication were executed."
+  ]
+}

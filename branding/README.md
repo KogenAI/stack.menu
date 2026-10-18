@@ -9,7 +9,7 @@ The website keeps human presentation small and agent guidance complete. Human de
 | Surface | Editable text/source | Asset or output |
 | --- | --- | --- |
 | Human homepage | [`scripts/minimal_site.py`](../scripts/minimal_site.py) | `/` in the shared layout |
-| Agent guidance | [`content/agent-entry.md`](../content/agent-entry.md) and attributed records | `/llms.txt`, guides, Markdown and JSON |
+| Agent guidance | [`content/agent-entry.md`](../content/agent-entry.md), [`content/generation-policy.json`](../content/generation-policy.json), [`menu/generators/`](../menu/generators/) and attributed records | `/llms.txt`, guides, Markdown, JSON and `/generators.json` |
 | Contact and footer | [`content/contact.json`](../content/contact.json); contributor refresh procedure | `/contact/`, `/contact.json`, Markdown and ContactPage metadata |
 | Browser icon | [`public/favicon.svg`](../public/favicon.svg) | `/favicon.svg` |
 | Shared URL card | Product name, headline and introduction in [`share-card.svg`](share-card.svg) | `/share-card.png`; shared Open Graph metadata |

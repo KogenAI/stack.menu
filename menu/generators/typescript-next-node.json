@@ -1,0 +1,107 @@
+{
+  "profile_id": "typescript-next-node",
+  "reviewed_on": "2026-10-18",
+  "evidence_status": "documentation-reviewed; commands not executed",
+  "starting_points": [
+    {
+      "name": "create-next-app",
+      "when": "A new full-stack React/Next.js application; do not rerun over an existing application.",
+      "steps": [
+        "Select a supported Node LTS and the repository package manager. Inspect the current CLI help before generation; examples below use npm.",
+        "Run the official scaffolder in the parent directory. Review prompts for styling, compiler/cache behavior and instruction-file policy instead of accepting saved preferences blindly.",
+        "Record resolved generator/runtime/framework versions and chosen options in the root README; retain the lockfile."
+      ],
+      "commands": [
+        {
+          "run": "node --version",
+          "cwd": "A local source-workspace parent outside synchronized storage; my-app must not already exist",
+          "purpose": "Check the selected runtime."
+        },
+        {
+          "run": "npx create-next-app@latest --help",
+          "cwd": "A local source-workspace parent outside synchronized storage; my-app must not already exist",
+          "purpose": "Inspect the currently resolved scaffolder options."
+        },
+        {
+          "run": "npx create-next-app@latest my-app --ts --eslint --app --src-dir --use-npm --disable-git",
+          "cwd": "A local source-workspace parent outside synchronized storage; my-app must not already exist",
+          "purpose": "Generate the TypeScript App Router baseline without automatic Git initialization/initial commit."
+        }
+      ],
+      "notes": [
+        "Replace my-app with the intended unused project name. @latest is a scaffold-time lookup; record the resolved version and use locked dependencies afterward.",
+        "For a README-only instruction policy, add --no-agents-md and set agentRules: false in the generated Next configuration before next dev; verify support in the installed Next version. Do not create instruction files against repository policy.",
+        "Do not handwrite package.json, tsconfig, framework config or ignore rules as a replacement for this scaffold."
+      ]
+    }
+  ],
+  "follow_up_generators": [
+    {
+      "name": "Drizzle migration generation",
+      "when": "Only after this application has selected PostgreSQL/Drizzle, installed compatible drizzle-orm/driver/drizzle-kit dependencies, and configured a schema and drizzle.config.ts.",
+      "commands": [
+        {
+          "run": "npx drizzle-kit generate",
+          "cwd": "The generated my-app directory",
+          "purpose": "Generate SQL migration files from the configured schema changes."
+        },
+        {
+          "run": "npx drizzle-kit migrate",
+          "cwd": "The generated my-app directory",
+          "purpose": "Apply reviewed migrations to the configured development database after checking its connection."
+        }
+      ],
+      "notes": [
+        "Inspect local drizzle-kit help first; do not install a second ORM merely to run these examples. Review SQL and migration metadata before applying; production application needs its own release procedure.",
+        "Next.js has no general built-in model/controller/component generator analogous to Rails. Follow its installed-version route/file conventions; do not invent a next generate command."
+      ]
+    }
+  ],
+  "preserve": [
+    "Generated ignore rules, package scripts, strict TypeScript configuration, Next configuration, application/layout conventions and lockfile; document intentional changes.",
+    "Generated README setup information, supplemented with project purpose/navigation; honor repository instruction ownership."
+  ],
+  "verification": [
+    "Run generated development server and inspect a real route in a browser.",
+    "Run the generated build and lint scripts separately; Next build is not a lint check. Check generated script names rather than assuming next lint exists.",
+    "Verify intended generated files and documented deviations; a successful scaffold does not prove authentication, authorization or database integration."
+  ],
+  "sources": [
+    {
+      "title": "create-next-app CLI",
+      "url": "https://nextjs.org/docs/app/api-reference/cli/create-next-app"
+    },
+    {
+      "title": "Next.js installation and runtime requirements",
+      "url": "https://nextjs.org/docs/app/getting-started/installation"
+    },
+    {
+      "title": "Drizzle Kit generate",
+      "url": "https://orm.drizzle.team/docs/drizzle-kit-generate"
+    },
+    {
+      "title": "Drizzle Kit migrate",
+      "url": "https://orm.drizzle.team/docs/drizzle-kit-migrate"
+    },
+    {
+      "title": "Next.js agentRules configuration and README-only opt-out",
+      "url": "https://nextjs.org/docs/app/api-reference/config/next-config-js/agentRules"
+    },
+    {
+      "title": "Better Auth installation and schema CLI",
+      "url": "https://better-auth.com/docs/installation"
+    },
+    {
+      "title": "Better Auth Drizzle adapter package and schema generation",
+      "url": "https://better-auth.com/docs/adapters/drizzle"
+    }
+  ],
+  "integration_steps": [
+    "From the generated project root, extend README with purpose, commands, environment variable names and links to the installed framework documentation. Confirm strict TypeScript and honor the selected instruction-file policy; README-only repositories need agentRules:false before next dev.",
+    "Install only selected integrations: Zod for runtime validation; drizzle-orm plus pg and development drizzle-kit/@types/pg when PostgreSQL/Drizzle is required; Better Auth and its installed-version Drizzle adapter only when application-owned identity is selected. The current adapter guide uses @better-auth/drizzle-adapter. Mark database/auth modules server-only; add dotenv only if the chosen config loader needs it.",
+    "When database/auth features are selected, configure the Drizzle schema/config and ignored development DATABASE_URL, then auth secret/base URL and Next route/client integration. For Better Auth with Drizzle, inspect the compatible auth CLI, run npx auth@latest generate, include generated schema in Drizzle paths, then follow the reviewed SQL generation/application procedure. Better Auth direct migrate is for its Kysely adapter, not the Drizzle path.",
+    "Configure tests appropriate to the application: Vitest and a DOM environment/React Testing Library for synchronous client components or domain logic, plus Playwright for critical browser flows and async Server Components. Install matching browser binaries with npx playwright install only after selecting Playwright. Add required aliases/plugins and a production-build webServer configuration.",
+    "Test invalid inputs, resource/tenant ownership and session boundaries where applicable. Add Inngest only for required durable workflows; configure its endpoint/worker and exercise retries and duplicate events.",
+    "For database-backed applications, rehearse migrations on a fresh test database. Run the generated build, separate lint/type checks and selected tests. Configure the chosen host, secrets and a single migration job; verify deployed browser/session behavior and rollback compatibility as part of an authorized release."
+  ]
+}
