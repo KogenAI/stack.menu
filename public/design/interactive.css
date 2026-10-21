@@ -1,0 +1,376 @@
+/* Designer library page */
+
+  /* ---------- Compare stacks (library page only) ---------- */
+  /* Toggle: radio-style indicator + label; a switch underneath (role="switch") so it turns on and off */
+  .compare-toggle {
+    display: inline-flex; align-items: center; gap: 10px; flex: none;
+    height: 40px; padding-inline: 4px; border-radius: 6px;
+    color: var(--ink); font-size: 14px; line-height: 20px; font-weight: 500; cursor: pointer;
+  }
+  .compare-toggle .dot {
+    width: 20px; height: 20px; border-radius: 50%; flex: none;
+    border: 1.5px solid var(--body); display: grid; place-items: center;
+    transition: border-color .15s;
+  }
+  .compare-toggle .dot::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--selected); transform: scale(0); transition: transform .15s; }
+  .compare-toggle[aria-checked="true"] .dot { border-color: var(--selected); }
+  .compare-toggle[aria-checked="true"] .dot::after { transform: scale(1); }
+
+  /* Per-folder checkbox, bottom right of the folder; only shown in compare mode */
+  #stack-groups .gf-cell { position: relative; }
+  .compare-check { display: none; position: absolute; right: 14px; bottom: 16px; z-index: 20; }
+  [data-compare] .compare-check { display: block; }
+  /* Look comes from the shared .checkbox; a little larger here so it reads on the glass */
+  .compare-check .checkbox { display: block; width: 24px; height: 24px; border-radius: 6px; background-size: 16px; box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+
+  /* Floating selection bar, bottom middle of the screen */
+  .compare-tray {
+    position: fixed; left: 50%; bottom: 24px; z-index: 50; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 12px;
+    padding: 6px 6px 6px 20px; border-radius: 999px;
+    background: var(--elevated); border: 1px solid var(--hairline);
+    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, .22), 0 2px 6px rgba(0, 0, 0, .06);
+    animation: tray-in .25s ease-out;
+  }
+  @keyframes tray-in { from { opacity: 0; transform: translate(-50%, 12px); } }
+  .compare-tray .count { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); white-space: nowrap; }
+  .compare-tray .count span { color: var(--body); font-weight: 400; }
+  .compare-tray .btn-primary[aria-disabled="true"] { opacity: .4; cursor: not-allowed; }
+  .tray-close {
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+    width: 40px; height: 40px; border-radius: 50%; color: var(--body); cursor: pointer;
+    transition: background-color .15s, color .15s;
+  }
+  .tray-close:hover { background: var(--hairline-soft); color: var(--ink); }
+  @media (max-width: 480px) { .compare-tray { width: calc(100% - 32px); justify-content: space-between; } }
+  @media (prefers-reduced-motion: reduce) { .compare-tray { animation: none; } .compare-toggle .dot, .compare-toggle .dot::after { transition: none; } }
+
+/* Designer compare page */
+
+  /* ---------- Compare page ---------- */
+  /* Criteria picker: a checklist beside the table on desktop, wrapping pills above it on smaller screens */
+  .crit { display: flex; align-items: center; gap: 12px; min-height: 40px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); cursor: pointer; }
+  .crit-all { padding-bottom: 8px; margin-bottom: 4px; border-bottom: 1px solid var(--hairline); }
+  @media (min-width: 1024px) { .crit-panel { position: sticky; top: 24px; } }
+  @media (max-width: 1023px) {
+    .crit-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .crit { gap: 8px; min-height: 40px; padding: 0 14px 0 10px; border-radius: 64px; border: 1px solid var(--hairline); background: var(--elevated); }
+    .crit-all { padding-bottom: 0; margin-bottom: 0; border-bottom: 1px solid var(--hairline); }
+    .crit .checkbox { width: 18px; height: 18px; border-radius: 6px; background-size: 12px; }
+  }
+
+  /* Comparison card */
+  .compare-card { background: var(--elevated); border: 1px solid var(--hairline); border-radius: 16px; }
+  .compare-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+  .compare-table thead th { position: sticky; top: 0; z-index: 2; background: var(--elevated); vertical-align: top; text-align: left; padding: 24px 24px 20px; border-bottom: 1px solid var(--hairline); }
+  /* height:1px lets the inner column fill the whole header cell, so margin-top:auto pins the meta to the bottom */
+  .compare-table thead th { height: 1px; }
+  .head-inner { height: 100%; display: flex; flex-direction: column; }
+  .head-meta { margin-top: auto; padding-top: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+  .compare-table thead th:nth-child(2) { border-top-left-radius: 16px; }
+  .compare-table thead th:last-child { border-top-right-radius: 16px; }
+  .compare-table td { vertical-align: top; padding: 20px 24px; border-bottom: 1px solid var(--hairline); }
+  .compare-table tbody tr:last-child td { border-bottom: 0; }
+  .compare-table td + td, .compare-table thead th + th + th { border-left: 1px solid var(--hairline); }
+  .cell-label { display: block; margin-bottom: 8px; }
+  .cell-label + .cell-list { margin-top: 0; }
+  .cell-head { font-size: 15px; line-height: 22px; font-weight: 600; color: var(--ink); }
+  .cell-body { margin-top: 4px; font-size: 14px; line-height: 21px; color: var(--body); }
+  .cell-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 21px; color: var(--body); }
+  .cell-list li { position: relative; padding-left: 16px; }
+  .cell-list li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 5px; height: 5px; border-radius: 50%; background: var(--mute); }
+  .remove-stack { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; color: var(--body); flex: none; transition: background-color .15s, color .15s; }
+  .remove-stack:hover { background: var(--hairline-soft); color: var(--ink); }
+
+  /* Each cell carries its own criterion label, so the label column is dropped from the layout */
+  .compare-table .row-label { display: none; }
+
+  /* Phone header: stack titles only, then one "Open complete guide" button with a menu of the stacks */
+  .mobile-head { display: none; }
+  /* One line naming the stacks: "Phoenix + LiveView, Next.js and React + Vite" */
+  .mobile-titles { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink); }
+  .guide-menu-wrap { position: relative; margin-top: 12px; }
+  /* Full-width field-style button (6px corners, DESIGN.md app control) with the dropdown arrow at the right */
+  .guide-toggle { width: 100%; justify-content: space-between; height: 44px; padding-inline: 14px; border-radius: 6px; font-size: 14px; }
+  .guide-toggle svg { transition: transform .15s; }
+  .guide-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .guide-menu {
+    position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 10; padding: 6px;
+    background: var(--elevated); border: 1px solid var(--hairline); border-radius: 12px;
+    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, .22), 0 2px 6px rgba(0, 0, 0, .06);
+  }
+  .guide-menu a { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: 6px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); }
+  .guide-menu a span { font-weight: 400; color: var(--body); }
+  .guide-menu a:hover, .guide-menu a:focus-visible { background: var(--hairline-soft); }
+
+  /* Phones: one card per criterion, with each stack's answer labelled by name */
+  @media (max-width: 767px) {
+    .mobile-head { display: block; }
+    .compare-card { background: transparent; border: 0; }
+    .compare-table thead { display: none; }
+    .compare-table, .compare-table tbody, .compare-table tr, .compare-table td { display: block; width: 100%; }
+    .compare-table tbody tr { margin-top: 12px; background: var(--elevated); border: 1px solid var(--hairline); border-radius: 12px; }
+    .compare-table tbody .row-label { display: block; padding: 14px 16px 0; }
+    .compare-table td { padding: 12px 16px 14px; border-bottom: 1px solid var(--hairline); }
+    .compare-table tbody tr td:last-child { border-bottom: 0; }
+    .compare-table td + td { border-left: 0; }
+    .compare-table td::before { content: attr(data-stack); display: block; margin-bottom: 4px; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--ink); }
+    .cell-label { display: none; }
+    /* Reading sizes inside the cards on phones */
+    .compare-table tbody .row-label { padding: 16px 16px 2px; }
+    .compare-table td { padding: 14px 16px 16px; }
+    /* Phone type scale: label 12 mono · stack name 13 semibold · main line 15 semibold · detail 14 regular */
+    .compare-table td::before { font-size: 13px; line-height: 18px; margin-bottom: 4px; }
+    .cell-head { font-size: 15px; line-height: 22px; }
+    .cell-body, .cell-list { font-size: 14px; line-height: 20px; }
+    .cell-list { gap: 6px; }
+    .cell-list li::before { top: 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .guide-toggle svg { transition: none; } }
+
+/* Designer recommend page */
+
+  /* ---------- Breadcrumb ---------- */
+  .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; line-height: 20px; color: var(--mute); } /* earlier pages muted; only the current page is ink */
+  .crumbs a { border-radius: 6px; transition: color .15s; }
+  .crumbs a:hover { color: var(--ink); }
+  .crumbs svg { flex: none; color: var(--mute); }
+  .crumbs [aria-current="page"] { color: var(--ink); }
+
+  /* ---------- Options: single choice, styled as pills (native radios keep arrow-key behaviour) ---------- */
+  .opts { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 16px; border: 0; margin: 0; padding: 0; }
+  .opt input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+  .opt span {
+    display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 17px; border-radius: 999px;
+    background: var(--elevated); border: 1px solid var(--hairline);
+    font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); cursor: pointer;
+    transition: background-color .15s, border-color .15s, color .15s;
+  }
+  .opt span:hover { background: var(--hairline-soft); border-color: var(--body); }
+  .opt input:checked + span { background: var(--selected); border-color: var(--selected); color: var(--on-selected); }
+  .opt input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  /* Clear selection: fixed-height slot under the options; the button only appears once something is picked */
+  .clear-slot { display: flex; justify-content: center; height: 40px; margin-top: 12px; }
+  .clear-btn { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border-radius: 999px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--body); cursor: pointer; transition: background-color .15s, color .15s; }
+  .clear-btn:hover { background: var(--hairline-soft); color: var(--ink); }
+  .clear-btn[hidden] { display: none; }
+
+  /* ---------- Stage: matching folders come forward to the centre; the rest wait in a row at the bottom ---------- */
+  .rec-stage { position: relative; }
+  .rec-reveal { position: absolute; left: 0; right: 0; top: 0; pointer-events: none; }
+  .rec-stage .gf-cell {
+    position: absolute; left: 0; top: 0; width: 220px; max-width: none; transform-origin: 0 0; will-change: transform;
+    transition: transform .85s cubic-bezier(.2, 1.15, .35, 1), opacity .45s ease, filter .45s ease;
+  }
+  .rec-stage .gf-cell.is-dim { opacity: .38; filter: saturate(.4); }
+  .rec-stage .gf-cell.is-dim:hover { opacity: .7; }
+  /* Descriptions only on the folders brought forward */
+  .rec-stage .gf-cell:not(.is-center) > .gf-tip { display: none; }
+
+  .rec-msg { position: absolute; left: 0; right: 0; text-align: center; transition: opacity .3s; }
+  .rec-msg h2 { font-size: 20px; line-height: 28px; font-weight: 500; letter-spacing: -.01em; color: var(--mute); }
+  .rec-msg p { margin-top: 8px; font-size: 14px; line-height: 20px; color: var(--mute); }
+  .rec-label { position: absolute; left: 0; right: 0; text-align: center; color: var(--body); transition: opacity .3s; }
+
+  /* "We don't have a guide for this yet." */
+  .rec-gap { position: absolute; left: 50%; width: min(560px, 100%); transform: translateX(-50%); text-align: center; transition: opacity .3s; }
+  .rec-gap h2 { font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: -.01em; color: var(--ink); }
+  .rec-gap p { margin-top: 8px; font-size: 16px; line-height: 24px; color: var(--body); }
+  .rec-gap ul { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .rec-gap li { padding: 4px 12px; border-radius: 999px; border: 1px solid var(--hairline); background: var(--elevated); font-size: 14px; line-height: 20px; color: var(--body); }
+
+  /* Compare: one call to action under the centred folders */
+  .rec-compare { position: absolute; left: 0; right: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; transition: opacity .3s; }
+  .rec-compare .hint { font-size: 14px; line-height: 20px; color: var(--body); }
+  .rec-compare .btn-primary[aria-disabled="true"] { opacity: .4; cursor: not-allowed; }
+  .rec-compare .btn-primary, .rec-compare .btn-secondary { gap: 8px; }
+  .is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+  /* Pick-to-compare checkbox on centred folders (more than 3 matches) */
+  .rec-check { display: none; position: absolute; right: 14px; bottom: 16px; z-index: 20; }
+  .rec-stage[data-picking] .gf-cell.is-center .rec-check { display: block; }
+  .rec-check .checkbox { display: block; width: 24px; height: 24px; border-radius: 6px; background-size: 16px; box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rec-stage, .rec-stage .gf-cell, .rec-msg, .rec-label, .rec-gap, .rec-compare, .opt span { transition-duration: .01s !important; }
+  }
+
+/* Designer rewrite page */
+
+  /* ---------- Rewrite flow (Figma "Rewrite flow / …" frames) ---------- */
+  .rw-band { border-bottom: 1px solid var(--hairline); }
+  .rw-top { padding-top: 40px; padding-bottom: 32px; }
+  .rw-intro { margin-top: 20px; max-width: 760px; }
+
+  /* Current → Move to. Three columns: field, arrow, field. Labels, fields and the error line sit on their own rows,
+     so the arrow always lines up with the middle of the two fields, whatever the labels or messages do. */
+  .rw-pair {
+    margin-top: 48px; display: grid; grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr);
+    grid-template-areas: "l1 . l2" "f1 arrow f2" ". . msg"; column-gap: 24px; row-gap: 8px; align-items: center;
+  }
+  .rw-pair .l1 { grid-area: l1; } .rw-pair .l2 { grid-area: l2; }
+  .rw-pair .f1 { grid-area: f1; } .rw-pair .f2 { grid-area: f2; }
+  .rw-pair .msg { grid-area: msg; }
+  .rw-arrow { grid-area: arrow; display: flex; align-items: center; justify-content: center; width: 20px; height: 44px; color: var(--mute); }
+  .field-label { display: block; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); }
+  .field-msg { display: flex; align-items: center; gap: 8px; font-size: 14px; line-height: 20px; color: var(--error-text); }
+  .field-msg svg { flex: none; color: var(--error); }
+  @media (max-width: 639px) {
+    /* Phones: one column. The arrow turns to point down, sits left in line with the text inside the fields,
+       with equal space above and below. */
+    .rw-pair { margin-top: 32px; grid-template-columns: minmax(0, 1fr); grid-template-areas: "l1" "f1" "arrow" "l2" "f2" "msg"; }
+    .rw-arrow { width: auto; height: 32px; justify-content: flex-start; padding-left: 16px; }
+    .rw-arrow svg { transform: rotate(90deg); }
+  }
+
+  /* Select/Stack: a button that opens a listbox below it (never above) */
+  .picker { position: relative; min-width: 0; }
+  .picker-btn {
+    display: flex; align-items: center; gap: 8px; width: 100%; height: 44px; padding: 0 12px 0 15px; border-radius: 6px;
+    background: var(--elevated); border: 1px solid var(--hairline); color: var(--ink); text-align: left;
+    font-size: 14px; line-height: 20px; font-weight: 500; cursor: pointer; transition: border-color .15s;
+  }
+  .picker-btn span { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .picker-btn .ph { color: var(--mute); font-weight: 400; }
+  .picker-btn svg { flex: none; color: var(--body); transition: transform .15s; }
+  .picker-btn:hover { border-color: var(--mute); }
+  .picker-btn[aria-expanded="true"] { border-color: var(--ink); }
+  .picker-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .picker-btn[aria-invalid="true"] { border-color: var(--error); box-shadow: inset 0 0 0 1px var(--error); }
+  .picker-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  .picker-list {
+    position: absolute; z-index: 40; top: calc(100% + 4px); left: 0; right: 0; max-height: 380px; overflow-y: auto; overscroll-behavior: contain;
+    padding: 8px; border-radius: 12px; background: var(--elevated); border: 1px solid var(--hairline);
+    box-shadow: 0 2px 2px rgba(23, 23, 23, .04), 0 8px 16px -4px rgba(23, 23, 23, .08); /* Elevation/Floating */
+    opacity: 0; transform: translateY(-4px); visibility: hidden; transition: opacity .15s ease-out, transform .15s ease-out;
+  }
+  .picker-list.open { opacity: 1; transform: none; visibility: visible; }
+  .picker-group + .picker-group { margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--hairline-soft); }
+  .picker-group-title { padding: 10px 12px 6px; color: var(--mute); }
+  .picker-opt {
+    display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 8px 12px; border-radius: 6px; cursor: pointer;
+  }
+  .picker-opt-text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+  .picker-opt-title { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); }
+  .picker-opt-sub { font-size: 12px; line-height: 16px; color: var(--mute); }
+  .picker-opt svg { flex: none; color: var(--ink); visibility: hidden; }
+  .picker-opt[aria-selected="true"] svg { visibility: visible; }
+  .picker-opt:hover, .picker-opt.active { background: var(--hairline-soft); }
+  .picker-list.kb .picker-opt.active { outline: 2px solid var(--focus); outline-offset: -2px; } /* focus ring only when moving with the keyboard */
+  .picker-list { scrollbar-width: thin; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .picker-list { box-shadow: none; } }
+  :root[data-theme="dark"] .picker-list { box-shadow: none; }
+
+  /* Kind of change + plan panel */
+  .rw-plan { padding-top: 48px; padding-bottom: 48px; display: grid; grid-template-columns: minmax(0, 489fr) minmax(0, 511fr); gap: 40px; align-items: start; }
+  .rw-plan.is-last { padding-bottom: 112px; }
+  .rw-q { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--ink); }
+  .modes { margin-top: 12px; display: flex; flex-direction: column; gap: 12px; border: 0; padding: 0; }
+  .mode {
+    display: flex; flex-direction: column; gap: 2px; padding: 18px 20px; border-radius: 12px; cursor: pointer;
+    background: var(--elevated); border: 1px solid var(--hairline); transition: border-color .15s;
+  }
+  .mode:hover { border-color: var(--mute); }
+  .mode:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .mode-head { display: flex; align-items: center; gap: 16px; font-size: 16px; line-height: 24px; font-weight: 500; color: var(--ink); }
+  .mode p { padding-left: 36px; font-size: 14px; line-height: 20px; color: var(--mute); }
+  .radio {
+    appearance: none; -webkit-appearance: none; flex: none; width: 20px; height: 20px; margin: 0; border-radius: 9999px; cursor: pointer;
+    background: var(--elevated); border: 1.5px solid var(--mute); transition: border-color .15s, background-color .15s, box-shadow .15s;
+  }
+  .radio:checked { border: 2px solid var(--selected); background: var(--selected); box-shadow: inset 0 0 0 3px var(--elevated); }
+  .radio:focus-visible { outline: none; }
+  /* Dark: the dark-grey fill disappears on the dark card, so the checked radio uses ink (light) instead */
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .radio:checked { border-color: var(--ink); background: var(--ink); } }
+  :root[data-theme="dark"] .radio:checked { border-color: var(--ink); background: var(--ink); }
+
+  .plan-side { min-width: 0; }
+  .plan-side.pad { padding-top: 36px; }
+  .plan-title { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-bottom: 12px; font-size: 16px; line-height: 24px; font-weight: 500; color: var(--ink); } /* same size as "What kind of change is it?" */
+  .plan-title svg { flex: none; color: var(--body); }
+  .panel { display: flex; flex-direction: column; border-radius: 12px; background: var(--hairline-soft); }
+  .panel-empty { gap: 16px; padding: 28px 24px; }
+  .panel-empty h2 { font-size: 18px; line-height: 26px; font-weight: 500; color: var(--ink); }
+  .panel-empty p { font-size: 14px; line-height: 20px; color: var(--body); }
+  .gets { display: flex; flex-direction: column; gap: 12px; }
+  .gets li { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 20px; color: var(--ink); }
+  .gets svg { flex: none; color: var(--body); }
+  .panel-link { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; min-height: 44px; margin-block: -6px -12px; border-radius: 6px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); text-decoration: underline 1px transparent; text-underline-offset: 4px; transition: text-decoration-color .15s; }
+  .panel-link:hover { text-decoration-color: currentColor; }
+  .panel-link svg { flex: none; transition: transform .15s; }
+  .panel-link:hover svg { transform: translateX(2px); }
+
+  .panel-brief { gap: 24px; padding: 16px 16px 20px; }
+  .brief-wrap { display: flex; flex-direction: column; gap: 10px; }
+  .brief-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-block: 4px; }
+  .brief-bar .cmd-btn { position: relative; margin-right: -4px; }
+  .brief-bar .cmd-btn::before { content: ""; position: absolute; inset: -6px -2px; } /* 44px tap area around the 32px button */
+  .brief-text { max-height: 360px; overflow-y: auto; padding: 16px 20px; border-radius: 6px; background: var(--elevated); }
+  .brief-text pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .brief-files { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 20px; margin-block: -12px -8px; }
+  .brief-files a { display: inline-flex; align-items: center; gap: 6px; height: 44px; border-radius: 6px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); text-decoration: underline 1px transparent; text-underline-offset: 4px; transition: text-decoration-color .15s; }
+  .brief-files a:hover { text-decoration-color: currentColor; }
+  .brief-files svg { flex: none; color: var(--body); }
+
+  /* Steps and checklist: one card, rows open and close */
+  .rw-details { padding-top: 48px; padding-bottom: 112px; display: flex; flex-direction: column; gap: 40px; }
+  .acc { background: var(--elevated); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; }
+  .acc > details + details { border-top: 1px solid var(--hairline); }
+  .acc summary { display: flex; align-items: flex-start; gap: 16px; padding: 16px 20px; cursor: pointer; list-style: none; transition: background-color .15s; }
+  .acc summary::-webkit-details-marker { display: none; }
+  .acc summary:hover { background: var(--canvas); }
+  .acc summary:focus-visible { outline-offset: -2px; border-radius: 12px; }
+  .acc-text { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .acc-title { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--ink); }
+  .acc-title.m { font-weight: 500; }
+  .acc-sub { font-size: 14px; line-height: 20px; color: var(--body); }
+  .acc-sub b, .acc-body b { font-weight: 500; color: var(--ink); }
+  .acc-chev { flex: none; margin-top: 2px; color: var(--body); transition: transform .2s ease-out; }
+  details[open] > summary .acc-chev { transform: rotate(180deg); }
+  .acc-body { display: flex; flex-direction: column; gap: 8px; padding: 0 20px 16px 64px; font-size: 14px; line-height: 20px; color: var(--body); }
+  .acc-body ul { display: flex; flex-direction: column; gap: 8px; color: var(--ink); }
+  .acc-body ul li { position: relative; padding-left: 16px; }
+  .acc-body ul li::before { content: ""; position: absolute; left: 0; top: 8px; width: 5px; height: 5px; border-radius: 50%; background: var(--mute); }
+  .acc-body.plain { padding-left: 20px; gap: 12px; padding-top: 4px; }
+  .kv { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px 16px; }
+  .kv dt { font-weight: 500; color: var(--ink); }
+  .kv dd { color: var(--body); }
+  .note-sources { display: flex; flex-direction: column; gap: 4px; }
+  .note-sources a { color: var(--link); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+  .rw-filelink { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; height: 44px; margin-top: -4px; border-radius: 6px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); text-decoration: underline 1px transparent; text-underline-offset: 4px; transition: text-decoration-color .15s; }
+  .rw-filelink:hover { text-decoration-color: currentColor; }
+  .rw-filelink svg { flex: none; color: var(--body); }
+
+  .state { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 48px 24px; text-align: center; border: 1px dashed var(--hairline); border-radius: 16px; background: var(--elevated); font-size: 14px; line-height: 20px; color: var(--body); }
+  .state h2 { font-size: 18px; line-height: 26px; font-weight: 500; color: var(--ink); }
+  .state a { color: var(--link); text-decoration: underline; text-underline-offset: 3px; }
+
+  @media (max-width: 899px) {
+    .rw-plan { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+    .plan-side.pad { padding-top: 0; }
+  }
+  @media (max-width: 767px) {
+    .rw-top { padding-top: 24px; }
+    .rw-plan { padding-top: 32px; padding-bottom: 40px; }
+    .rw-plan.is-last { padding-bottom: 80px; }
+    .rw-details { padding-top: 40px; padding-bottom: 80px; }
+    .acc summary { padding: 14px 16px; gap: 12px; }
+    .acc-body { padding: 0 16px 16px 16px; }
+    .kv { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .kv dd + dt { margin-top: 10px; }
+    .panel-empty { padding: 24px 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .picker-btn, .picker-btn svg, .picker-list, .mode, .radio, .acc summary, .acc-chev, .panel-link, .panel-link svg, .brief-files a, .rw-filelink { transition: none; }
+  }
+
+[hidden] { display: none !important; }
+.stack-server-links { display:grid; gap:12px; margin-top:24px; }
+.stack-server-links a { color:var(--link); text-decoration:underline; text-underline-offset:3px; }
+.stack-fallback { padding:24px; border:1px solid var(--hairline); border-radius:12px; background:var(--elevated); }
+.stack-fallback h3 {font-weight:600; font-size:18px;}
+.stack-fallback p {color:var(--body); margin-top:8px;}
+.stack-fallback a {display:inline-flex; min-height:44px; align-items:center; text-decoration:underline; text-underline-offset:4px;}
+@media (prefers-reduced-motion:reduce) {.rec-stage .gf-cell {transition:none!important}}

@@ -1,11 +1,12 @@
 # Stack Menu
 
-Tools and guidance for choosing an application stack, building with a known stack and reconsidering an existing application. The primary reader is the user's agent. The small human page links to agent guidance, coverage and contact; demonstration media will follow when available.
+Tools and guidance for choosing an application stack, building with a known stack and reconsidering an existing application. The primary reader is the user's agent. The human website uses Oghogho’s design for browsing, comparing and reading the same maintained guides. The local candidate includes a real recorded ChatGPT demonstration.
 
 [Website](https://stack.menu/) · [Agent entry](https://stack.menu/llms.txt) · [Contact](https://stack.menu/contact/)
 
 ## Start here
 
+- [20 October redesign](docs/redesign-2026-10-20.md) — design provenance, local review and the separate recording phase.
 - [Build and contribute](docs/website-workflow.md) — editable owners, local preview, direct checks and recovery.
 - [Implementation scope](docs/current-state.md) — supported behavior and evidence limits.
 - [Agent instructions](content/agent-entry.md) — navigation and contextual guidance.

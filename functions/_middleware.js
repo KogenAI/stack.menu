@@ -1,3 +1,4 @@
+import security from '../lib/security-policy.json' with {type:'json'};
 import {agentContent} from '../lib/agent-response.js';
 export async function onRequest(context){
  const url=new URL(context.request.url);
@@ -5,7 +6,7 @@ export async function onRequest(context){
  const response=await agentContent(context);
  const headers=new Headers(response.headers);
  headers.set('X-Content-Type-Options','nosniff');headers.set('Referrer-Policy','strict-origin-when-cross-origin');
- headers.set('Content-Security-Policy',"default-src 'self'; script-src 'self' https://plausible.io; connect-src 'self' https://plausible.io; style-src 'self'; font-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'");
+ headers.set('Content-Security-Policy',security.policy);
  if(url.hostname!=='stack.menu')headers.set('X-Robots-Tag','noindex, nofollow');
  return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
 }

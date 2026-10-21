@@ -1,0 +1,143 @@
+
+  /* Real screen recording: preserve the capture's proportions at every width. */
+  .demo-recording { min-width: 0; width: 100%; margin-inline: auto; }
+  .demo-recording--hero { max-width: 960px; }
+  .demo-video {
+    display: block; width: 100%; max-width: 100%; height: auto; aspect-ratio: 2304 / 1612;
+    object-fit: contain; background: #111; border: 1px solid var(--hairline); border-radius: 12px;
+  }
+  .demo-video:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+  .demo-recording figcaption { margin-top: 12px; color: var(--mute); text-align: center; font-size: 13px; line-height: 20px; }
+  .demo-recording--panel figcaption { color: var(--agent-body); }
+  .demo-recording--panel .demo-video { border-color: var(--agent-panel-line); }
+  .demo-summary { margin-top: 12px; color: var(--mute); font-size: 14px; line-height: 22px; }
+  .demo-summary summary { width: fit-content; margin-inline: auto; cursor: pointer; }
+  .demo-summary p { max-width: 46rem; margin: 12px auto 0; }
+
+  /* ---------- Hero: equal-width buttons and the llms.txt link field ---------- */
+  @media (min-width: 640px) { .hero-btn { width: 244px; } }
+  .hero-field {
+    display: flex; align-items: center; gap: 8px; width: 359px; max-width: 100%;
+    height: 52px; padding: 0 4px 0 18px; border-radius: 12px;
+    background: var(--hairline-soft); border: 1px solid var(--hairline);
+  }
+  .hero-url {
+    flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;
+    font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 14px; line-height: 22px; color: var(--ink); user-select: all;
+  }
+  .hero-copy {
+    flex: none; display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 6px; color: var(--body); cursor: pointer;
+    transition: background-color .15s, color .15s;
+  }
+  .hero-copy:hover { background: var(--hairline); color: var(--ink); }
+  .hero-copy .icon-check, .hero-copy[data-copied] .icon-copy { display: none; }
+  .hero-copy[data-copied] .icon-check { display: block; }
+  .hero-copy[data-copied] { color: var(--ink); }
+
+  /* ---------- Agent marquee ---------- */
+  .marquee {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+            mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+  }
+  .marquee-track { display: flex; width: max-content; animation: marquee 60s linear infinite; }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+  .marquee-group { display: flex; align-items: center; gap: 72px; padding-right: 72px; margin: 0; padding-left: 0; list-style: none; }
+  /* Each lockup is the brand's mark + wordmark. Colour marks keep their own fills; monochrome brands follow the ink token (black in light, white in dark). */
+  .agent { display: flex; align-items: center; gap: 8px; flex: none; color: var(--ink); }
+  .mark, .logo { display: block; flex: none; fill: currentColor; }
+  .agent-zed span { font-size: 20px; line-height: 24px; font-weight: 600; letter-spacing: -0.01em; }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+
+  /* ---------- Stack orbit (glass), from the reference site ---------- */
+  /* Everything inside scales with the orbit's own width (cqw), so it holds its shape from phone to desktop. */
+  .orbit-section { overflow-x: clip; }
+  .orbit { position: relative; width: min(440px, 100%); aspect-ratio: 1; margin-inline: auto; container-type: inline-size; }
+  .orbit > * { position: absolute; }
+  .orbit__aurora { opacity: var(--orbit-aurora); animation: drift 16s ease-in-out infinite; pointer-events: none; }
+  .orbit__aurora:nth-child(2) { animation-duration: 20s; animation-direction: reverse; }
+  .orbit__aurora:nth-child(3) { animation-duration: 24s; }
+  .orbit__aurora img { width: 100%; height: 100%; }
+  @keyframes drift { 50% { transform: translate(4%, -3%) scale(1.06); } }
+
+  /* Rings: centred, each carrying its own travelling light (trail + glowing head) */
+  .orbit__ring { left: 50%; top: 50%; border-radius: 50%; transform: translate(-50%, -50%);
+    border: 1.5px solid var(--orbit-ring);
+    background: radial-gradient(circle at 30% 25%, var(--orbit-ring-fill), transparent 70%);
+    box-shadow: inset 0 0 24px var(--orbit-ring-inner); }
+  .orbit__ring--1 { width: 100%; height: 100%; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  .orbit__ring--2 { width: 76%; height: 76%; }
+  .orbit__ring--3 { width: 52%; height: 52%; }
+  .orbit__comet { position: absolute; inset: -1.5px; border-radius: 50%; animation: spin var(--speed) linear infinite; will-change: transform; }
+  .orbit__comet::before { content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: conic-gradient(from 0deg, transparent 0 72%, rgba(255, 255, 255, 0) 72%, var(--orbit-light) 100%);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+            mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+    filter: drop-shadow(0 0 4px var(--orbit-light)) drop-shadow(0 0 10px var(--orbit-light-glow)); }
+  .orbit__comet::after { content: ""; position: absolute; left: 50%; top: 0; width: 10px; height: 10px; border-radius: 50%;
+    transform: translate(-50%, -50%); background: var(--orbit-light);
+    box-shadow: 0 0 6px 2px var(--orbit-light), 0 0 16px 6px var(--orbit-light-glow), 0 0 34px 12px var(--orbit-light-glow); }
+  .orbit__comet--rev { animation-direction: reverse; }
+  .orbit__comet--rev::before { background: conic-gradient(from 0deg, var(--orbit-light) 0, rgba(255, 255, 255, 0) 28%, transparent 28% 100%); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .orbit__halo { left: 50%; top: 50%; width: 32%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%);
+    background: radial-gradient(circle, var(--orbit-halo), var(--orbit-halo-mid) 45%, transparent 70%); animation: halo 4s ease-in-out infinite; }
+  @keyframes halo { 50% { transform: translate(-50%, -50%) scale(1.12); opacity: .75; } }
+
+  .glass {
+    border: 1px solid var(--orbit-glass-border); background: var(--orbit-glass);
+    -webkit-backdrop-filter: blur(14px) saturate(170%); backdrop-filter: blur(14px) saturate(170%);
+    box-shadow: var(--orbit-glass-shadow), inset 0 1px 0 var(--orbit-glass-highlight);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .glass { background: var(--elevated); } }
+  /* Pills are centred on their point and float gently; each opens that stack's guide. Hover only lifts the glass. */
+  .orbit__pill { translate: -50% -50%; display: inline-flex; align-items: center; height: 10cqw; min-height: 36px; padding: 0 4cqw; border-radius: 9999px;
+    color: var(--orbit-text); font-weight: 600; font-size: clamp(12px, 3.2cqw, 14px); white-space: nowrap;
+    animation: float 6s ease-in-out infinite; animation-delay: var(--d, 0s); transition: scale .3s cubic-bezier(.2, .7, .2, 1), background-color .3s; }
+  .orbit__pill:hover { scale: 1.06; background: var(--orbit-glass-hover); }
+  .orbit__pill:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+  .orbit__tile { width: 13.6cqw; height: 13.6cqw; border-radius: 3.9cqw; display: grid; place-items: center; animation: float 6s ease-in-out infinite; }
+  .orbit__tile img { width: 48%; height: 48%; }
+  .orbit__tile--ink img { filter: var(--orbit-ink-mark); }
+  @keyframes float { 50% { transform: translateY(-6px); } }
+
+  /* ---------- Agent link panel ---------- */
+  .agent-panel { background: var(--agent-panel); border: 1px solid var(--agent-panel-line); color: var(--agent-ink); }
+  .agent-panel .heading-lg { color: var(--agent-ink); }
+  .agent-panel p { color: var(--agent-body); }
+  /* Links on the always-dark panel use the dark-mode link blue (Text/Link, dark) */
+  .agent-files a { color: #52a8ff; text-decoration: underline 1px; text-underline-offset: 3px; }
+  .agent-files a:hover { color: var(--agent-ink); }
+  .agent-files a:focus-visible { outline-color: #52a8ff; }
+  .agent-field {
+    display: flex; align-items: center; gap: 8px;
+    height: 52px; padding-left: 18px; padding-right: 4px; border-radius: 12px;
+    background: var(--agent-field); border: 1px solid var(--agent-field-line);
+  }
+  .agent-url {
+    flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;
+    font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 14px; line-height: 22px; color: var(--agent-ink); user-select: all;
+  }
+  .copy-btn {
+    flex: none; display: inline-flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px; border-radius: 6px; color: var(--agent-body); cursor: pointer;
+    transition: background-color .15s, color .15s;
+  }
+  .copy-btn:hover { background: var(--agent-btn-hover); color: var(--agent-ink); }
+  .copy-btn .icon-check, .copy-btn[data-copied] .icon-copy { display: none; }
+  .copy-btn[data-copied] .icon-check { display: block; }
+  .copy-btn[data-copied] { color: var(--agent-ink); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .orbit__pill { transition: none; }
+    .orbit__pill:hover { scale: 1; }
+    .orbit *, .orbit *::before, .orbit *::after { animation: none !important; }
+    .marquee { -webkit-mask-image: none; mask-image: none; }
+    .marquee-track { animation: none; width: auto; justify-content: center; }
+    .marquee-group { flex-wrap: wrap; justify-content: center; gap: 20px 40px; padding-right: 0; }
+    .marquee-group[aria-hidden="true"] { display: none; }
+  }

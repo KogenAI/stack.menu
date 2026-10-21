@@ -1,0 +1,34 @@
+<header class="border-b border-hairline bg-canvas">
+  <div class="container relative">
+    <div class="flex h-16 items-center justify-between">
+      <a href="/" class="flex items-center gap-2.5 rounded-md text-ink" aria-label="Stack Menu home">
+        {{BRAND_MARK}}
+        <span class="text-[16px] font-semibold leading-none tracking-[-0.01em]">stack menu</span>
+      </a>
+
+      <nav aria-label="Primary" class="hidden self-stretch md:flex">
+        <ul class="flex items-stretch gap-1 text-sm font-normal text-body">
+          <li class="flex"><a href="/library/" class="desk-link" data-nav="library">Stack library</a></li>
+          <li class="flex"><a href="/choose/" class="desk-link" data-nav="recommend">Get stack recommendation</a></li>
+          <li class="flex"><a href="/rewrite/" class="desk-link" data-nav="rewrite">Rewrite stack</a></li>
+          <li class="flex"><a href="/agents/" class="desk-link" data-nav="agents">For agents</a></li>
+        </ul>
+      </nav>
+
+      <button id="menu-btn" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="Open menu"
+        class="-mr-2 inline-flex h-9 w-9 items-center justify-center rounded-md text-ink md:hidden">
+        <svg id="icon-menu" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg>
+        <svg id="icon-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+
+    <nav id="mobile-nav" aria-label="Primary" hidden class="min-h-[calc(100dvh-4rem)] pb-3 md:hidden">
+      <ul class="flex flex-col text-sm text-body">
+        <li><a href="/library/" class="nav-link block rounded-md px-3 py-3" data-nav="library">Stack library</a></li>
+        <li><a href="/choose/" class="nav-link block rounded-md px-3 py-3" data-nav="recommend">Get stack recommendation</a></li>
+        <li><a href="/rewrite/" class="nav-link block rounded-md px-3 py-3" data-nav="rewrite">Rewrite stack</a></li>
+        <li><a href="/agents/" class="nav-link block rounded-md px-3 py-3" data-nav="agents">For agents</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>

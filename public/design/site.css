@@ -1,0 +1,238 @@
+/* Stack Menu: shared tokens, base and UI pieces used by every page. Page-only styles stay in each page. */
+
+/* Fonts ship with the site (SIL OFL 1.1, see attribution/). Same families as the Figma file. */
+@font-face { font-family: "Geist"; src: url("fonts/Geist-Variable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "JetBrains Mono"; src: url("fonts/JetBrainsMono-latin-wght.woff2") format("woff2"); font-weight: 100 800; font-style: normal; font-display: swap; }
+
+:root {
+  --canvas: #fafafa;
+  --elevated: #ffffff;
+  --ink: #171717;
+  --on-primary: #ffffff;
+  --body: #4d4d4d;
+  --mute: #6b6b6b;
+  --hairline: #ebebeb;
+  --hairline-soft: #f2f2f2;
+  --focus: #0070f3;
+  /* Selected pill / checked control: dark grey rather than full ink */
+  --selected: #3f3f3f;
+  --on-selected: #ffffff;
+  --cyan: #00d4a4;
+  --success: var(--cyan);   /* success state: cyan, same in light and dark */
+  --link: #0761d1;          /* text links: the design system Text/Link blue (Figma), 6:1 on the page background */
+  --warn-text: #ab570a;     /* Status/Warning text and soft fill (DESIGN.md) */
+  --warn-soft: #ffefcf;
+  --error: #ee0000;         /* Status/Error signal (borders, icons) and text (DESIGN.md) */
+  --error-text: #c50000;
+
+  --frame-top: #1a1a1a;
+  --frame-bottom: #0e0e0e;
+  --frame-line: #2a2a2a;
+  --play-bg: #fafafa;
+  --play-fg: #171717;
+  /* Stack orbit (from the reference site) */
+  --orbit-ring: rgba(120, 165, 225, 0.45); --orbit-ring-fill: rgba(255, 255, 255, 0.12); --orbit-ring-inner: rgba(255, 255, 255, 0.5);
+  --orbit-light: #ffffff; --orbit-light-glow: rgba(190, 215, 255, 0.7);
+  --orbit-halo: rgba(255, 255, 255, 0.95); --orbit-halo-mid: rgba(255, 255, 255, 0.45); --orbit-aurora: 0.9;
+  --orbit-glass: rgba(255, 255, 255, 0.42); --orbit-glass-hover: rgba(255, 255, 255, 0.62); --orbit-glass-border: rgba(255, 255, 255, 0.75);
+  --orbit-glass-highlight: rgba(255, 255, 255, 0.95); --orbit-glass-shadow: 0 8px 24px rgba(30, 60, 100, 0.1); --orbit-text: #171717; --orbit-ink-mark: none;
+
+  /* Agent link panel: dark in both themes */
+  --agent-panel: #111111;
+  --agent-panel-line: #111111;
+  --agent-ink: #ededed;
+  --agent-body: #a1a1a1;
+  --agent-field: #1a1a1a;
+  --agent-field-line: #2e2e2e;
+  --agent-btn-hover: #262626;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas: #0a0a0a;
+    --elevated: #111111;
+    --ink: #ededed;
+    --on-primary: #0a0a0a;
+    --body: #a1a1a1;
+    --mute: #8f8f8f;
+    --hairline: #2a2a2a;
+    --hairline-soft: #171717;
+    --focus: #52a8ff;
+    --link: #52a8ff;
+    --warn-text: #f5b44a;
+    --warn-soft: #3a2a0a;
+    --error: #ff6166;
+    --error-text: #ff8a8f;
+    /* Selected pill / checked control: dark grey rather than full ink */
+    --selected: #3f3f3f;
+    --on-selected: #ededed;
+    --frame-top: #171717;
+    --frame-bottom: #0e0e0e;
+    --frame-line: #3a3a3a;
+    --orbit-ring: rgba(120, 165, 225, 0.32); --orbit-ring-fill: rgba(120, 165, 225, 0.03); --orbit-ring-inner: rgba(82, 168, 255, 0.10);
+    --orbit-light: #eaf3ff; --orbit-light-glow: rgba(82, 168, 255, 0.75);
+    --orbit-halo: rgba(82, 168, 255, 0.22); --orbit-halo-mid: rgba(82, 168, 255, 0.08); --orbit-aurora: 0.28;
+    --orbit-glass: rgba(23, 23, 23, 0.62); --orbit-glass-hover: rgba(42, 42, 42, 0.8); --orbit-glass-border: rgba(237, 237, 237, 0.12);
+    --orbit-glass-highlight: rgba(255, 255, 255, 0.08); --orbit-glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); --orbit-text: #ededed; --orbit-ink-mark: invert(1);
+    --agent-panel: #141414;
+    --agent-panel-line: #2a2a2a;
+    --agent-field: #0e0e0e;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --canvas: #0a0a0a;
+  --elevated: #111111;
+  --ink: #ededed;
+  --on-primary: #0a0a0a;
+  --body: #a1a1a1;
+  --mute: #8f8f8f;
+  --hairline: #2a2a2a;
+  --hairline-soft: #171717;
+  --focus: #52a8ff;
+  --link: #52a8ff;
+  --warn-text: #f5b44a;
+  --warn-soft: #3a2a0a;
+  --error: #ff6166;
+  --error-text: #ff8a8f;
+  /* Selected pill / checked control: dark grey rather than full ink */
+  --selected: #3f3f3f;
+  --on-selected: #ededed;
+  --frame-top: #171717;
+  --frame-bottom: #0e0e0e;
+  --frame-line: #3a3a3a;
+  --orbit-ring: rgba(120, 165, 225, 0.32); --orbit-ring-fill: rgba(120, 165, 225, 0.03); --orbit-ring-inner: rgba(82, 168, 255, 0.10);
+  --orbit-light: #eaf3ff; --orbit-light-glow: rgba(82, 168, 255, 0.75);
+  --orbit-halo: rgba(82, 168, 255, 0.22); --orbit-halo-mid: rgba(82, 168, 255, 0.08); --orbit-aurora: 0.28;
+  --orbit-glass: rgba(23, 23, 23, 0.62); --orbit-glass-hover: rgba(42, 42, 42, 0.8); --orbit-glass-border: rgba(237, 237, 237, 0.12);
+  --orbit-glass-highlight: rgba(255, 255, 255, 0.08); --orbit-glass-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); --orbit-text: #ededed; --orbit-ink-mark: invert(1);
+  --agent-panel: #141414;
+  --agent-panel-line: #2a2a2a;
+  --agent-field: #0e0e0e;
+  color-scheme: dark;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: Geist, Inter, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Keep the hidden attribute authoritative: layout classes such as Tailwind's flex would otherwise override it */
+[hidden] { display: none !important; }
+
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.container { width: 100%; max-width: 1200px; margin-inline: auto; padding-inline: 24px; }
+
+/* Page headline (hero h1, page titles): 40/48 semibold, scaled down on phones. Wraps naturally at 14em so "the Right Stack" lands on line two. */
+.display {
+  font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.5rem);
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.accent { color: var(--cyan); }
+
+
+.nav-link { transition: background-color .15s, color .15s; }
+.nav-link:hover { background: var(--hairline-soft); color: var(--ink); }
+.nav-link[aria-current="page"] { color: var(--ink); background: var(--hairline-soft); }
+
+/* Desktop header links: full header height; hover and the current page draw a 2px ink stroke on the header's bottom border */
+.desk-link { position: relative; display: flex; align-items: center; padding-inline: 12px; color: var(--body); transition: color .15s; }
+.desk-link::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 2px; background: var(--ink); transform: scaleX(0); transform-origin: left center; transition: transform .2s cubic-bezier(.2, .7, .2, 1); }
+.desk-link:hover, .desk-link[aria-current="page"] { color: var(--ink); }
+.desk-link:hover::after, .desk-link[aria-current="page"]::after { transform: scaleX(1); }
+.desk-link:focus-visible { outline-offset: -4px; }
+
+/* Footer links on tablet and up: no pill, a thin underline close to the text on hover and for the current page. Phones keep the pill links. */
+@media (min-width: 768px) {
+  .foot-link { text-decoration: underline 1px transparent; text-underline-offset: 4px; transition: color .15s, text-decoration-color .15s; }
+  .foot-link:hover, .foot-link[aria-current="page"] { background: transparent; color: var(--ink); text-decoration-color: currentColor; }
+}
+
+/* Button pair: buttons side by side always share one width, the width of the longest label.
+   Phones: they stack full width (still equal). Hidden buttons drop out of the pair. */
+.btn-pair { display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 12px; max-width: 100%; }
+.btn-pair > * { width: 100%; min-width: 0; }
+.btn-pair.center { display: grid; width: max-content; margin-inline: auto; }
+@media (max-width: 639px) { .btn-pair, .btn-pair.center { display: grid; grid-auto-flow: row; width: 100%; } }
+
+/* Primary marketing button: black pill (inverts in dark mode) */
+.btn-primary {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 44px; padding-inline: 20px; border-radius: 100px;
+  background: var(--ink); color: var(--on-primary);
+  font-size: 16px; line-height: 20px; font-weight: 500;
+  transition: opacity .15s;
+}
+.btn-primary:hover { opacity: .88; }
+
+/* Secondary marketing pill: white with hairline */
+.btn-secondary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 44px; padding-inline: 20px; border-radius: 100px;
+  background: var(--elevated); color: var(--ink); border: 1px solid var(--hairline);
+  font-size: 16px; line-height: 20px; font-weight: 500;
+  transition: background-color .15s;
+}
+.btn-secondary:hover { background: var(--hairline-soft); }
+
+.heading-lg {
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2rem);
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+
+.eyebrow {
+  font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+/* Tertiary: text-only, arrow, soft wash on hover */
+.btn-tertiary {
+  display: inline-flex; align-items: center; gap: 6px; flex: none;
+  height: 44px; padding-inline: 12px; border-radius: 9999px;
+  color: var(--ink); font-size: 16px; line-height: 20px; font-weight: 500;
+  transition: background-color .15s;
+}
+.btn-tertiary:hover { background: var(--hairline-soft); }
+
+/* Category pill (DESIGN.md button-category-pill): white pill with hairline; the selected one is ink-filled */
+.chip {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  height: 40px; padding-inline: 16px; border-radius: 64px;
+  background: var(--elevated); color: var(--ink); border: 1px solid var(--hairline);
+  font-size: 14px; line-height: 20px; font-weight: 500; white-space: nowrap; cursor: pointer;
+  transition: background-color .15s, color .15s, border-color .15s;
+}
+.chip:hover { background: var(--hairline-soft); }
+.chip[aria-pressed="true"] { background: var(--selected); color: var(--on-selected); border-color: var(--selected); }
+
+/* Search field (DESIGN.md text-input): white, hairline, 6px corners, leading search icon */
+.search-field { position: relative; }
+.search-field svg { position: absolute; left: 12px; top: 50%; translate: 0 -50%; color: var(--mute); pointer-events: none; }
+.search-field input {
+  width: 100%; height: 40px; padding: 0 12px 0 38px; border-radius: 6px;
+  background: var(--elevated); color: var(--ink); border: 1px solid var(--hairline);
+  font-size: 14px; line-height: 20px;
+}
+.search-field input::placeholder { color: var(--mute); }
+
+/* Checkbox: white with a body-grey edge; ticked = dark grey with a white tick */
+.checkbox {
+  appearance: none; -webkit-appearance: none; margin: 0; flex: none;
+  width: 20px; height: 20px; border-radius: 6px; cursor: pointer;
+  background: var(--elevated); border: 1.5px solid var(--body);
+}
+.checkbox:checked, .checkbox:indeterminate { background-color: var(--selected); border-color: var(--selected); background-position: center; background-repeat: no-repeat; background-size: 14px; }
+.checkbox:checked { background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M20 6 9 17l-5-5%27/%3E%3C/svg%3E"); }
+.checkbox:indeterminate { background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27white%27 stroke-width=%273%27 stroke-linecap=%27round%27%3E%3Cpath d=%27M6 12h12%27/%3E%3C/svg%3E"); }
+.checkbox:disabled { opacity: .4; cursor: not-allowed; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-link, .btn-primary, .btn-secondary, .btn-tertiary, .eyebrow, .chip, .desk-link, .desk-link::after, .foot-link { transition: none; }
+}

@@ -1,0 +1,58 @@
+<main id="main" data-interactive="compare">
+  <div class="container pt-10 pb-20 md:pt-12 md:pb-28">
+    <a href="/library/" class="btn-tertiary -ml-3 text-[14px]">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+      Back to library
+    </a>
+    <div class="mt-4 flex max-w-[40rem] flex-col gap-3">
+      <h1 class="display text-ink">Compare your options</h1>
+      <p class="text-[16px] leading-6 text-body">See the role each stack plays, why you would choose it and what you’ll need to resolve, side by side.</p>
+    </div>
+
+    <div id="compare-body" hidden class="mt-10 grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-10">
+      <!-- Criteria picker -->
+      <aside class="crit-panel" aria-labelledby="crit-title">
+        <h2 id="crit-title" class="text-[20px] font-semibold leading-7 tracking-[-0.01em] text-ink">What matters to you?</h2>
+        <p class="mt-2 text-[14px] leading-5 text-body">Select the criteria you want to see side by side.</p>
+        <fieldset class="mt-5">
+          <legend class="sr-only">Criteria</legend>
+          <div class="crit-list" id="crit-list">
+            <label class="crit crit-all"><input type="checkbox" class="checkbox" id="crit-all">All criteria</label>
+          </div>
+        </fieldset>
+        <p id="crit-count" class="eyebrow mt-5 text-body" aria-live="polite"></p>
+        <p class="mt-1 text-[13px] leading-5 text-body">Only selected criteria are shown.</p>
+      </aside>
+
+      <!-- Comparison table -->
+      <div class="min-w-0">
+        <!-- Phones only: titles of the stacks, then one guide button with a menu of the stacks -->
+        <div class="mobile-head" id="mobile-head">
+          <p class="mobile-titles" id="mobile-titles"></p>
+          <div class="guide-menu-wrap">
+            <button type="button" id="guide-toggle" class="btn-secondary guide-toggle" aria-expanded="false" aria-controls="guide-menu">
+              Open complete guide
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div id="guide-menu" class="guide-menu" hidden></div>
+          </div>
+        </div>
+        <div class="compare-card">
+          <table class="compare-table" id="compare-table">
+            <caption class="sr-only">Stack comparison</caption>
+            <thead><tr id="compare-head"></tr></thead>
+            <tbody id="compare-rows"></tbody>
+          </table>
+        </div>
+        <p class="mt-4 text-[13px] leading-5 text-body">Taken from the current stack records. Review dates and qualification limits are recorded in each complete guide; check version-matched docs before you build.</p>
+      </div>
+    </div>
+
+    <!-- Shown when the link has fewer than two known stacks -->
+    <div id="compare-empty" class="mt-10 flex flex-col items-center rounded-lg border border-dashed border-hairline bg-elevated px-6 py-16 text-center">
+      <h2 class="text-[20px] font-semibold leading-7 tracking-[-0.01em] text-ink">Pick 2 or 3 stacks to compare</h2>
+      <p class="mt-2 max-w-[26rem] text-[14px] leading-5 text-body">Turn on Compare stacks in the library, tick the stacks you want, then press Compare.</p>
+      <a href="/library/" class="btn-primary mt-6">Go to Stack library</a>
+    </div>
+  </div>
+<noscript><div class="container pb-12"><p>Open the guides side by side without JavaScript.</p>{{SERVER_LINKS}}</div></noscript></main>

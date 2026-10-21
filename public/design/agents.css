@@ -1,0 +1,31 @@
+
+  /* ---------- For agents page (Figma "For agents / Light") ---------- */
+  /* The llms.txt address: shows the stack.menu address (same as the homepage) and opens the file this site serves */
+  .llms-link { color: inherit; text-decoration: underline 1px transparent; text-underline-offset: 3px; transition: text-decoration-color .15s; }
+  .llms-link:hover { text-decoration-color: currentColor; }
+
+  /* Everything sits on the centre line, as in Figma; text inside the cards stays left-aligned */
+  .agent-hero { padding-top: 96px; padding-bottom: 112px; }
+  .agent-hero h1, .agent-hero .guide-lede, .how > h2 { text-align: center; }
+  @media (max-width: 767px) { .agent-hero { padding-top: 48px; padding-bottom: 80px; } }
+
+  /* What are you working on? (Figma Section / How to use it): outer cards 250px, the middle card widens to keep
+     "Get stack recommendation" on one line; each button sits 16px under its text */
+  .how { margin-top: 40px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .how-cards { display: flex; justify-content: center; gap: 12px; }
+  .how-card { flex: 0 0 250px; display: flex; flex-direction: column; gap: 6px; padding: 20px; border-radius: 12px; background: var(--elevated); border: 1px solid var(--hairline); text-align: left; }
+  .how-card.fit { flex: 0 0 auto; }
+  .how-card.fit h3 { white-space: nowrap; }
+  .how-card h3 { font-size: 16px; line-height: 24px; font-weight: 600; color: var(--ink); }
+  .how-card p { font-size: 14px; line-height: 20px; color: var(--body); }
+  .how-card.fit p { width: 0; min-width: 100%; } /* text wraps to the title's width instead of widening the card */
+  .how-actions { padding-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .how-actions a { width: 100%; font-size: 14px; }
+  @media (max-width: 839px) {
+    .how { align-items: stretch; }
+    .how-cards { flex-direction: column; }
+    .how-card, .how-card.fit { flex: 0 0 auto; }
+    .how-card.fit h3 { white-space: normal; }
+    .how-card.fit p { width: auto; }
+  }
+  @media (prefers-reduced-motion: reduce) { .llms-link { transition: none; } }

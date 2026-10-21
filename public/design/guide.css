@@ -1,0 +1,109 @@
+/* Stack guides: Oghogho's guide surfaces with readable, permanent sections. */
+.stack-guide { color: var(--ink); }
+.stack-guide .guide-wrap { width: 100%; max-width: 1248px; margin-inline: auto; padding-inline: 24px; }
+.stack-guide .guide-band { border-bottom: 1px solid var(--hairline); padding-block: 40px 32px; }
+.stack-guide .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; line-height: 20px; color: var(--mute); list-style: none; margin: 0; padding: 0; }
+.stack-guide .crumbs [aria-current] { color: var(--ink); }
+.stack-guide .crumbs a:hover { color: var(--ink); }
+.stack-guide .guide-intro { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; max-width: 760px; }
+.stack-guide .guide-intro h1 { margin: 0; font-size: 40px; line-height: 48px; font-weight: 600; letter-spacing: -.02em; }
+.stack-guide .guide-lede { font-size: 16px; line-height: 24px; color: var(--body); }
+.stack-guide .guide-shape { font-size: 14px; line-height: 22px; color: var(--ink); }
+.stack-guide .guide-note, .stack-guide .guide-caption { font-size: 14px; line-height: 20px; color: var(--body); }
+.stack-guide .guide-note { margin-top: 4px; }
+.stack-guide .guide-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 32px; }
+.stack-guide .file-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding-inline: 4px; font-size: 14px; color: var(--ink); text-decoration: none; border-radius: 6px; }
+.stack-guide .file-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.stack-guide .guide-layout { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 48px; padding-top: 40px; padding-bottom: 112px; }
+.stack-guide .guide-nav { align-self: start; position: sticky; top: 88px; display: flex; flex-direction: column; gap: 2px; padding-bottom: 8px; font-size: 14px; line-height: 20px; }
+.stack-guide .guide-nav > p { color: var(--mute); font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin: 0 12px 12px; }
+.stack-guide .guide-nav a { border-radius: 6px; padding: 8px 12px; color: var(--body); }
+.stack-guide .guide-nav a:hover, .stack-guide .guide-nav a[aria-current] { background: var(--hairline-soft); color: var(--ink); }
+.stack-guide .guide-body { min-width: 0; display: flex; flex-direction: column; gap: 56px; }
+.stack-guide .guide-body > section { scroll-margin-top: 96px; display: flex; flex-direction: column; gap: 16px; }
+.stack-guide .guide-body h2 { font-size: 20px; line-height: 28px; font-weight: 600; color: var(--ink); margin: 0; }
+.stack-guide .guide-body h3 { font-size: 15px; line-height: 22px; font-weight: 600; margin: 8px 0 0; color: var(--ink); }
+.stack-guide .guide-body h4 { font-size: 14px; line-height: 20px; font-weight: 600; margin: 4px 0 0; }
+.stack-guide .guide-body p { margin: 0; }
+.stack-guide .guide-body { font-size: 14px; line-height: 22px; color: var(--body); overflow-wrap: anywhere; }
+.stack-guide .guide-body a:not(.btn-primary):not(.btn-secondary):not(.source) { color: var(--link); text-underline-offset: 3px; }
+.stack-guide .guide-body a:not(.btn-primary):not(.btn-secondary):not(.source):hover { text-decoration: underline; }
+.stack-guide .guide-body ul, .stack-guide .guide-body ol { padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.stack-guide .guide-body ul { list-style: disc; }
+.stack-guide .guide-body ol { list-style: decimal; }
+.stack-guide .g-card { border: 1px solid var(--hairline); background: var(--elevated); border-radius: 12px; overflow: hidden; }
+.stack-guide .agent-card { background: var(--elevated); border: 1px solid var(--hairline); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.stack-guide .link-field { border: 1px solid var(--hairline); border-radius: 6px; background: var(--hairline-soft); padding: 12px; }
+.stack-guide .link-field a { display: block; }
+.stack-guide code, .stack-guide pre { font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; line-height: 22px; }
+.stack-guide .guide-body pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; border: 1px solid var(--hairline); border-radius: 12px; background: var(--hairline-soft); color: var(--ink); padding: 16px 20px; }
+.stack-guide .fit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.stack-guide .fit-card { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.stack-guide .fit-card h3 { margin: 0; }
+.stack-guide .guide-rows ul, .stack-guide .guide-steps ol { list-style: none; padding: 0; gap: 0; }
+.stack-guide .guide-rows li, .stack-guide .guide-steps li { padding: 16px 20px; border-bottom: 1px solid var(--hairline); color: var(--ink); }
+.stack-guide .guide-rows li:last-child, .stack-guide .guide-steps li:last-child { border-bottom: none; }
+.stack-guide .guide-steps ol { counter-reset: setup; }
+.stack-guide .guide-steps li { display: flex; align-items: start; gap: 16px; }
+.stack-guide .guide-steps li::before { counter-increment: setup; content: counter(setup); background: var(--hairline-soft); border-radius: 999px; width: 28px; height: 28px; flex: 0 0 28px; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+.stack-guide .tools-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); align-items: start; gap: 24px; margin-top: 8px; }
+.stack-guide .tools-clear-row { display: flex; justify-content: end; min-height: 32px; margin-bottom: 8px; }
+.stack-guide .g-textbtn { border: 0; background: transparent; display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 6px; min-height: 36px; color: var(--ink); font-size: 13px; font-weight: 500; cursor: pointer; }
+.stack-guide .g-textbtn:hover { background: var(--hairline-soft); }
+.stack-guide .tool-groups { display: flex; flex-direction: column; gap: 24px; }
+.stack-guide .tool-card { display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid var(--hairline); padding-bottom: 24px; }
+.stack-guide .tool-card-head { display: flex; flex-direction: column; align-items: start; gap: 12px; }
+.stack-guide .tool-card-head h3 { margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; }
+.stack-guide .tool-picker { display: inline-flex; max-width: 100%; position: relative; cursor: pointer; }
+.stack-guide .tool-picker input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.stack-guide .tool-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; max-width: 100%; padding: 8px 16px; background: var(--elevated); border: 1px solid var(--hairline); border-radius: 999px; color: var(--ink); font-weight: 500; line-height: 20px; }
+.stack-guide .tool-pill:hover { background: var(--hairline-soft); border-color: var(--body); }
+.stack-guide .tool-check { display: none; }
+.stack-guide .tool-picker input:checked + .tool-pill { background: var(--selected); border-color: var(--selected); color: var(--on-selected); }
+.stack-guide .tool-picker input:checked + .tool-pill .tool-check { display: inline; }
+.stack-guide .tool-picker input:checked + .tool-pill .tool-plus { display: none; }
+.stack-guide .tool-picker input:focus-visible + .tool-pill { outline: 2px solid var(--focus); outline-offset: 3px; }
+.stack-guide .tool-limits { font-size: 13px; color: var(--mute); }
+.stack-guide .tool-sources { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 12px; }
+.stack-guide .brief-col { position: sticky; top: 96px; align-self: start; min-width: 0; }
+.stack-guide .brief-card { display: flex; flex-direction: column; gap: 16px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--hairline-soft); padding: 16px; }
+.stack-guide .brief-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 36px; }
+.stack-guide .brief-head h3 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 500; }
+.stack-guide .brief-body { max-height: 380px; overflow-y: auto; border-radius: 12px; border: 1px solid var(--hairline); background: var(--elevated); }
+.stack-guide .brief-body pre { border: 0; background: transparent; border-radius: 0; padding: 16px; }
+.stack-guide .brief-card .btn-primary { width: 100%; justify-content: center; font-size: 14px; }
+.stack-guide .sources { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.stack-guide .source { display: flex; align-items: start; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--hairline); background: var(--elevated); color: var(--ink); font-size: 14px; line-height: 20px; }
+.stack-guide .source:hover { background: var(--hairline-soft); }
+.stack-guide .migration-detail { border: 1px solid var(--hairline); border-radius: 12px; background: var(--elevated); }
+.stack-guide .migration-detail summary { cursor: pointer; padding: 16px 20px; color: var(--ink); font-weight: 500; }
+.stack-guide .migration-detail > div { border-top: 1px solid var(--hairline); display: flex; flex-direction: column; gap: 12px; padding: 20px; }
+.stack-guide .doc-links { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.stack-guide:not(.is-enhanced) .guide-enhanced, .stack-guide.is-enhanced .tool-static { display: none; }
+.stack-guide .guide-sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0; }
+@media (max-width: 1023px) {
+  .stack-guide .guide-layout { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-top: 0; }
+  .stack-guide .guide-nav { position: sticky; top: 64px; z-index: 10; flex-direction: row; overflow-x: auto; gap: 24px; padding: 12px 0; border-bottom: 1px solid var(--hairline); background: var(--canvas); }
+  .stack-guide .guide-nav > p { display: none; }
+  .stack-guide .guide-nav a { flex: none; padding: 6px 0; border-radius: 0; white-space: nowrap; border-bottom: 2px solid transparent; }
+  .stack-guide .guide-nav a:hover, .stack-guide .guide-nav a[aria-current] { background: transparent; border-bottom-color: var(--ink); }
+  .stack-guide .guide-body > section { scroll-margin-top: 140px; }
+  .stack-guide .brief-col { top: 140px; }
+}
+@media (max-width: 767px) {
+  .stack-guide .guide-band { padding-top: 24px; }
+  .stack-guide .guide-intro h1 { font-size: 30px; line-height: 38px; }
+  .stack-guide .guide-actions { margin-top: 24px; }
+  .stack-guide .guide-actions .btn-primary, .stack-guide .guide-actions .btn-secondary { width: 100%; justify-content: center; }
+  .stack-guide .guide-body { gap: 40px; }
+  .stack-guide .guide-layout { padding-bottom: 80px; }
+  .stack-guide .fit-grid, .stack-guide .tools-layout, .stack-guide .sources { grid-template-columns: minmax(0, 1fr); }
+  .stack-guide .brief-col { position: static; }
+  .stack-guide .guide-rows li, .stack-guide .guide-steps li { padding: 14px 16px; }
+  .stack-guide .guide-body pre { padding: 14px 16px; }
+}
+.stack-guide #transitions .button { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--hairline); border-radius: 999px; background: var(--elevated); font-size: 14px; font-weight: 500; color: var(--ink); }
+.stack-guide #transitions .button:hover { background: var(--hairline-soft); text-decoration: none; }
+/* Long canonical addresses stay readable inside the phone's content column. */
+.stack-guide .link-field a{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.stack-guide .link-field code{white-space:normal;overflow-wrap:anywhere;word-break:break-word}

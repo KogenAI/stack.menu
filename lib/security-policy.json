@@ -1,0 +1,3 @@
+{
+  "policy": "default-src 'self'; script-src 'self' https://plausible.io; connect-src 'self' https://plausible.io; style-src 'self'; style-src-attr 'unsafe-inline'; font-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+}

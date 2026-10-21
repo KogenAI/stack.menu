@@ -178,6 +178,8 @@ migration_content.resources(migration_shared,migration_profiles,records,write,sh
 
 from minimal_site import prepare
 prepare(R, OUT, PAGES, records, AGENT_INTRO, CHOOSE, write, shell)
+from design_site import prepare as redesign
+redesign(R, OUT, PAGES, records, write, shell)
 shutil.copytree(R/'public',OUT,dirs_exist_ok=True)
 (R/'.generated/pages.json').write_text(json.dumps(PAGES,ensure_ascii=False))
 print(f'Prepared {len(records)} profiles and complete agent resources.')

@@ -1,18 +1,24 @@
 # Artwork and surface map
 
-[Project home](../README.md) · [Build and contribute](../docs/website-workflow.md)
+[Project home](../README.md) · [Refresh procedure](../docs/website-workflow.md) · [Design adaptation](../docs/redesign-2026-10-20.md)
 
-The website keeps human presentation small and agent guidance complete. Human design and demo media are pending; earlier design attempts are not part of this repository. The simple `s` favicon and text-only share card are provisional assets. They are not a final replacement identity.
+Almir selected Oghogho’s design for implementation on 20 October 2026. The local candidate uses its mark, near-white/near-black surfaces, blue links, Geist prose, JetBrains Mono utility text, pill actions and glass folders. The source is `optimumBA/design` at `9c62989`; its design library remains the collaboration owner. This local implementation has not been deployed.
 
-[Share master](share-card.svg) is editable. Run `npm run export:share` to regenerate [`public/share-card.png`](../public/share-card.png); rebuild after any export change. Preserve the licensed IBM Plex font files and their [Sans](../public/menu-assets/fonts/plex-sans-LICENSE.txt) and [Mono](../public/menu-assets/fonts/plex-mono-LICENSE.txt) licenses.
+[`mark.svg`](mark.svg) is the reusable designer mark master. The header/footer inline it from this file; [`share-card.svg`](share-card.svg) is the editable URL-card composition. Run `npm run export:share` after either changes: it synchronizes the mark in the card, exports [`public/share-card.png`](../public/share-card.png) at 1200×630 and regenerates the theme-aware [`favicon.svg`](../public/favicon.svg). Then rebuild and inspect real rendered sizes/crops. The share card uses a portable Arial fallback; on-page type remains the designer’s locally bundled fonts.
 
 | Surface | Editable text/source | Asset or output |
 | --- | --- | --- |
-| Human homepage | [`scripts/minimal_site.py`](../scripts/minimal_site.py) | `/` in the shared layout |
-| Agent guidance | [`content/agent-entry.md`](../content/agent-entry.md), [`content/generation-policy.json`](../content/generation-policy.json), [`menu/generators/`](../menu/generators/) and attributed records | `/llms.txt`, guides, Markdown, JSON and `/generators.json` |
-| Contact and footer | [`content/contact.json`](../content/contact.json); contributor refresh procedure | `/contact/`, `/contact.json`, Markdown and ContactPage metadata |
-| Browser icon | [`public/favicon.svg`](../public/favicon.svg) | `/favicon.svg` |
-| Shared URL card | Product name, headline and introduction in [`share-card.svg`](share-card.svg) | `/share-card.png`; shared Open Graph metadata |
-| Production website | [`src/layouts/Menu.astro`](../src/layouts/Menu.astro), Pages handlers/configuration | Canonical `https://stack.menu` on Cloudflare Pages |
+| Homepage | [`src/design/home.html`](../src/design/home.html) | `/`; centered real ChatGPT recording and matching player in the agent panel |
+| Demo media | Maintainer-held original and edit recipe; [`public/media/`](../public/media/) contains publication derivatives only | `stack-menu-demo.mp4` (H.264, silent, 16.5 seconds, 2304×1612) and its actual-frame JPEG poster; selected source ranges sped up 4×/16× |
+| Header/footer | [`src/design/`](../src/design/), `mark.svg` | Shared initial HTML across all pages |
+| Library, comparisons, recommendation and rewrite | [`scripts/design_interactive.py`](../scripts/design_interactive.py), `src/design/`, `public/design/interactive.*` | `/library/`, `/compare/`, `/choose/`, `/rewrite/` |
+| Stack guides | [`scripts/design_guides.py`](../scripts/design_guides.py), maintained profiles/generators/contracts | All 14 `/stacks/{id}/` pages |
+| Agent guidance | [`content/agent-entry.md`](../content/agent-entry.md), [`content/generation-policy.json`](../content/generation-policy.json), [`menu/generators/`](../menu/generators/) and attributed records | `/llms.txt`, full guides, Markdown, JSON and `/generators.json` |
+| Contact and footer facts | [`content/contact.json`](../content/contact.json) | `/contact/`, `/contact.json`, Markdown and structured metadata |
+| Browser icon | `mark.svg`, export script | `/favicon.svg` |
+| Shared URL card | `share-card.svg`, `mark.svg` | `/share-card.png`; shared Open Graph metadata |
+| Production website | [`src/layouts/Menu.astro`](../src/layouts/Menu.astro), Pages handlers/configuration | Canonical `https://stack.menu` on Cloudflare Pages; unchanged during local review |
 
-Before changing assets, check message agreement and actual small-icon/card crops. Keep temporary assets distinct from an accepted designer master. A local export cannot establish that a hosted upload or saved share card matches it. Analytics and contact/privacy claims must describe the actual production configuration.
+Local fonts retain their [Geist](../public/design/geist-LICENSE.txt) and [JetBrains Mono](../public/design/jetbrains-mono-LICENSE.txt) notices. Preserve the imported Elixir Menu and earlier Plex notices as well. Designer folder artwork is generated locally by the retained portable implementation. No unverified third-party agent logo pack is redistributed in the homepage strip.
+
+The iCloud product record `publishing/branding/stack-menu/MESSAGING.md` owns accepted messaging/provenance; the templates implement it. That folder’s `SURFACES.md` owns external account/deployment evidence. This map owns source-to-output paths. A local export does not establish a saved live card or publication. Analytics and contact/privacy claims must describe the actual production configuration.

@@ -1,0 +1,198 @@
+/* Stack Menu: stack guide pages (tabs, command blocks, step lists, sources). Shared by every stack guide page. */
+
+/* Guide column: 1040px of content at 1440 wide, matching the Figma frames */
+.guide-wrap { width: 100%; max-width: 1088px; margin-inline: auto; padding-inline: 24px; }
+
+/* ---------- Top band ---------- */
+.guide-band { border-bottom: 1px solid var(--hairline); padding-top: 40px; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 14px; line-height: 20px; color: var(--mute); } /* earlier pages muted; only the current page is ink */
+.crumbs a { border-radius: 6px; transition: color .15s; }
+.crumbs a:hover { color: var(--ink); }
+.crumbs svg { flex: none; color: var(--mute); }
+.crumbs [aria-current="page"] { color: var(--ink); }
+
+.guide-intro { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
+.guide-lede { font-size: 16px; line-height: 24px; color: var(--body); }
+.guide-note { margin-top: 12px; font-size: 14px; line-height: 20px; color: var(--body); }
+
+.guide-actions { margin-top: 48px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.guide-actions .btn-primary, .guide-actions .btn-secondary { gap: 8px; }
+.guide-actions .btn-pair { grid-auto-columns: minmax(272px, 1fr); } /* both buttons at least 272px, equal */
+@media (max-width: 639px) { .guide-actions .btn-pair { grid-auto-columns: auto; } }
+.guide-actions .btn-primary svg, .guide-actions .btn-secondary svg { flex: none; }
+/* "Full guide .md" and "Structured data .json": plain text links with an external icon */
+.file-link { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding-inline: 4px; border-radius: 6px; font-size: 16px; line-height: 24px; color: var(--ink); text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px; transition: text-decoration-color .15s; }
+.file-link:hover { text-decoration-color: currentColor; }
+
+/* ---------- Tabs ---------- */
+.guide-tabs { margin-top: 32px; display: flex; gap: 24px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; padding-bottom: 1px; margin-bottom: -1px; }
+.guide-tabs::-webkit-scrollbar { display: none; }
+.guide-tab {
+  flex: none; padding: 4px 0 12px; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  font-size: 14px; line-height: 20px; font-weight: 500; color: var(--body); white-space: nowrap; cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.guide-tab:hover { color: var(--ink); }
+.guide-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+.guide-tab:focus-visible { outline-offset: -2px; border-radius: 6px; }
+
+/* ---------- Body ---------- */
+.guide-body { padding-top: 48px; padding-bottom: 112px; display: flex; flex-direction: column; gap: 56px; }
+.guide-section { display: flex; flex-direction: column; gap: 16px; }
+.guide-h2 { font-size: 20px; line-height: 28px; font-weight: 600; color: var(--ink); }
+.guide-caption { font-size: 14px; line-height: 20px; color: var(--body); }
+.guide-panel { display: flex; flex-direction: column; gap: 56px; }
+
+/* Card surfaces */
+.g-card { background: var(--elevated); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; }
+
+/* Small text buttons inside cards ("Copy setup", "Show all 11 steps", "Show all 24 sources") */
+.g-textbtn {
+  display: inline-flex; align-items: center; gap: 6px; height: 40px; padding-inline: 12px; border-radius: 999px;
+  font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); cursor: pointer; transition: background-color .15s;
+}
+.g-textbtn:hover { background: var(--hairline-soft); }
+.g-textbtn svg { flex: none; transition: transform .15s; }
+.g-textbtn[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+/* ---------- Agent guide: link field ---------- */
+.agent-card { background: var(--elevated); border: 1px solid var(--hairline); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.link-field { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 4px 0 12px; border-radius: 6px; background: var(--hairline-soft); border: 1px solid var(--hairline); }
+.link-field code { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.icon-btn { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: 6px; color: var(--ink); cursor: pointer; transition: background-color .15s; }
+.icon-btn::before { content: ""; position: absolute; inset: -4px; } /* 44 × 44 tap area; the visible square stays 36px so it fits inside the 44px field */
+.icon-btn:hover { background: var(--hairline); }
+
+.mono { font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 14px; line-height: 22px; font-weight: 400; color: var(--ink); }
+
+/* ---------- When to use ---------- */
+.fit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.fit-card { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.fit-title { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink); }
+.g-list { display: flex; flex-direction: column; gap: 10px; }
+.g-item { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 20px; color: var(--ink); }
+.g-item svg { flex: none; margin-top: 2px; }
+.ic-yes { color: var(--success); }
+.ic-no { color: var(--mute); }
+
+/* ---------- Rows (setup steps, practices, questions) ---------- */
+.g-row { display: flex; gap: 12px; align-items: flex-start; padding: 14px 20px; border-bottom: 1px solid var(--hairline); font-size: 14px; line-height: 20px; color: var(--ink); }
+.g-row:last-child { border-bottom: 0; }
+.g-row svg { flex: none; margin-top: 2px; color: var(--ink); }
+.g-bar { display: flex; align-items: center; padding: 6px 8px; border-bottom: 1px solid var(--hairline); }
+.g-bar:last-child { border-bottom: 0; }
+.step { gap: 16px; padding: 16px 20px; }
+.step-num { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 999px; background: var(--hairline-soft); font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink); }
+.step p { padding-top: 4px; }
+/* The last visible step before "Show all" keeps its divider */
+.steps .g-row.step { border-bottom: 1px solid var(--hairline); }
+
+/* ---------- Command blocks (agent brief, terminal) ---------- */
+.cmd { background: var(--hairline-soft); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; }
+.cmd-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 8px 6px 20px; border-bottom: 1px solid var(--hairline); }
+.cmd-head.end { justify-content: flex-end; }
+.cmd-head .eyebrow { color: var(--body); }
+.cmd-tools { display: flex; align-items: center; gap: 2px; }
+.cmd-btn { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding-inline: 10px; border-radius: 6px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--body); cursor: pointer; transition: background-color .15s, color .15s; }
+.cmd-btn:hover { background: var(--hairline); color: var(--ink); }
+.cmd-btn svg { flex: none; }
+.cmd-body { padding: 16px 20px; overflow-x: auto; }
+.cmd-body pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.cmd-lines { display: flex; flex-direction: column; gap: 8px; }
+.cmd-lines p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.cmd-lines .cmt { color: var(--body); }
+
+/* ---------- Recommended tools: pills on the left, sticky agent brief on the right ---------- */
+.tools-intro { display: flex; flex-direction: column; gap: 16px; max-width: 544px; }
+.tools-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; margin-top: 8px; }
+@media (min-width: 1024px) { .tools-layout { grid-template-columns: minmax(0, 544fr) minmax(0, 456fr); gap: 40px; } }
+.tools-clear-row { display: flex; justify-content: flex-end; min-height: 20px; }
+.tools-clear { height: 20px; padding: 0; border-radius: 6px; color: var(--body); font-weight: 400; }
+.tools-clear:hover { background: transparent; color: var(--ink); }
+.tool-groups { margin-top: 12px; display: flex; flex-direction: column; gap: 40px; }
+.tool-group { display: flex; flex-direction: column; gap: 16px; }
+.tool-group-title { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); }
+.tool-pills { display: flex; flex-wrap: wrap; gap: 16px; }
+.tool-pill-wrap { position: relative; }
+
+/* A pill: + when free, check when picked */
+.tool-pill {
+  display: inline-flex; align-items: center; gap: 4px; height: 40px; padding: 0 14px 0 17px; border-radius: 999px;
+  background: var(--elevated); border: 1px solid var(--hairline);
+  font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); cursor: pointer;
+  transition: background-color .15s, border-color .15s, color .15s;
+}
+.tool-pill:hover { background: var(--hairline-soft); border-color: var(--body); }
+.tool-pill[aria-pressed="true"] { background: var(--selected); border-color: var(--selected); color: var(--on-selected); }
+.tool-pill[aria-pressed="true"]:hover { filter: brightness(1.15); }
+.tool-pill svg { flex: none; }
+.tool-pill .ic-check, .tool-pill[aria-pressed="true"] .ic-plus { display: none; }
+.tool-pill[aria-pressed="true"] .ic-check { display: block; }
+
+/* Tooltip: shows on hover and keyboard focus */
+.tool-tip {
+  position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 30; width: max-content; max-width: 280px;
+  padding: 10px 12px; border-radius: 6px; background: var(--ink); color: var(--canvas);
+  font-size: 13px; line-height: 18px; font-weight: 400; text-align: left;
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, .3);
+  opacity: 0; visibility: hidden; transform: translateY(4px); pointer-events: none;
+  transition: opacity .12s, transform .12s, visibility .12s;
+}
+.tool-tip b { display: block; margin-bottom: 2px; font-weight: 600; }
+.tool-tip .tip-stage { display: block; margin-bottom: 4px; font-family: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; line-height: 14px; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+.tool-pill-wrap:hover .tool-tip, .tool-pill:focus-visible + .tool-tip { opacity: 1; visibility: visible; transform: none; transition-delay: .25s; }
+.tool-pill:focus-visible + .tool-tip { transition-delay: 0s; }
+
+/* Agent brief card */
+.brief-col { align-self: start; }
+@media (min-width: 1024px) { .brief-col { position: sticky; top: 24px; } }
+.brief-card { display: flex; flex-direction: column; gap: 16px; padding: 16px; border-radius: 12px; background: var(--hairline-soft); border: 1px solid var(--hairline); }
+.brief-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 40px; }
+.brief-title { font-size: 16px; line-height: 24px; font-weight: 500; color: var(--ink); }
+.brief-head .cmd-btn { margin-right: -6px; }
+.brief-body { max-height: 320px; overflow-y: auto; padding: 16px 20px; border-radius: 12px; background: var(--elevated); border: 1px solid var(--hairline); }
+.brief-body pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.brief-download { width: 100%; }
+.g-textbtn:disabled { opacity: .4; cursor: not-allowed; }
+.g-textbtn:disabled:hover { background: transparent; }
+
+/* ---------- Sources ---------- */
+/* 3 across on desktop, 2 on tablets, 1 on phones; always the full guide column width */
+.sources { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 1023px) { .sources { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.source {
+  display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 12px;
+  background: var(--elevated); border: 1px solid var(--hairline);
+  font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); transition: background-color .15s, border-color .15s;
+}
+.source span { flex: 1 1 0; min-width: 0; }
+.source svg { flex: none; color: var(--mute); }
+.source:hover { background: var(--hairline-soft); }
+
+/* Licence note under Sources: Caption/Small, muted; links underlined */
+.licence-note { font-size: 12px; line-height: 16px; color: var(--mute); }
+.licence-note a { color: var(--body); text-decoration: underline; text-underline-offset: 2px; }
+.licence-note a:hover { color: var(--ink); }
+
+/* Screen-reader-only live region for copy confirmations */
+.sr-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Phones and small tablets ---------- */
+@media (max-width: 767px) {
+  .guide-band { padding-top: 24px; }
+  .guide-actions { margin-top: 32px; }
+  .guide-actions .btn-primary, .guide-actions .btn-secondary { width: 100%; }
+  .guide-tabs { margin-inline: -24px; padding-inline: 24px; scroll-padding-inline: 24px; }
+  .guide-body { padding-top: 32px; padding-bottom: 80px; gap: 48px; }
+  .guide-panel { gap: 48px; }
+  .fit-grid { grid-template-columns: minmax(0, 1fr); }
+  .sources { grid-template-columns: minmax(0, 1fr); }
+  .g-row { padding: 14px 16px; }
+  .step { padding: 14px 16px; gap: 12px; }
+  .cmd-head { padding-left: 16px; }
+  .cmd-body { padding: 14px 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guide-tab, .g-textbtn, .g-textbtn svg, .icon-btn, .cmd-btn, .tool-pill, .tool-tip, .source, .file-link, .crumbs a { transition: none; }
+}

@@ -7,7 +7,7 @@
     "npm": ">=9.6.5"
   },
   "scripts": {
-    "build": "python3 scripts/build-menu.py && node scripts/build-schema.mjs && astro build && python3 scripts/build-agent-content.py && python3 scripts/finalize.py",
+    "build": "python3 scripts/build-menu.py && node scripts/build-schema.mjs && tailwindcss -c tailwind.config.mjs -i src/tailwind.css -o .generated/tailwind.css --minify && astro build && python3 scripts/build-agent-content.py && python3 scripts/finalize.py",
     "preview": "node scripts/preview.mjs",
     "export:share": "node scripts/export-share.mjs"
   },
@@ -16,6 +16,7 @@
     "sharp": "0.35.5"
   },
   "devDependencies": {
+    "tailwindcss": "3.4.17",
     "wrangler": "4.150.0"
   }
 }

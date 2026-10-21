@@ -1,0 +1,37 @@
+<main id="main">
+  <div class="guide-band agent-hero" style="border-bottom:0">
+    <div class="guide-wrap">
+      <h1 class="display text-ink">Your agent’s guide</h1>
+      <p class="guide-lede mt-3 max-w-[640px] mx-auto">Paste this link into Claude, ChatGPT, Cursor or any coding agent along with your task. It’s a short index, so the agent reads only what the job needs.</p>
+      <div class="agent-card mt-8 max-w-[480px] mx-auto">
+        <div class="link-field">
+          <code class="mono"><a id="llms-link" class="llms-link" href="/llms.txt">https://stack.menu/llms.txt</a></code>
+          <button type="button" class="icon-btn" id="copy-llms" aria-label="Copy the llms.txt link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
+        </div>
+      </div>
+      <p class="sr-status" id="copy-status" aria-live="polite"></p>
+
+      <!-- The three routes in llms.txt, each with the page a person uses for the same job -->
+      <section class="how" aria-labelledby="h-how">
+        <h2 id="h-how" class="guide-h2">What are you working on?</h2>
+        <div class="how-cards">
+          <div class="how-card">
+            <h3>Explore stack library</h3>
+            <p>Already picked a stack? Open its guide for tools, practices, setup and checks.</p>
+            <div class="how-actions"><a class="btn-primary" href="/library/">Browse the library</a></div>
+          </div>
+          <div class="how-card fit">
+            <h3>Get stack recommendation</h3>
+            <p>Still choosing? See the stacks that fit what you’re building, side by side.</p>
+            <div class="how-actions"><a class="btn-secondary" href="/choose/">Get a recommendation</a></div>
+          </div>
+          <div class="how-card">
+            <h3>Rewrite stack</h3>
+            <p>Moving an app? Get a staged plan and a list of what must keep working.</p>
+            <div class="how-actions"><a class="btn-secondary" href="/rewrite/">Plan a rewrite</a></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>

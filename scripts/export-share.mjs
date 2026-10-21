@@ -1,3 +1,12 @@
 import sharp from 'sharp';
-await sharp('branding/share-card.svg').png().toFile('public/share-card.png');
-console.log('Exported public/share-card.png (1200 × 630).');
+import {readFile,writeFile} from 'node:fs/promises';
+const mark=await readFile('branding/mark.svg','utf8');
+const paths=mark.match(/<path\b[\s\S]*?\/>/g).join('');
+const share=await readFile('branding/share-card.svg','utf8');
+const updated=share.replace(/<!-- brand-mark-start -->[\s\S]*?<!-- brand-mark-end -->/,`<!-- brand-mark-start --><g color="#171717"><svg x="72" y="66" width="44" height="48" viewBox="0 0 142 156">${paths}</svg></g><!-- brand-mark-end -->`);
+if(updated!==share)await writeFile('branding/share-card.svg',updated);
+await sharp(Buffer.from(updated)).png().toFile('public/share-card.png');
+const favicon=mark.replace('width="142" height="156"','width="32" height="32"');
+await writeFile('public/favicon.svg',favicon.replaceAll('currentColor','#171717'));
+await writeFile('public/favicon-dark.svg',favicon.replaceAll('currentColor','#ededed'));
+console.log('Exported share card (1200 × 630) and theme-aware favicon.');

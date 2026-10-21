@@ -1,0 +1,57 @@
+<main id="main" data-interactive="library">
+  <div class="container pt-12 pb-20 md:pt-16 md:pb-28">
+    <div class="flex max-w-[36rem] flex-col gap-3">
+      <h1 class="display text-ink">Stack library</h1>
+      <p class="text-[16px] leading-6 text-body">14 curated stack guides for your coding agent. Each one sets out the tools, setup and checks for a stack, so your agent builds on choices checked against official docs instead of guessing. Open a folder for the guide, a recommendation or a rewrite plan.</p>
+    </div>
+
+    <!-- Filter by type, or search names, languages and the tools each guide covers -->
+    <div class="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+      <div id="type-filter" role="group" aria-label="Filter stacks by type" class="flex flex-wrap gap-2">
+        <button type="button" class="chip" data-group="all" aria-pressed="true">All stacks</button>
+        <button type="button" class="chip" data-group="Web applications" aria-pressed="false">Web applications</button>
+        <button type="button" class="chip" data-group="APIs &amp; services" aria-pressed="false">APIs &amp; services</button>
+        <button type="button" class="chip" data-group="Tools &amp; automation" aria-pressed="false">Tools &amp; automation</button>
+        <button type="button" class="chip" data-group="Native mobile" aria-pressed="false">Native mobile</button>
+      </div>
+      <!-- Search runs on Enter (form submit), not while typing -->
+      <form id="search-form" role="search" class="w-full lg:w-[300px]">
+        <label for="stack-search" class="block text-[14px] leading-5 text-body">Find a stack or tool</label>
+        <div class="search-field mt-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+          <input id="stack-search" type="search" enterkeyhint="search" placeholder="Elixir, Django, jobs…" autocomplete="off" spellcheck="false">
+        </div>
+      </form>
+    </div>
+    <p id="result-count" class="eyebrow mt-5 text-body" aria-live="polite">14 guides</p>
+
+    <!-- One section per catalogue group, built from shared/stack-folders.js -->
+    <div id="stack-groups" class="mt-10 flex flex-col gap-12">{{SERVER_CARDS}}</div>
+
+    <!-- Compare toggle: the script keeps it on the first visible group's title row, at the right -->
+    <button id="compare-toggle" type="button" role="switch" aria-checked="false" class="compare-toggle">
+      <span class="dot" aria-hidden="true"></span>Compare stacks
+    </button>
+
+    <!-- No matching guide: shown when a search or filter leaves nothing -->
+    <div id="no-results" class="mt-10 flex flex-col items-center rounded-lg border border-dashed border-hairline bg-elevated px-6 py-16 text-center md:py-20" hidden>
+      <span class="inline-flex h-12 w-12 items-center justify-center rounded-full border border-hairline bg-canvas text-body" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m13.5 8.5-5 5"/><path d="m8.5 8.5 5 5"/><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      </span>
+      <h2 class="mt-5 text-[20px] font-semibold leading-7 tracking-[-0.01em] text-ink">No matching guide found yet</h2>
+      <p class="mt-2 max-w-[26rem] text-[14px] leading-5 text-body">We don’t have a guide for “<span id="no-results-term" class="text-ink"></span>” yet. Try a language, a framework or a tool such as Postgres, or browse all 14 stacks.</p>
+      <div class="mt-6 btn-pair center">
+        <button id="clear-search" type="button" class="btn-primary">Browse all stacks</button>
+        <a href="/choose/" class="btn-secondary">Help me choose</a>
+      </div>
+    </div>
+  </div>
+<div id="compare-tray" class="compare-tray" role="region" aria-label="Stacks selected for comparison" hidden>
+  <p class="count" id="compare-count" aria-live="polite"></p>
+  <a href="#" id="compare-go" class="btn-primary">Compare</a>
+  <button type="button" id="compare-cancel" class="tray-close" aria-label="Cancel comparing">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+  </button>
+</div>
+
+</main>

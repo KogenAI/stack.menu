@@ -1,7 +1,14 @@
 ---
 import styles from '../styles.css?url';
+import utilities from '../../.generated/tailwind.css?url';
+import header from '../design/header.html?raw';
+import footer from '../design/footer.html?raw';
+import markMaster from '../../branding/mark.svg?raw';
+const mark=markMaster.replace('width="142" height="156"','width="26" height="28" aria-hidden="true"');
 import contact from '../../content/contact.json';
-const {title,body,page,description}=Astro.props;
+const {title,body,page,description,styles:pageStyles=[],scripts=[]}=Astro.props;
+const current=page==='library'||page==='compare'||page==='guide'?'library':page==='recommend'?'recommend':page==='rewrite'?'rewrite':page==='agents'?'agents':null;
+const activeChrome=(markup)=>current?markup.replaceAll(`data-nav="${current}"`,`data-nav="${current}" aria-current="page"`):markup;
 const route=Astro.url.pathname;
 const canonical=new URL(route,'https://stack.menu').href;
 const markdown=route==='/'?'/agent-content/index.md':'/agent-content'+route.replace(/\/$/,'')+'.md';
@@ -15,18 +22,22 @@ const schema=title==='Contact' ? {'@context':'https://schema.org','@graph':[webs
 <title>{title} · Stack Menu</title><meta name="description" content={description}/>
 <meta name="robots" content={page==='utility' && title==='Page not found'?'noindex':'index,follow'}/>
 <meta name="is-agentic-site-type" content="content"/>
-{!missing && <link rel="canonical" href={canonical}/>}<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-<link rel="stylesheet" href={styles}/>{!missing && <link rel="alternate" type="text/markdown" href={markdown}/>}
+{!missing && <link rel="canonical" href={canonical}/>}<link rel="icon" type="image/svg+xml" href="/favicon.svg"/><link rel="icon" type="image/svg+xml" href="/favicon-dark.svg" media="(prefers-color-scheme: dark)"/>
+<link rel="stylesheet" href={utilities}/><link rel="stylesheet" href="/design/site.css"/><link rel="stylesheet" href="/design/stack-folders.css"/><link rel="stylesheet" href="/design/stack-guide.css"/><link rel="stylesheet" href={styles}/>{pageStyles.map(href=><link rel="stylesheet" href={href}/>)}{!missing && <link rel="alternate" type="text/markdown" href={markdown}/>}
 <link rel="describedby" type="text/plain" href="/llms.txt"/><link rel="related" type="application/json" href="/selection-index.json"/>
 <meta property="og:type" content="website"/><meta property="og:site_name" content="Stack Menu"/>
 <meta property="og:title" content={title}/><meta property="og:description" content={description}/><meta property="og:url" content={canonical}/>
-<meta property="og:image" content="https://stack.menu/share-card.png"/><meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/><meta property="og:image:alt" content="Stack Menu: tools and guidance for your stack."/>
-<meta property="og:image:type" content="image/png"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:image" content="https://stack.menu/share-card.png"/><meta name="twitter:image:alt" content="Stack Menu: tools and guidance for your stack."/>
+<meta property="og:image" content="https://stack.menu/share-card.png"/><meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/><meta property="og:image:alt" content="Stack Menu: your agent’s guide to the right stack."/>
+<meta property="og:image:type" content="image/png"/><meta name="twitter:card" content="summary_large_image"/><meta name="twitter:image" content="https://stack.menu/share-card.png"/><meta name="twitter:image:alt" content="Stack Menu: your agent’s guide to the right stack."/>
 <script type="application/ld+json" set:html={JSON.stringify(schema).replace(/</g,'\\u003c')}/>
 {!missing && <script is:inline src="/analytics.js" defer></script>}
 </head><body data-page={page}>
 <a class="skip" href="#main">Skip to content</a>
-<header><a class="brand" href="/">stack.menu</a><nav aria-label="Main"><a href="/agents/">For agents</a><a href="/choose/">Choose</a><a href="/rewrite/">Migrate</a></nav></header>
+<Fragment set:html={activeChrome(header.replace('{{BRAND_MARK}}',mark))}/>
 <Fragment set:html={body}/>
-<footer><p><strong>Missed something?</strong><br/>Suggest a tool or correction at <a href={`mailto:${contact.contactPoint[0].email}`}>{contact.contactPoint[0].email}</a>.</p><nav aria-label="Footer"><a href="/about/">Sources &amp; coverage</a><a href="/contact/">Contact</a><a href="/privacy/">Privacy</a><a href="/llms.txt">llms.txt</a></nav></footer>
+<Fragment set:html={activeChrome(footer.replace('{{BRAND_MARK}}',mark).replaceAll('{{TOOLS_EMAIL}}',contact.contactPoint[0].email))}/>
+<script is:inline src="/design/site.js" defer></script>
+<script is:inline src="/design/data.js" defer></script>
+<script is:inline src="/design/stack-folders.js" defer></script>
+{scripts.map(src=><script is:inline src={src} defer></script>)}
 </body></html>

@@ -12,11 +12,12 @@ for page in sorted(out.rglob('*.html')):
 (out/'sitemap.xml').write_bytes(ET.tostring(tree,encoding='utf-8',xml_declaration=True))
 (out/'robots.txt').write_text('User-agent: *\nAllow: /\n\nSitemap: https://stack.menu/sitemap.xml\n')
 # Static resources bypass Functions; /route remains inside the include set.
-(out/'_routes.json').write_text(json.dumps({'version':1,'include':['/*'],'exclude':['/_astro/*','/agent-content/*','/menu-assets/*','/*.md','/*.txt','/*.json','/*.xml','/*.svg','/*.png']})+'\n')
+(out/'_routes.json').write_text(json.dumps({'version':1,'include':['/*'],'exclude':['/_astro/*','/design/*','/media/*','/agent-content/*','/menu-assets/*','/*.md','/*.txt','/*.json','/*.xml','/*.svg','/*.png']})+'\n')
+policy=json.loads((R/'lib/security-policy.json').read_text())['policy']
 (out/'_headers').write_text('''/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://plausible.io; connect-src 'self' https://plausible.io; style-src 'self'; font-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+  Content-Security-Policy: {POLICY}
 /*.md
   Content-Type: text/markdown; charset=utf-8
 /*.json
@@ -29,7 +30,7 @@ https://:project.pages.dev/*
   X-Robots-Tag: noindex, nofollow
 https://:version.:project.pages.dev/*
   X-Robots-Tag: noindex, nofollow
-''')
+'''.replace('{POLICY}',policy))
 # Frozen build digest for local review; private evidence does not enter dist.
 files={p.relative_to(out).as_posix():hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(out.rglob('*')) if p.is_file()}
 (R/'.generated/build-digest.json').write_text(json.dumps(files,indent=2)+'\n')

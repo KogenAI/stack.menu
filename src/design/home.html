@@ -1,0 +1,132 @@
+<main id="main">
+  <section>
+    <div class="container pt-16 pb-20 md:pt-24 md:pb-28">
+      <!-- Centred intro, matching the Figma Hero frame -->
+      <div class="mx-auto flex max-w-[780px] flex-col items-center gap-4 text-center">
+        <h1 class="display text-ink">Your agent’s guide to building with the right stack for your project</h1>
+        <p class="max-w-[732px] text-[16px] font-normal leading-6 text-mute">Readable stack guides for you and your coding agent, to help you build products the right way.</p>
+      </div>
+
+      <div class="mt-8 flex flex-col items-center gap-4">
+        <div class="flex w-full flex-col justify-center gap-4 sm:w-auto sm:flex-row">
+          <a href="/choose/" class="btn-primary hero-btn">Get stack recommendation</a>
+          <a href="/library/" class="btn-secondary hero-btn">View stack library</a>
+        </div>
+        <div class="hero-field">
+          <code id="hero-url" class="hero-url">https://stack.menu/llms.txt</code>
+          <button id="hero-copy" type="button" class="hero-copy" aria-label="Copy link">
+            <svg class="icon-copy" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <svg class="icon-check" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          </button>
+        </div>
+        <p id="hero-copy-status" class="sr-only" aria-live="polite"></p>
+      </div>
+
+      <figure class="demo-recording demo-recording--hero mt-10 md:mt-14">
+        <video class="demo-video" controls playsinline preload="none" poster="/media/stack-menu-demo-poster.jpg" width="2304" height="1612" aria-label="Stack Menu demonstrated in a real ChatGPT conversation" aria-describedby="hero-demo-caption">
+          <source src="/media/stack-menu-demo.mp4" type="video/mp4">
+          <a href="/media/stack-menu-demo.mp4">Watch the Stack Menu demonstration</a>
+        </video>
+        <figcaption id="hero-demo-caption">Real ChatGPT session · edited at 4× and 16×. Use fullscreen for a closer look.</figcaption>
+        <details class="demo-summary">
+          <summary>What happens in this demo?</summary>
+          <p>The user asks for a family meal planner and shared shopping list, and asks ChatGPT to use Stack Menu. ChatGPT reads the guidance, recommends Phoenix + LiveView with PostgreSQL, and shows a sample meal-planning interface. It compares Next.js and Rails + Hotwire, takes the user’s existing Elixir experience into account, and explains that offline shopping would need additional client support. The recording has no audio.</p>
+        </details>
+      </figure>
+    </div>
+  </section>
+
+  <!-- Agents: official marks from LobeHub Icons (MIT) and Simple Icons (CC0). Marks remain trademarks of their owners. See attribution/logos-NOTICE.txt -->
+  <section class="container pb-16 text-center"><p class="text-[14px] text-body">Bring the coding agent you already use</p><p class="mt-6 text-[20px] font-medium text-ink">ChatGPT &nbsp; · &nbsp; Claude &nbsp; · &nbsp; Cursor &nbsp; · &nbsp; Codex</p></section>
+
+  <section aria-labelledby="choose-heading" class="orbit-section">
+    <div class="container pt-16 pb-20 md:pt-24 md:pb-28">
+      <div class="grid items-center gap-16 md:grid-cols-[minmax(22.5rem,1fr)_minmax(0,1fr)] md:gap-12 lg:gap-24">
+        <div class="flex min-w-0 max-w-[30rem] flex-col items-start gap-4">
+          <h2 id="choose-heading" class="heading-lg text-ink">Choosing the right stack</h2>
+          <p class="text-[16px] leading-6 text-body">A stack guide is a ready-made brief for your coding agent. Not sure which one you need? Pick the options that match your project and we’ll show the guides that fit.</p>
+          <div class="mt-4 btn-pair">
+            <a href="/choose/" class="btn-primary gap-2">
+              Help me choose
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
+            <a href="/library/" class="btn-secondary">View all stacks</a>
+          </div>
+        </div>
+
+        <div class="min-w-0">
+          <div id="orbit" class="orbit" role="group" aria-label="Stack guides">
+            <div class="orbit__aurora" aria-hidden="true" style="left:-5.9%;top:-2.5%;width:72.7%;height:72.7%"><img src="/design/orbit/aurora-mint.svg" alt=""></div>
+            <div class="orbit__aurora" aria-hidden="true" style="left:32.2%;top:29.9%;width:76.1%;height:76.1%"><img src="/design/orbit/aurora-blue.svg" alt=""></div>
+            <div class="orbit__aurora" aria-hidden="true" style="left:25.6%;top:25.6%;width:60.2%;height:60.2%"><img src="/design/orbit/aurora-violet.svg" alt=""></div>
+            <div class="orbit__ring orbit__ring--1" aria-hidden="true"><div class="orbit__comet" style="--speed:14s;animation-delay:-5s"></div></div>
+            <div class="orbit__ring orbit__ring--2" aria-hidden="true"><div class="orbit__comet orbit__comet--rev" style="--speed:10s;animation-delay:-3s"></div></div>
+            <div class="orbit__ring orbit__ring--3" aria-hidden="true"><div class="orbit__comet" style="--speed:7s;animation-delay:-1s"></div></div>
+            <div class="orbit__halo" aria-hidden="true"></div>
+            <div class="orbit__tile glass" aria-hidden="true" style="left:43.2%;top:34.2%"><img src="/design/orbit/claude.svg" alt=""></div>
+            <div class="orbit__tile glass" aria-hidden="true" style="left:33.2%;top:50.7%;animation-delay:-2s"><img src="/design/orbit/codex.svg" alt=""></div>
+            <div class="orbit__tile orbit__tile--ink glass" aria-hidden="true" style="left:53.2%;top:50.7%;animation-delay:-4s"><img src="/design/orbit/cursor.svg" alt=""></div>
+            <!-- Each pill opens that stack's guide: Phoenix has a guide page, the others open their guide.md -->
+            <a class="orbit__pill glass" href="/stacks/elixir-phoenix-liveview/" style="left:25%;top:9%;--d:0s" data-id="elixir-phoenix-liveview">Phoenix + LiveView</a>
+            <a class="orbit__pill glass" href="/stacks/typescript-next-node/" style="left:80%;top:12%;--d:-1.2s" data-id="typescript-next-node">Next.js<span class="sr-only"> guide</span></a>
+            <a class="orbit__pill glass" href="/stacks/python-django/" style="left:12%;top:39%;--d:-2.4s" data-id="python-django">Django<span class="sr-only"> guide</span></a>
+            <a class="orbit__pill glass" href="/stacks/go-service/" style="left:86%;top:47%;--d:-3.1s" data-id="go-service">Go service<span class="sr-only"> guide</span></a>
+            <a class="orbit__pill glass" href="/stacks/rust-service/" style="left:17%;top:76%;--d:-4s" data-id="rust-service">Rust service<span class="sr-only"> guide</span></a>
+            <a class="orbit__pill glass" href="/stacks/swift-swiftui-ios/" style="left:77%;top:85%;--d:-5.2s" data-id="swift-swiftui-ios">Swift + SwiftUI<span class="sr-only"> guide</span></a>
+          </div>
+          <p class="eyebrow mt-8 text-center text-mute">Select a stack</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="library-heading">
+    <div class="container pb-20 md:pb-28">
+      <div class="flex items-start justify-between gap-6">
+        <div class="flex min-w-0 max-w-[36rem] flex-col gap-3">
+          <h2 id="library-heading" class="heading-lg text-ink">Stack library</h2>
+          <p class="text-[16px] leading-6 text-body">Explore tools, setup and checks for 14 curated stacks. Take a guide to your agent, compare your options or plan a rewrite.</p>
+        </div>
+        <a href="/library/" class="btn-tertiary -mr-3">
+          View all
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- Folders are built by the script below. Hover to lean, click to open. -->
+      <!-- Small top margin: each folder already reserves 54px of headroom for its files to rise into. -->
+      <div id="library" data-stack-folders data-ids="elixir-phoenix-liveview,typescript-next-node,rails-hotwire-postgresql,python-django,python-fastapi,go-service,rust-cli,swift-swiftui-ios" class="mt-4 grid grid-cols-1 justify-items-center gap-x-10 gap-y-8 md:mt-6 md:grid-cols-2 lg:grid-cols-4"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="agent-heading" class="pb-20 md:pb-28">
+    <div class="container">
+      <div class="agent-panel relative rounded-lg px-6 py-10 md:px-12 md:py-12">
+        <div class="grid items-center gap-10 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:gap-12">
+        <div class="min-w-0 text-left">
+        <h2 id="agent-heading" class="text-[22px] font-semibold leading-8 tracking-[-0.005em] md:text-[24px]">Point your agent to Stack Menu</h2>
+        <p class="mt-2 max-w-[32rem] text-[15px] leading-6">Paste this link into Claude, ChatGPT, Cursor or any coding agent you use. It lists the required stack guides and tells your agent how to pick one, build with it or plan a rewrite.</p>
+        <div class="agent-field mt-6 max-w-[30rem]">
+          <code id="agent-url" class="agent-url">https://stack.menu/llms.txt</code>
+          <button id="copy-url" type="button" class="copy-btn" aria-label="Copy link">
+            <svg class="icon-copy" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+            <svg class="icon-check" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          </button>
+        </div>
+        <!-- The agent files stay reachable as plain links, no copy step needed -->
+        <p class="agent-files mt-3 text-[14px] leading-5">Or open the files directly: <a href="/llms.txt">llms.txt</a> · <a href="/llms-full.txt">llms-full.txt</a></p>
+        <p id="copy-status" class="mt-2 min-h-5 text-[13px] leading-5" aria-live="polite"></p>
+        </div>
+
+        <figure class="demo-recording demo-recording--panel">
+          <video class="demo-video" controls playsinline preload="none" poster="/media/stack-menu-demo-poster.jpg" width="2304" height="1612" aria-label="Stack Menu demonstrated in a real ChatGPT conversation" aria-describedby="agent-demo-caption">
+            <source src="/media/stack-menu-demo.mp4" type="video/mp4">
+            <a href="/media/stack-menu-demo.mp4">Watch the Stack Menu demonstration</a>
+          </video>
+          <figcaption id="agent-demo-caption">Real ChatGPT session · edited at 4× and 16×. Use fullscreen for a closer look.</figcaption>
+        </figure>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
