@@ -28,7 +28,7 @@ def prepare(root,out,pages,records,write,shell):
             body=body.replace('</main>','<section class="prose-page agent-reference"><details><summary>Read the full agent instructions</summary>'+original+'</details></section></main>')
         body=body.replace('{{PROFILE_COUNT}}',str(len(records)))
         props=shell(title,body,page=name)
-        props['description']='Stack guides for you and your coding agent. Choose the right stack, build with it or plan a rewrite.'
+        props['description']=('Stack guides for you and your coding agent. Choose the right stack, build with it or plan a rewrite.' if name=='home' else 'Give your agent direct access to Stack Menu: task-based recommendations, complete Markdown and JSON guides, generators and rewrite contracts.')
         props['styles']=['/design/'+name+'.css']
         props['scripts']=['/design/'+name+'.js']
         write(route,props)
