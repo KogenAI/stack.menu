@@ -1,6 +1,6 @@
 {
   "profile_id": "go-cli",
-  "reviewed_on": "2026-10-18",
+  "reviewed_on": "2026-10-23",
   "evidence_status": "documentation-reviewed; commands not executed",
   "starting_points": [
     {
@@ -55,6 +55,21 @@
       ]
     },
     {
+      "name": "Optional Bubble Tea v2 terminal interface",
+      "when": "Only when the CLI needs an interactive terminal user interface; a conventional command interface can stay with Cobra or the standard library.",
+      "commands": [
+        {
+          "run": "go get charm.land/bubbletea/v2@latest",
+          "cwd": "/path/to/workspace/project (module root)",
+          "purpose": "Add Bubble Tea v2 using its current vanity module path."
+        }
+      ],
+      "notes": [
+        "Use the v2 import `tea \"charm.land/bubbletea/v2\"` and follow the v2 Model/View API: `View() tea.View`, not the v1 `View() string`. The v2 module path and API differ from `github.com/charmbracelet/bubbletea` v1; do not mix their examples or imports.",
+        "Bubble Tea is a framework integration, not an application generator. Build it only when interactive screens are required; add related Charm v2 modules such as Bubbles or Lip Gloss only if selected and use their matching `/v2` module paths."
+      ]
+    },
+    {
       "name": "GoReleaser configuration",
       "when": "Only when GoReleaser is selected for this application and no release configuration exists.",
       "commands": [
@@ -92,6 +107,14 @@
       "url": "https://go.dev/doc/tutorial/create-module"
     },
     {
+      "title": "Bubble Tea v2 official README and tutorial",
+      "url": "https://github.com/charmbracelet/bubbletea"
+    },
+    {
+      "title": "Bubble Tea v2 upgrade guide and module/API changes",
+      "url": "https://github.com/charmbracelet/bubbletea/blob/main/UPGRADE_GUIDE_V2.md"
+    },
+    {
       "title": "Go modules reference: go mod init",
       "url": "https://go.dev/ref/mod#go-mod-init"
     },
@@ -105,7 +128,7 @@
     }
   ],
   "integration_steps": [
-    "After the selected module/Cobra baseline, resolve dependencies and record tool versions; preserve the Cobra-generated main.go and cmd/root.go command wiring. Add a supported Bubble Tea release only when interactive screens are required.",
+    "After the selected module/Cobra baseline, resolve dependencies and record tool versions; preserve the Cobra-generated main.go and cmd/root.go command wiring. Add Bubble Tea v2 (`charm.land/bubbletea/v2`) only when interactive screens are required, and use its v2 Model/View API rather than copying v1 examples.",
     "Implement commands through the chosen command structure with injectable I/O, configuration validation, stable exit codes, cancellation and explicit noninteractive behavior. Keep application logic separate from terminal rendering.",
     "Write command tests covering malformed input, stdin, stdout/stderr, cancellation and safe retries; use isolated temporary paths and test terminal restoration when a TUI is present.",
     "When GoReleaser is selected, follow its configuration generator instructions and review/pin the generated configuration and target matrix. Preserve go.mod/go.sum; document installation, supported targets and rollback. No application setup or publishing has been executed."
