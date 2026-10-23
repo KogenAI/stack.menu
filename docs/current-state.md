@@ -2,7 +2,7 @@
 
 [Project home](../README.md) · [Build and content workflow](website-workflow.md)
 
-The local candidate provides 16 curated component profiles across web applications, services, command-line tools, automation and native mobile. Human pages and agent guidance include selection, chosen-stack building and explicit migration workflows, complete Markdown/JSON records and source references.
+The local candidate provides 16 full stack guides across content websites, web applications, services, command-line tools, automation and native mobile. Human and agent paths use the same task-based recommendation policy and complete records. Production remains at the separately evidenced 21 October release until these local changes are approved for publication.
 
 The optional context router validates explicit requirements and returns resources, candidates, exclusions and questions. It calls no model and stores no application data. Known-stack work preserves the choice; new-stack comparisons and migration planning keep constraints and unknowns explicit. The visiting agent interprets the application conversation and reasons about the result.
 
@@ -24,7 +24,7 @@ Local verification on 18 October: normal build passed; all 14 profiles passed di
 
 ## Human redesign — selected 20 October 2026
 
-Almir selected Oghogho’s design for implementation, based on `optimumBA/design` at `9c62989`. The 21 October release adapted the homepage, library, comparison, application-type filtering, migration planning and all 14 guides then in the catalogue. Shared navigation, fonts, mark, favicon and share artwork follow that direction. [Redesign record](redesign-2026-10-20.md) owns the original review and deliberate adaptations. The production release is recorded below.
+Almir selected Oghogho’s design for implementation, based on `optimumBA/design` at `9c62989`. The 21 October release adapted the homepage, library, comparison, application-type filtering, migration planning and all 14 guides then in the catalogue. Shared navigation, fonts, mark, favicon and share artwork follow that direction. The current local source has 16 guides. [Redesign record](redesign-2026-10-20.md) owns the original review and deliberate adaptations. The production release is recorded below.
 
 Complete agent records, Markdown, generators and routing remain intact. At release, recommendations filtered application type; the visiting agent still reasons about requirements. During the 20 October review, the illustrated conversation was visibly labeled and the video area linked to agent instructions while recording was pending. The real recording was added and released on 21 October below.
 
@@ -51,6 +51,24 @@ The centered hero and agent panel now use the real recording, replacing both the
 The normal build passed. Browser review checked desktop and 390/320-pixel phone layouts, light/dark presentation, actual video playback/pause, seeking, fullscreen, player coordination, copy feedback and the text summary. Direct checks covered video GET/HEAD/ranges/invalid ranges, media MIME, all 24 page titles/descriptions, 1,093 internal references, the 23-page canonical sitemap, robots, real 404, negotiated Markdown, security headers and local noindex. The existing 1200×630 social card was regenerated and visually inspected; Open Graph and large-card metadata agree across the built pages. Local analytics remains production-origin gated. An independent source review found no further actionable defects.
 
 This release superseded the earlier local-only state. Signed commit `2ce8993dfff5e16b4764ccc07426f5df5a7fb0ec` and Cloudflare Pages deployment `e031b7ef-7198-4372-a304-b1b477392769` identify the release. At approximately 20:42 EAT, the canonical site served the redesign and real demonstration; 23 sitemap pages, 37 direct resource/media cases, and production browser checks passed. Earlier Google/Bing indexing and reporting observations retain their original dated limits.
+
+## Current source — 23 October 2026, local only
+
+The catalogue now recommends one editorial starting point for each of 13 defined jobs, with the reason, tradeoff and conditional alternatives. Astro fills the content-site role; Expo fills a shared iOS/Android project role. TanStack Start 1.0, Hugo, plain HTML, Flutter, Hono and other ecosystem choices are scoped alternatives rather than additional equal-looking guides. All 16 full guides remain available for deliberate stack choices and rewrites; no healthy existing profile was reclassified as obsolete or source-only.
+
+Local repairs preserve backend responsibilities in frontend-only rewrites, visible keyboard scope focus, feasible realtime advice and record-driven catalogue views. Next.js, Rails, Laravel and Django document their API compositions. Generator guidance corrects FastAPI initialization, Bubble Tea v2 and explicit Next.js scaffold choices. Agent marks now have pinned upstream copies and complete attribution. Current tool corrections and per-record review dates remain separate from the imported 13 October source-availability receipt.
+
+Scoped disposable qualification: Astro's official basics starter installed, built and served HTTP 200 using create-astro 5.3.1 / Astro 7.4.2 / Node 24.21.0. Expo's pinned SDK 58 template generated and installed, Doctor passed 20/20 and an iOS JavaScript export succeeded. Its generated lint and TypeScript checks failed; no native build, device, signing, store or migration qualification is claimed. The complete recipe records retain versions, commands and limits.
+
+Earlier candidate checks covered task defaults, hard-constraint conflicts, chosen-stack preservation, format negotiation, media ranges and local noindex. Browser review covered desktop and phone layouts, dark presentation and guide/comparison navigation. The final card presentation has one primary guide button and shorter secondary links; alternatives fill the available width with aligned footers. These are candidate checks, not production acceptance.
+
+The history reconstruction built each intermediate revision and checked its stored message, signature and assigned changes. Final direct checks resolved 1,192 initial HTML href/src references, 26 distinct titles and descriptions, 25 canonical sitemap pages and all 32 per-profile Markdown/JSON resources. The 16-profile catalogue has 13 task defaults, and all 256 documented role/responsibility pair assessments ran without an inconsistent clarification result. These are website and documentation checks, not application setup or migration-compatibility qualification.
+
+Nothing in this 23 October candidate has been pushed or deployed. The 21 October release above remains the latest evidenced production revision.
+
+## Outstanding final-review findings
+
+A later Claude Opus high review and focused reproduction found unresolved issues: Expo requests still receive unrelated native-client guidance; chooser selection can scroll the recommendation and focused control off screen; inline links use an undefined styling class; long choice labels can wrap inside fixed-height controls; an unsupported source-component request can avoid clarification; negotiated chooser Markdown concatenates labels; older `?kind=` chooser links lose their selection; and Expo alternatives stored as strings render character by character in generated Markdown. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.
 
 ## Reader access limit
 
