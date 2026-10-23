@@ -98,9 +98,13 @@ Chooser option and clear-selection controls grow with wrapped text, preserving r
 
 Inline text links have underlines and visible hover/focus states in the shared interactive styles.
 
+### Separate form labels in negotiated Markdown
+
+Generated page Markdown separates form labels and select options instead of concatenating their text.
+
 ## Outstanding final-review findings
 
-A later Claude Opus high review and focused reproduction found unresolved issues: negotiated chooser Markdown concatenates labels; older `?kind=` chooser links lose their selection. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.
+A later Claude Opus high review and focused reproduction found unresolved issues: older `?kind=` chooser links lose their selection. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.
 
 ## Reader access limit
 

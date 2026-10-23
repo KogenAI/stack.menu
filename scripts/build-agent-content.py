@@ -39,7 +39,7 @@ def render(node,origin):
     if t in {'ul','ol'}:return '\n'+body+'\n'
     if t=='li':return '\n- '+body.strip()+'\n'
     if t in {'td','th'}:return body.strip()+' | '
-    if t=='br':return '\n'
+    if t in {'br','label','option'}:return body.strip()+'\n'
     if t=='hr':return '\n\n---\n\n'
     if t in {'strong','b'}:return '**'+body.strip()+'**'
     if t in {'em','i'}:return '*'+body.strip()+'*'
