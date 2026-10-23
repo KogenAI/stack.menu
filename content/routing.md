@@ -23,3 +23,5 @@ HTTP: 200 result/contract; 400 invalid JSON, unsupported values/fields or duplic
 This local implementation shares the same handler with the prepared Cloudflare Pages Function. A static download includes the full guides and policy; `/route` requires the local server or future Pages Function deployment.
 
 The endpoint serves agent HTTP clients and same-origin use. Cross-origin browser POST/OPTIONS is not supported; those clients can use the static guides. Repeated GET fields are rejected; duplicate keys in a JSON object follow the JSON parser’s last-value behavior, so send each field once.
+
+Before building or rewriting, briefly consider whether an existing service or specialized tool already meets the need. This reminder does not create a required decision stage or override the user's instruction to build or rewrite.

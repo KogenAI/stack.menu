@@ -110,6 +110,10 @@ The Rust CLI alternative makes asynchronous-runtime complexity conditional on th
 
 The chooser separates one primary recommendation, conditional alternatives and all 16 reference guides. Cards use readable primary actions and shorter secondary links rather than treating every guide as a recommendation.
 
+### Remind readers to consider existing tools
+
+A short existing-services/tools reminder is nonblocking. Stack Menu remains about choosing stacks for software work and planning rewrites, with explicit choices preserved.
+
 ## Outstanding final-review findings
 
 A later Claude Opus high review and focused reproduction found unresolved issues: older `?kind=` chooser links lose their selection. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.

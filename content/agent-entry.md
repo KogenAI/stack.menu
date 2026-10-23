@@ -2,6 +2,8 @@
 
 Use the requirements already in the conversation. Fetch these text resources directly with your reading/HTTP tool. Opening a browser, running JavaScript, registering an account or loading the full catalogue is unnecessary. Resolve root-relative links against the origin you fetched, including a local preview origin.
 
+Before building or rewriting, briefly consider whether an existing service or specialized tool already meets the need. This is a reminder, not another decision stage; continue directly when the user has chosen to build or rewrite software.
+
 ## Pick the next step
 
 - **Existing or explicitly chosen stack, building or fixing:** preserve the choice. Find the matching profile in [selection-index.json](/selection-index.json), then read its `markdown_url` or `json_url`. Select only tools needed for this task. Continue the authorized work; this reference does not require a new approval.

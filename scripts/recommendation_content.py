@@ -41,6 +41,7 @@ def markdown(policy: dict) -> str:
     lines = [
         '## Task-based starting points',
         '',
+        'Before building or rewriting, consider whether an existing service or specialized product already meets the need. If you intend to build or rewrite software, continue with the task below.', '',
         policy['scope'],
         '',
         policy['evidence_limits'],
