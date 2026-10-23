@@ -27,7 +27,7 @@ npm run preview
 
 Open `http://127.0.0.1:8770/`. The preview uses the same Pages middleware and route handler, with no analytics and an HTTP `noindex` header. Local agents can fetch `/llms.txt` directly. Remote agents need the public site or an attached `dist/llms-full.txt`.
 
-The site uses Astro static output and a small deterministic Cloudflare Pages Function for optional context routing. It has no embedded chatbot. Full HTML, Markdown and JSON guidance covers 15 stack guides. Setup recipes and dependency combinations are documentation-reviewed; they are not universally integration-qualified.
+The site uses Astro static output and a small deterministic Cloudflare Pages Function for optional context routing. It has no embedded chatbot. Full HTML, Markdown and JSON guidance covers 16 stack guides. Setup recipes and dependency combinations are documentation-reviewed; they are not universally integration-qualified.
 
 ## Folder map
 

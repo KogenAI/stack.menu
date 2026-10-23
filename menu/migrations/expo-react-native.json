@@ -1,0 +1,236 @@
+{
+  "id": "expo-react-native",
+  "version_scope": "Expo/React Native guidance reviewed 23 October 2026. The explicitly pinned create-expo-app 5.1.5 `default@sdk-58` scaffold declared Expo SDK 58.0.17, React Native 0.88.0 and React 19.3.0. npm install succeeded, Expo Doctor passed 20/20, and iOS JavaScript export succeeded. Generated lint and TypeScript checks reported template errors; no native build, device integration or migration was executed.",
+  "operating_model": "One Expo project can share TypeScript/React UI and application logic across separately built iOS and Android clients. The app calls an independently selected backend for authoritative data, authorization, secrets and durable jobs. Each platform still has its own native libraries, permissions, app identity, signing, store update path and behavior. A shared project does not prove native equivalence or migration compatibility.",
+  "architecture": [
+    "Keep server-owned business rules, database transactions, user/resource authorization, provider credentials and durable jobs behind versioned API contracts. A client-side check or hidden control is not authorization.",
+    "Keep API DTOs and domain behavior testable outside screen components. Validate network data at runtime; TypeScript annotations are removed at runtime.",
+    "Use shared navigation and screens where platform behavior is genuinely alike. Add platform-specific files or native modules for real differences in back navigation, permissions, accessibility, lifecycle or system APIs.",
+    "If offline access is in scope, name the device-side data owner, stale-read tolerance, queued writes, idempotency, conflict policy, sign-out cleanup and database migration. Local SQLite or a query cache is not a synchronization design.",
+    "Expo Continuous Native Generation derives native project files from app configuration, plugins and dependencies. Keep native configuration reproducible with config plugins; direct edits to regenerated projects need explicit source-control ownership and regeneration checks.",
+    "Expo Go has a fixed native library set. Use development builds with the actual native dependency set when a required module, app configuration or production behavior is outside that playground."
+  ],
+  "developer_workflow": [
+    "Start with the `default@sdk-58` project scaffold in an empty directory when SDK 58 is intended. During the current documented SDK 58 transition, unqualified `create-expo-app@latest` creates SDK 57. Inspect generated files, template and Git state before edits; the reviewed CLI had no `--no-git` flag and made its own repository and initial commit. Preserve existing repository contents and do not import generated Git history into an existing repository.",
+    "Record the generated Expo SDK, React Native, React, Node and package-manager versions. Keep the generated lockfile; use `npx expo install` and `npx expo-doctor` to check native dependency compatibility, then inspect their actual output. On the pinned SDK 58 starter, `npm install` completed and Expo Doctor passed 20/20.",
+    "Use the Expo development server for JavaScript iteration and development builds on both iOS and Android. Add native libraries only after confirming current SDK, platform and minimum OS compatibility.",
+    "For local native builds, use macOS with Xcode for iOS and Android Studio/SDK plus a compatible Java toolchain for Android. EAS cloud builds can avoid local native tool installation but still need project configuration, credentials, physical-device checks and platform release ownership.",
+    "Use unit tests for shared logic and API behavior; verify navigation, permissions, app lifecycle, native modules, accessibility, and install/update with both native targets. Record device/OS, build and scenario; no checks have been run for an application migration here.",
+    "A JS-only `npx expo export --platform ios` succeeded on the pinned starter, but is not an iOS native build. The generated `npm run lint` failed at Expo CLI’s ESLint version check despite ESLint 9.39.5; direct ESLint flagged a generated hook rule, and `npx tsc --noEmit` reported generated CSS/React Native Web type errors. Resolve checks relevant to the actual product; do not present the starter as clean or native-qualified."
+  ],
+  "avoid": [
+    "Do not treat a single JavaScript codebase as a single native deliverable or as evidence that two platforms have the same interactions and capabilities.",
+    "Do not use Expo Go as proof for libraries that include native code, custom app configuration or production build behavior; its native library set is fixed.",
+    "Do not put server/provider credentials or authoritative authorization in the installed app. Users can inspect and modify client code and requests.",
+    "Do not introduce an offline database or optimistic write queue before defining stale reads, retries, account isolation, conflict resolution and migration policy.",
+    "Do not hand-edit generated native project files without knowing whether CNG will regenerate them. Make repeatable changes in app config/config plugins or deliberately own native directories.",
+    "Do not claim lower maintenance, faster delivery or successful migration without testing both targets and measuring the application's actual workflows."
+  ],
+  "transitions": [
+    {
+      "capability": "client",
+      "id": "client-1",
+      "option_title": "Two native clients to shared Expo clients",
+      "existing_contract": "Inventory both applications' supported OS versions, route/deep-link formats, screen behavior, local schema, API versions, permissions, push tokens, app identifiers, signing owners and release cadence. Record platform-specific features rather than assuming code similarity.",
+      "coexistence": "Recommendation: keep the existing SwiftUI and Compose clients as production owners while implementing a bounded journey in Expo. Use the same versioned API contract; route only an explicit tester cohort to each new build. Preserve store identities where continued install/update compatibility is required.",
+      "target": "Recommendation: choose which screens and domain behavior are genuinely shareable. Retain platform-specific paths for native capabilities and interaction differences. Adopt Expo as the primary client only after both builds satisfy the same declared user journeys, accessibility needs and supported-device requirements.",
+      "benefits": [
+        {
+          "benefit": "Shared TypeScript/React code can reduce duplicate screen and client-domain implementation across iOS and Android.",
+          "prerequisites": "The two products have sufficiently similar journeys, required native modules work on both platforms, and both build/release pipelines are qualified.",
+          "tradeoffs": "React Native adds a JS runtime, native dependency/configuration matrix and Expo/React Native upgrade coordination. Platform-specific code remains; shared code does not imply one release artifact or one test matrix."
+        }
+      ],
+      "checks": [
+        "Run the same core journey on supported iOS and Android devices with matching API fixtures; record intentional platform differences.",
+        "Install the Expo build over a prior supported version or preserve the prior native client in its store track; check app identity, deep links, authentication and local user data.",
+        "Use accessibility inspection and screen readers on both targets; verify large text, focus order, back behavior and permission-denied recovery.",
+        "Verify each native dependency, push/deep-link entitlement and app configuration against the selected Expo SDK on both platforms.",
+        "Keep the old clients and backend compatibility while adoption is mixed; compare product outcomes and crash/error data before retiring either client."
+      ],
+      "rollback": "Halt the Expo cohort and continue serving the prior native clients. Preserve API compatibility and local-data export/migration; mobile releases already installed cannot be rolled back by reversing server routing.",
+      "sources": [
+        "https://reactnative.dev/docs/platform-specific-code",
+        "https://docs.expo.dev/workflow/overview/",
+        "https://docs.expo.dev/develop/development-builds/introduction/"
+      ]
+    },
+    {
+      "capability": "data",
+      "id": "data-1",
+      "option_title": "Preserve a separate backend contract",
+      "existing_contract": "Inventory API paths, request/response/error schemas, authorization decisions, pagination, idempotency, data ownership, offline state and the oldest supported client versions across both native apps.",
+      "coexistence": "Recommendation: keep the current backend as the single authoritative writer while the Expo client is introduced. Add backward-compatible API fields/routes or versioned endpoints only where a reviewed contract requires it.",
+      "target": "Recommendation: keep the backend separate after client adoption. Move an API or domain responsibility only as a separately scoped server migration with its own schema, authorization, worker and rollback plan.",
+      "benefits": [
+        {
+          "benefit": "The existing backend can serve old and new mobile clients during gradual adoption.",
+          "prerequisites": "The server retains compatible APIs and authorization for the full installed-client support window.",
+          "tradeoffs": "Old client releases persist in the field; a new shared UI does not remove API versioning, device data or store-update constraints."
+        }
+      ],
+      "checks": [
+        "Run versioned request/response fixtures from both old clients and the Expo client against a staging API.",
+        "Verify object/tenant authorization on every API operation, including forged identifiers and expired or revoked sessions.",
+        "Drop and recover the network during reads/writes; prove retry behavior is idempotent and visible to the user.",
+        "Confirm backend schema and job producers have one migration owner; client delivery does not enqueue durable work locally."
+      ],
+      "rollback": "Route the test cohort back to the prior clients while keeping the existing API authoritative. Preserve any new optional response fields and never reverse an irreversible server data migration as part of a client rollback.",
+      "sources": [
+        "https://reactnative.dev/docs/network",
+        "https://docs.expo.dev/develop/data-fetching/"
+      ]
+    },
+    {
+      "capability": "identity",
+      "id": "identity-1",
+      "option_title": "Keep session and authorization authority on the server",
+      "existing_contract": "Record token/session issuer, audience, expiry, refresh, revocation, device enrollment, account switching, local token storage, API authorization and logout behavior in each existing client.",
+      "coexistence": "Recommendation: keep the same identity issuer during the Expo pilot and store only the minimum client credential through a reviewed secure-storage mechanism. Retain backend authorization and versioned refresh/revocation behavior.",
+      "target": "Recommendation: transfer an identity contract only if changing client libraries or credential formats is an explicit requirement. Use controlled reauthentication when formats cannot be safely shared; do not copy sessions between iOS Keychain and Android Keystore storage by assumption.",
+      "benefits": [
+        {
+          "benefit": "A shared client can reuse the same issuer and server-side permission model without changing account authority.",
+          "prerequisites": "The issuer's mobile flow is supported on both platforms and refresh/revocation behavior is tested.",
+          "tradeoffs": "Secure storage APIs and backup behavior differ by platform; one UI implementation does not make credentials portable or authorization equivalent."
+        }
+      ],
+      "checks": [
+        "Exercise login, logout, expiry, refresh, revocation and account switching separately on iOS and Android.",
+        "After logout/account switch, ensure protected cached data and queued operations from the previous user cannot reappear or execute.",
+        "Verify an expired, revoked or cross-tenant credential is denied by the backend, not just hidden by the client.",
+        "Inspect backup/restore behavior for local credentials and require reauthentication if secure state cannot be restored safely."
+      ],
+      "rollback": "Keep the old clients and issuer acceptance active during transition. Require a controlled sign-in if an Expo credential cannot be reconciled; never revive revoked sessions to preserve a visual seamless migration.",
+      "sources": [
+        "https://docs.expo.dev/versions/latest/sdk/securestore/",
+        "https://reactnative.dev/docs/security"
+      ]
+    },
+    {
+      "capability": "cache",
+      "id": "cache-1",
+      "option_title": "Migrate only the explicitly supported device cache",
+      "existing_contract": "Inventory each client's local database/preferences, schema version, cached ownership, pending writes, retention, encryption and account separation. Classify data as disposable, offline-readable or unsynchronized user work.",
+      "coexistence": "Recommendation: initially keep the Expo client cache isolated and treat the existing native client caches as untouched. Exchange authoritative data through the backend; do not assume two native clients share local storage.",
+      "target": "Recommendation: migrate only required user data through a versioned export/import or backend-mediated transfer. Add conflict/version handling for unsynced edits and remove the old format only after verified adoption.",
+      "benefits": [
+        {
+          "benefit": "An isolated new cache limits risk to users who install the Expo client first.",
+          "prerequisites": "The product can re-fetch authoritative state or has a validated migration for unsynced local work.",
+          "tradeoffs": "Users may need to sign in/download again; server backup does not preserve unuploaded local edits."
+        }
+      ],
+      "checks": [
+        "Test fresh install, app update, account switch, OS backup/restore and low-storage behavior.",
+        "If migrating unsynced work, verify record counts, ownership, schema conversion and conflict outcomes before deleting the source copy.",
+        "Verify a stale cache cannot disclose another account's data after logout or device sharing."
+      ],
+      "rollback": "Keep the old client and source local database intact while the Expo migration is opt-in. Restore/reinstall from a verified export or re-fetch server-owned data; do not erase unsynced user work during rollback.",
+      "sources": [
+        "https://docs.expo.dev/versions/latest/sdk/sqlite/",
+        "https://docs.expo.dev/develop/data-fetching/"
+      ]
+    },
+    {
+      "capability": "operations",
+      "id": "operations-1",
+      "option_title": "Transfer builds and releases as a separate change",
+      "existing_contract": "Record bundle/application identifiers, signing owners, supported OS versions, store tracks, version/build-number rules, privacy declarations, native credentials, push setup, crash telemetry and server compatibility policy.",
+      "coexistence": "Recommendation: establish a separate internal/beta channel and development build for the Expo client while prior app releases remain supported. Use a distinct app identity if replacement/update continuity is not yet established; preserve owned identities only with a planned store upgrade.",
+      "target": "Recommendation: adopt one Expo source project only after both platform release procedures, key custody, EAS/local build configuration and install/update behavior have been rehearsed.",
+      "benefits": [
+        {
+          "benefit": "A shared source tree can coordinate feature changes across mobile clients.",
+          "prerequisites": "Both app identities and release pipelines remain under explicit owners, with test builds for each target.",
+          "tradeoffs": "There are still two native binaries, platform-specific signing, store review, staged adoption and device matrices. EAS is an optional build service and account integration, not release evidence."
+        }
+      ],
+      "checks": [
+        "Build and install signed internal builds on both platforms using the selected local/cloud build configuration.",
+        "Test update over the supported prior version and confirm existing local data, deep links, notifications and API behavior.",
+        "Confirm signing/account access, bundle/application identity, privacy declarations and store capabilities with the actual owner.",
+        "Exercise a staged release stop and forward-fix plan; installed mobile releases cannot generally be rolled back by server routing alone."
+      ],
+      "rollback": "Halt additional distribution, continue backend support for already installed versions and publish a compatible forward fix when required. Preserve the old apps' artifacts and API behavior for the declared support window.",
+      "sources": [
+        "https://docs.expo.dev/build/introduction/",
+        "https://docs.expo.dev/submit/introduction/"
+      ]
+    },
+    {
+      "capability": "jobs",
+      "id": "jobs-1",
+      "option_title": "Keep durable jobs behind the API",
+      "existing_contract": "Inventory client-triggered operations, request idempotency keys, server-side job payload versions, queue owner, retries, notifications and the client-visible status contract.",
+      "coexistence": "Recommendation: both old and new clients submit the same versioned API command while one backend owns enqueue, retry and result state.",
+      "target": "Recommendation: keep long-running, billable, scheduled or retryable work on the separately selected backend. The app may show progress and send eligible user-initiated local work but is not a reliable durable queue owner.",
+      "benefits": [
+        {
+          "benefit": "A single backend job owner can serve mixed client versions and survive app suspension or device loss.",
+          "prerequisites": "The API exposes an authorized, idempotent submission/status contract.",
+          "tradeoffs": "Background notifications and client progress are eventually delivered and need separate OS permissions and server delivery behavior."
+        }
+      ],
+      "checks": [
+        "Submit a retried request from each client and verify duplicate requests do not duplicate business effects.",
+        "Suspend, force-stop or lose network during an operation; verify the server job continues and the client recovers its status.",
+        "Check notification denial, delayed delivery and account switching if notifications are included."
+      ],
+      "rollback": "Keep the existing backend queue and API owner; disable only the new client submission route while reconciling accepted/in-flight jobs by stable operation ID.",
+      "sources": [
+        "https://reactnative.dev/docs/appstate",
+        "https://docs.expo.dev/versions/latest/sdk/notifications/"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://docs.expo.dev/more/create-expo/",
+      "title": "Expo create-expo-app and SDK 58 template selection",
+      "claim": "During the documented SDK 58 transition, unqualified create-expo-app@latest creates SDK 57; the explicit default@sdk-58 template selects SDK 58."
+    },
+    {
+      "url": "https://docs.expo.dev/workflow/overview/",
+      "title": "Expo development and build workflows",
+      "claim": "Expo separates JavaScript development, development builds, generated native projects and local/cloud native compilation; a chosen build workflow still needs platform-specific verification."
+    },
+    {
+      "url": "https://docs.expo.dev/develop/development-builds/introduction/",
+      "title": "Expo development builds",
+      "claim": "Development builds include the app's native dependency set; Expo Go is a fixed playground and cannot load arbitrary custom native modules."
+    },
+    {
+      "url": "https://reactnative.dev/docs/platform-specific-code",
+      "title": "React Native platform-specific code",
+      "claim": "React Native supports platform-specific files and APIs where shared code needs platform distinctions."
+    },
+    {
+      "url": "https://docs.expo.dev/versions/latest/sdk/securestore/",
+      "title": "Expo SecureStore",
+      "claim": "SecureStore provides local encrypted key-value storage with platform-specific behavior and limits; it is not the backend identity authority."
+    },
+    {
+      "url": "https://docs.expo.dev/versions/latest/sdk/sqlite/",
+      "title": "Expo SQLite",
+      "claim": "Expo provides SQLite for device-side relational persistence; choosing it does not define synchronization or conflict policy."
+    },
+    {
+      "url": "https://docs.expo.dev/build/introduction/",
+      "title": "EAS Build",
+      "claim": "EAS Build compiles Expo/React Native apps in a hosted workflow; app configuration, native behavior, credentials and device verification remain project responsibilities."
+    },
+    {
+      "url": "https://docs.expo.dev/submit/introduction/",
+      "title": "EAS Submit",
+      "claim": "Store submission is a distinct workflow requiring selected platform accounts and project release configuration."
+    },
+    {
+      "url": "https://reactnative.dev/docs/network",
+      "title": "React Native networking",
+      "claim": "The app can issue native Fetch requests; the server/API remains an explicit application component."
+    }
+  ],
+  "reviewed_at": "2026-10-23",
+  "evidence": "documentation-reviewed"
+}

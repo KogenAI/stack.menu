@@ -1,0 +1,187 @@
+{
+  "profile_id": "expo-react-native",
+  "reviewed_on": "2026-10-23",
+  "evidence_status": "Documentation reviewed; create-expo-app 5.1.5 `default@sdk-58` scaffold generated. npm install succeeded; Expo Doctor passed 20/20; `expo export --platform ios` produced a JS bundle. Generated `npm run lint` and direct TypeScript/lint checks exposed template errors; no native build or device/store qualification.",
+  "starting_points": [
+    {
+      "name": "Official create-expo-app default template",
+      "when": "A new Expo/React Native application targeting iOS and Android; use a new, absent project directory and review the current default template before accepting it.",
+      "steps": [
+        "Install a supported Node.js LTS and inspect the current create-expo-app help. During the SDK 58 transition, pin `--template default@sdk-58` when SDK 58 is intended: the current Expo docs say unqualified `@latest` creates SDK 57. Record the resolved CLI and generated Expo SDK/React Native versions; `@latest` is still a scaffold-time lookup, not a project dependency pin.",
+        "Run the initializer from a source-workspace parent into a destination that does not exist. The current CLI has --no-agents-md but no --no-git flag; the reviewed default created its own .git repository and initial commit. Decide repository ownership before placing it inside another checkout.",
+        "Pass --no-agents-md to avoid generating AGENTS.md and Claude settings. Inspect the generated README, app configuration, package scripts, route structure, app identifiers and Git state before adding product code.",
+        "Review whether the default universal template's web target is wanted. This profile covers the iOS and Android clients; a web surface needs its own rendering, hosting and browser requirements.",
+        "Install dependencies from the generated project root and keep the generated lockfile. Use the generator's SDK-compatible versions as the starting baseline; do not independently upgrade React Native or native modules without checking the Expo SDK matrix."
+      ],
+      "commands": [
+        {
+          "run": "npx create-expo-app@latest --help",
+          "cwd": "A local source-workspace parent; no application files are changed",
+          "purpose": "Inspect installed-version template choices and flags before creating a project. The 23 October 2026 CLI 5.1.5 help includes --no-agents-md and no --no-git option."
+        },
+        {
+          "run": "npx create-expo-app@latest mobile-app --template default@sdk-58 --yes --no-agents-md --no-install",
+          "cwd": "A local source-workspace parent; mobile-app must not already exist",
+          "purpose": "Generate the SDK 58 default Expo project while suppressing generated AGENTS.md and Claude settings. During the documented SDK 58 transition, explicitly pin `default@sdk-58`; inspect generated files and repository state. Defer dependency installation so the next step installs packages once from the generated project root."
+        },
+        {
+          "run": "npm install",
+          "cwd": "The generated mobile-app directory",
+          "purpose": "Install the generated package manifest and create the project's lockfile. Keep the resolved versions in that lockfile."
+        },
+        {
+          "run": "npx expo install --check",
+          "cwd": "The generated mobile-app directory",
+          "purpose": "Check that installed Expo/React Native packages match the selected SDK; inspect installed-version help if the command differs."
+        }
+      ],
+      "notes": [
+        "Observed 23 October 2026 with the explicit `default@sdk-58` template: create-expo-app 5.1.5 generated Expo SDK 58.0.17, React Native 0.88.0, React 19.3.0 and Expo Router 58.0.25 in package.json. npm install completed; Expo Doctor passed 20/20; `npx expo export --platform ios` emitted a JS bundle. Generated `npm run lint` failed with a version-check error despite ESLint 9.39.5 being installed; direct ESLint found a generated React Hooks rule violation, and `tsc --noEmit` found generated CSS/type compatibility errors. These checks do not establish native build/device compatibility.",
+        "The reviewed `default@sdk-58` command with --no-install and --no-agents-md created .git/ with an initial commit. Current help exposed no --no-git option. For a monorepo, decide the intended Git root before generation and resolve nested Git ownership explicitly; never run the initializer over an existing application.",
+        "Expo docs state that during the SDK 58 transition `create-expo-app@latest` without `--template` creates SDK 57; pin `--template default@sdk-58` when SDK 58 is the intended baseline. The pinned template was successfully generated in a disposable directory on 23 October 2026.",
+        "The default template includes Expo Router, TypeScript and a web target. The existence of generated web files does not qualify a browser product or make this profile a web-stack recommendation.",
+        "Expo Go is a limited playground with a fixed set of native libraries. Production development should use a development build; custom native code and native dependencies absent from Expo Go require one.",
+        "Default CNG projects generate native iOS/Android directories from app config and plugins. Prefer config plugins for repeatable project configuration; direct edits to generated native directories can be overwritten by prebuild.",
+        "`--no-install` can defer npm and native package installation when inspecting a disposable scaffold; install and verify the actual project's dependencies before developing."
+      ]
+    }
+  ],
+  "follow_up_generators": [
+    {
+      "name": "Expo development build and native projects",
+      "when": "The app needs a native module not bundled in Expo Go, custom native code, native configuration, app identity changes to verify, or representative production-like testing.",
+      "steps": [
+        "Check the selected library's iOS and Android support, config plugin, Expo SDK compatibility, minimum OS/SDK and required permissions.",
+        "Choose a local native toolchain or an explicitly selected EAS cloud build. Local iOS building requires macOS/Xcode; local Android building requires Android Studio, Android SDK and a compatible Java toolchain. Cloud builds move compilation to EAS but do not eliminate device tests, app-account ownership or store credentials.",
+        "Generate native directories/build a development client using the project's current Expo CLI and documented workflow. Review generated diffs; use config plugins for repeatable native configuration.",
+        "Install and exercise the development build on both platforms. Rebuild after changes to native dependencies, plugins or app configuration."
+      ],
+      "commands": [
+        {
+          "run": "npx expo prebuild",
+          "cwd": "The generated mobile-app directory",
+          "purpose": "Generate native iOS and Android projects from the Expo app configuration when the project needs native project inspection or customization. Review the diff and use config plugins for repeatable changes."
+        },
+        {
+          "run": "npx expo run:ios",
+          "cwd": "The generated mobile-app directory on macOS with compatible Xcode and iOS platform support installed",
+          "purpose": "Build and launch the iOS app locally for a simulator or configured device. This is not an App Store-signed release."
+        },
+        {
+          "run": "npx expo run:android",
+          "cwd": "The generated mobile-app directory with a compatible Android SDK/JDK and emulator or device configured",
+          "purpose": "Build and launch the Android app locally. Discover the actual variant/toolchain and inspect the generated Gradle project."
+        },
+        {
+          "run": "npx expo-doctor",
+          "cwd": "The generated mobile-app directory",
+          "purpose": "Diagnose app config, dependency compatibility and common project health issues; it does not replace native builds or device checks."
+        }
+      ],
+      "notes": [
+        "Expo Go cannot load arbitrary native code. Rebuild the development client when the native dependency set or native configuration changes.",
+        "When using Continuous Native Generation, generated android/ios directories are normally regenerated from app config and plugins. Keep intentional platform customization reproducible and review source-control ownership before committing generated native projects.",
+        "EAS Build is optional. Account linking, build credentials, signing, push credentials and store submission are separate project decisions; this guidance does not create accounts or establish release readiness."
+      ]
+    },
+    {
+      "name": "App-local Expo native module",
+      "when": "A requirement genuinely needs custom Swift or Kotlin native functionality and no maintained compatible module meets it; use a local module when only this application needs it.",
+      "commands": [
+        {
+          "run": "npx create-expo-module@latest --local",
+          "cwd": "The generated mobile-app directory",
+          "purpose": "Use Expo's documented local-module generator to create an app-local native module; inspect current CLI help and generated iOS/Android code before adopting it."
+        }
+      ],
+      "notes": [
+        "A local module introduces native code and needs development builds plus testing on each supported platform. It is not needed for ordinary JavaScript/TypeScript application logic.",
+        "The Expo Modules API creates Swift and Kotlin module code. Follow current official documentation and generated examples; do not hand-invent project integration or assume one platform implementation covers the other."
+      ]
+    }
+  ],
+  "preserve": [
+    "Keep the generated package manifest, lockfile, Expo app configuration, route structure, TypeScript configuration, assets, scripts and SDK-compatible dependency set; record intentional changes.",
+    "Preserve the selected Git repository boundary. The current create-expo-app CLI has no documented --no-git option and the reviewed scaffold created an initial Git repository and commit; inspect this before adding it to a monorepo or existing source tree.",
+    "Keep platform identifiers, entitlements, permission descriptions, config plugins, native modules and app-version/build-number policy explicit and compatible with both targets.",
+    "Do not commit signing keys, local credentials, generated caches or machine-specific SDK paths. Preserve the project lockfile, build configuration and any native project sources the team has chosen to maintain."
+  ],
+  "verification": [
+    "Record create-expo-app version, selected template, resolved Expo SDK/React Native/React versions, package manager and installed runtime; inspect the actual generated baseline before editing.",
+    "Run the selected Expo compatibility check and Expo Doctor; retain output and resolve version/configuration warnings before native work.",
+    "Build/install a development build for iOS and Android. Exercise the same core journeys with both platform navigation, permissions, lifecycle, offline/reconnect and accessibility behavior; a JavaScript bundle or Expo Go pass does not qualify these native targets.",
+    "Test the oldest supported iOS/Android versions and current representative devices. Verify app links, push/permission flows and native SDK integrations only when included in the product scope.",
+    "Before a release, verify bundle/application identifiers, signing ownership, version/build numbers, privacy declarations, store listing ownership and install/update behavior on both platforms. A local build or cloud build is not store publication."
+  ],
+  "sources": [
+    {
+      "title": "Expo: create-expo-app and SDK 58 template selection",
+      "url": "https://docs.expo.dev/more/create-expo/"
+    },
+    {
+      "title": "Expo: Create a project",
+      "url": "https://docs.expo.dev/get-started/create-a-project/"
+    },
+    {
+      "title": "Expo CLI",
+      "url": "https://docs.expo.dev/more/expo-cli/"
+    },
+    {
+      "title": "Expo: Develop an app with Expo",
+      "url": "https://docs.expo.dev/workflow/overview/"
+    },
+    {
+      "title": "Expo: Add custom native code",
+      "url": "https://docs.expo.dev/workflow/customizing/"
+    },
+    {
+      "title": "Expo: Development builds",
+      "url": "https://docs.expo.dev/develop/development-builds/introduction/"
+    },
+    {
+      "title": "Expo: SDK and dependency troubleshooting",
+      "url": "https://docs.expo.dev/build-reference/troubleshooting/"
+    },
+    {
+      "title": "Expo: Tools and Expo Doctor",
+      "url": "https://docs.expo.dev/develop/tools/"
+    },
+    {
+      "title": "Expo: Local and cloud builds",
+      "url": "https://docs.expo.dev/build/introduction/"
+    },
+    {
+      "title": "Expo: App submission",
+      "url": "https://docs.expo.dev/submit/introduction/"
+    },
+    {
+      "title": "Expo: Unit testing",
+      "url": "https://docs.expo.dev/develop/unit-testing/"
+    },
+    {
+      "title": "Expo Router",
+      "url": "https://docs.expo.dev/router/introduction/"
+    },
+    {
+      "title": "React Native: Platform-specific code",
+      "url": "https://reactnative.dev/docs/platform-specific-code"
+    },
+    {
+      "title": "React Native: Security",
+      "url": "https://reactnative.dev/docs/security"
+    },
+    {
+      "title": "React Native: Accessibility",
+      "url": "https://reactnative.dev/docs/accessibility"
+    }
+  ],
+  "integration_steps": [
+    "From the generated project root, record app identifiers, supported platforms/OS versions, runtime, Expo SDK, API contract, permissions and build owner in the project's README. Keep the actual generated lockfile.",
+    "Select the backend independently. Keep database writes, user/resource authorization, AI/provider secrets, email and durable work server-side. Define versioned API responses and controlled client error handling; a mobile app binary is inspectable.",
+    "Implement route/screen state and API access behind testable modules. Keep device UI and domain rules separated enough to test shared logic, but do not abstract away meaningful iOS/Android interaction differences.",
+    "Add a native dependency only for a stated capability. Check both-platform support, config plugin, SDK compatibility and minimum OS/API before adding it. Build a development client instead of expecting Expo Go to contain it.",
+    "If offline behavior is required, specify local sources, accepted stale data, queued operations, conflict resolution, account switching and data deletion before choosing storage libraries. Server remains the authority for protected/shared data.",
+    "Run shared unit/API tests and build/install both native targets. Test navigation/back, permission denial, app restart, expired/revoked sessions, network loss/recovery and accessibility with representative emulators/simulators and physical devices.",
+    "Separate development, preview and production application identifiers as needed. Establish account/credential ownership, app store policy and update compatibility before preparing signed builds. No integration, signing or release is implied by generation."
+  ]
+}

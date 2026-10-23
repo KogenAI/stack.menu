@@ -1,0 +1,245 @@
+{
+  "id": "expo-react-native",
+  "name": "Cross-platform mobile: Expo + React Native",
+  "use_cases": [
+    "A single product team ships an iOS and Android client against a separately owned API",
+    "The team can share most screens and application logic while retaining platform-specific behavior where needed",
+    "The product needs native device features available through Expo SDK or compatible React Native modules"
+  ],
+  "choose_when": [
+    "Both iOS and Android are required and sharing a TypeScript/React codebase is more useful than two platform-native UI codebases",
+    "The team accepts per-platform native builds, permissions, credentials, testing and store releases",
+    "Required native libraries support the selected Expo SDK and can be tested in a development build"
+  ],
+  "avoid_when": [
+    "The product requires deeply platform-specific interfaces or capabilities that make most UI and behavior separate; choose SwiftUI and/or Kotlin with Compose",
+    "The team cannot build or obtain representative iOS and Android development builds and test both platforms",
+    "The project assumes Expo Go includes arbitrary native libraries or considers one shared codebase proof of equivalent platform behavior"
+  ],
+  "tools": [
+    {
+      "job": "Cross-platform UI and routing",
+      "default": "React Native with the Expo SDK and the generated Expo Router baseline",
+      "alternatives": "Platform-specific route files or native modules for behavior that must differ by operating system; Flutter is a conditional alternative when a team accepts Dart and needs a custom rendered interface across more platforms, not a default substitute",
+      "reason": "One TypeScript project can share much of the UI and application logic across iOS and Android while using native UI components and platform APIs",
+      "limits": "Shared source does not guarantee identical layout, accessibility, lifecycle or device behavior. Expo Router and the default template evolve with the selected SDK; preserve and verify the generated compatible versions.",
+      "source_urls": [
+        "https://docs.expo.dev/get-started/create-a-project/",
+        "https://docs.expo.dev/router/introduction/",
+        "https://reactnative.dev/docs/platform-specific-code",
+        "https://docs.flutter.dev/platform-integration"
+      ]
+    },
+    {
+      "job": "Backend and API contract",
+      "default": "A separately selected backend/API with versioned request and response contracts; use Fetch behind an injected client and validate untrusted responses at runtime",
+      "alternatives": "Generate a TypeScript client from an owned OpenAPI schema only when generation and versioning are established in the actual project",
+      "reason": "The native clients should share service contracts without moving data ownership, authorization or durable work into the installed app",
+      "limits": "TypeScript types do not validate network data at runtime. The client is public and cannot keep provider credentials or backend secrets. Choose the backend separately from this mobile profile.",
+      "source_urls": [
+        "https://reactnative.dev/docs/network",
+        "https://fastapi.tiangolo.com/features/"
+      ]
+    },
+    {
+      "job": "Remote state and local data",
+      "default": "Keep server-owned data behind the API; add local persistence only for a stated cache or offline requirement",
+      "alternatives": "Expo SQLite for structured local data when query, retention and migration requirements justify it; a query cache only when remote loading and invalidation need it",
+      "reason": "Separating remote authority from device storage makes offline behavior, retries and reconciliation explicit",
+      "limits": "Local storage does not create synchronization, conflict resolution, cross-device truth or encryption by itself. Define offline reads and writes separately.",
+      "source_urls": [
+        "https://docs.expo.dev/versions/latest/sdk/sqlite/",
+        "https://docs.expo.dev/develop/data-fetching/"
+      ]
+    },
+    {
+      "job": "App credentials",
+      "default": "expo-secure-store for small locally held session credentials when its platform behavior and backup policy fit",
+      "alternatives": "In-memory credentials when persistence is unnecessary; use platform security APIs through a reviewed library for a different storage requirement",
+      "reason": "Sensitive user credentials need an operating-system-backed storage boundary rather than app preferences or source code",
+      "limits": "SecureStore is not a backend secret vault or a general database. Define logout, expiry, revocation, device migration and backup behavior; server authorization remains authoritative.",
+      "source_urls": [
+        "https://docs.expo.dev/versions/latest/sdk/securestore/",
+        "https://reactnative.dev/docs/security"
+      ]
+    },
+    {
+      "job": "Device capabilities and native modules",
+      "default": "Use the Expo SDK or a React Native library that explicitly supports both target platforms and the selected SDK",
+      "alternatives": "A config plugin or local Expo module when an app-specific native extension is necessary",
+      "reason": "Expo config and development builds can include native capabilities while retaining the JavaScript development workflow",
+      "limits": "Expo Go contains a fixed set of native libraries. A module with native code that is absent from Expo Go needs a development build; native support, permissions and version compatibility must be checked per platform.",
+      "source_urls": [
+        "https://docs.expo.dev/workflow/customizing/",
+        "https://docs.expo.dev/develop/development-builds/introduction/"
+      ]
+    },
+    {
+      "job": "Build and dependency compatibility",
+      "default": "Use the Expo CLI included with the project, `npx expo install` for compatible native package versions, the committed lockfile and `npx expo-doctor`",
+      "alternatives": "Keep generated native directories and use native IDE workflows only when the project adopts direct native changes or needs native debugging",
+      "reason": "React Native packages must match the Expo SDK's native dependency set; the doctor command checks common project and version issues",
+      "limits": "A clean doctor report is not a successful iOS or Android build, device test or release. Re-run native builds when native dependencies, app configuration or plugins change.",
+      "source_urls": [
+        "https://docs.expo.dev/more/expo-cli/",
+        "https://docs.expo.dev/develop/tools/",
+        "https://docs.expo.dev/build-reference/troubleshooting/"
+      ]
+    },
+    {
+      "job": "Native development and distribution",
+      "default": "Development builds for real application work; build and verify iOS and Android separately. Use local Xcode/Android tooling or an explicitly chosen cloud build service.",
+      "alternatives": "Expo Go for initial experiments with only the native libraries it already includes; EAS Build is optional, not required by Expo itself",
+      "reason": "Development builds include the project's actual native dependencies; EAS can perform cloud builds without a local native toolchain",
+      "limits": "Local iOS builds require macOS and Xcode; local Android builds require Android Studio/SDK and a compatible Java toolchain. Cloud builds do not remove Apple/Google account, application identity, signing, credential custody, store policy, per-platform device testing or release ownership.",
+      "source_urls": [
+        "https://docs.expo.dev/workflow/overview/",
+        "https://docs.expo.dev/build/introduction/",
+        "https://docs.expo.dev/submit/introduction/"
+      ]
+    },
+    {
+      "job": "Behavior and platform verification",
+      "default": "Unit-test domain/API behavior; exercise navigation, permissions, lifecycle, offline/reconnect and accessibility in development builds on both platforms",
+      "alternatives": "Use simulators/emulators for broad repeatable checks and representative physical devices for hardware, permission and release behavior",
+      "reason": "The shared JavaScript code still runs inside two operating-system-specific native applications",
+      "limits": "A simulator/emulator or Expo Go check does not qualify device hardware, signing, native-module behavior or store distribution. Test against the minimum supported OS and current supported OS versions.",
+      "source_urls": [
+        "https://docs.expo.dev/develop/unit-testing/",
+        "https://docs.expo.dev/develop/development-builds/introduction/",
+        "https://reactnative.dev/docs/accessibility"
+      ]
+    }
+  ],
+  "setup_steps": [
+    "Start in a local source workspace and read its README, package manager, lockfile, runtime pins and instructions. Confirm this is a new, unused destination; never run a new-project generator over an existing app.",
+    "Record supported iOS/Android versions and devices, app identifiers, API contract, required permissions/native capabilities, offline behavior and who owns signing and releases. Select the backend separately; this client does not supply one.",
+    "Install a supported Node.js LTS and inspect `npx create-expo-app@latest --help`. The 23 October 2026 CLI 5.1.5 help exposes `--no-agents-md` but no `--no-git` option. Use an absent destination and check whether the generated project owns a nested Git repository before adopting it into a monorepo.",
+    "Create the project with the explicit `default@sdk-58` template after reviewing its options. Expo documents that during the SDK 58 transition, `@latest` without `--template` creates SDK 57; pin the template when SDK 58 is intended. Pass `--no-agents-md` to avoid generating AGENTS.md or Claude settings. Inspect README, package.json, app config, routes, lockfile and generated Git state before editing; record the resolved Expo/React Native/React versions and template.",
+    "Install and lock dependencies. Use `npx expo install` for Expo/React Native native packages, verify the SDK compatibility matrix and run `npx expo-doctor`. Do not add a native dependency until its iOS and Android support, config plugin and SDK compatibility are checked.",
+    "Start with the Expo Router/app-config baseline and a development build for each target. Expo Go is a limited playground; a custom native module, app identity/configuration change or native dependency requires a project-specific build.",
+    "Implement a versioned API client and explicit loading/error/auth states. Put domain data, authorization, provider credentials and durable jobs in the selected backend. Add local data only with a stated offline/cache policy and migration plan.",
+    "Test both iOS and Android: navigation/back behavior, foreground/background and process restart, permission granted/denied/revoked, session expiry/logout, network interruption, offline reads/writes, large text and screen readers. Keep tests for shared logic, but do not let them stand in for native verification.",
+    "Prepare development, preview and production builds with explicit app identifiers, signing owner, version/build-number policy and credential custody. Verify install/update and API compatibility on both platforms; publication is a separate authorized release step."
+  ],
+  "verification_commands": [
+    "npx create-expo-app@latest --help",
+    "npx create-expo-app@latest mobile-app --template default@sdk-58 --yes --no-agents-md",
+    "npx expo install --check",
+    "npx expo-doctor",
+    "npx expo start",
+    "npx expo run:ios",
+    "npx expo run:android"
+  ],
+  "evidence_status": "Documentation reviewed 23 October 2026. The explicit `default@sdk-58` template was generated with create-expo-app 5.1.5; npm install succeeded, Expo Doctor passed 20/20, and `expo export --platform ios` produced a JavaScript bundle. Generated lint and TypeScript checks failed; no native build, device/simulator behavior, application integration, signing or store release was qualified.",
+  "sources": [
+    {
+      "url": "https://docs.expo.dev/get-started/create-a-project/",
+      "title": "Expo: Create a project",
+      "claim": "Expo documents the official Expo and React Native project initializer and the default template workflow."
+    },
+    {
+      "url": "https://docs.expo.dev/router/introduction/",
+      "title": "Expo Router introduction",
+      "claim": "Expo Router provides file-based routing for Expo applications across supported platforms."
+    },
+    {
+      "url": "https://docs.expo.dev/versions/latest/",
+      "title": "Expo SDK version reference",
+      "claim": "The Expo SDK reference documents package APIs by SDK version; native package choices must match the project SDK."
+    },
+    {
+      "url": "https://docs.expo.dev/versions/latest/sdk/sqlite/",
+      "title": "Expo SQLite",
+      "claim": "Expo SQLite provides local relational storage; it does not define synchronization, conflict resolution or server authority."
+    },
+    {
+      "url": "https://docs.expo.dev/develop/data-fetching/",
+      "title": "Expo data fetching",
+      "claim": "Expo documents client data-fetching patterns; the application still needs an explicit API and server authority."
+    },
+    {
+      "url": "https://docs.expo.dev/versions/latest/sdk/securestore/",
+      "title": "Expo SecureStore",
+      "claim": "Expo SecureStore exposes platform-specific secure key-value storage with documented limits; it is not a substitute for server-side authorization."
+    },
+    {
+      "url": "https://reactnative.dev/docs/security",
+      "title": "React Native security",
+      "claim": "React Native security guidance treats the app as a client that cannot safely hold secrets or enforce server authorization."
+    },
+    {
+      "url": "https://docs.expo.dev/workflow/customizing/",
+      "title": "Expo: Add custom native code",
+      "claim": "Expo documents generated native project customization and config plugins for repeatable native configuration."
+    },
+    {
+      "url": "https://docs.expo.dev/develop/development-builds/introduction/",
+      "title": "Expo development builds",
+      "claim": "Expo development builds contain a project-specific native dependency set, unlike the fixed Expo Go client."
+    },
+    {
+      "url": "https://docs.expo.dev/more/expo-cli/",
+      "title": "Expo CLI",
+      "claim": "Expo CLI provides project development commands; inspect the selected SDK and current CLI behavior before relying on a command."
+    },
+    {
+      "url": "https://docs.expo.dev/develop/tools/",
+      "title": "Expo tools and Expo Doctor",
+      "claim": "Expo Doctor checks project configuration and dependency compatibility; its result does not replace native builds or device tests."
+    },
+    {
+      "url": "https://docs.expo.dev/build-reference/troubleshooting/",
+      "title": "Expo build troubleshooting and SDK compatibility checks",
+      "claim": "Expo troubleshooting guidance covers SDK compatibility and native build diagnostics."
+    },
+    {
+      "url": "https://docs.expo.dev/workflow/overview/",
+      "title": "Develop an app with Expo",
+      "claim": "Expo separates JavaScript iteration, native project generation and local or cloud native builds."
+    },
+    {
+      "url": "https://docs.expo.dev/build/introduction/",
+      "title": "EAS Build introduction",
+      "claim": "EAS Build is an optional hosted native build service; using it does not establish device or release qualification."
+    },
+    {
+      "url": "https://docs.expo.dev/submit/introduction/",
+      "title": "EAS Submit introduction",
+      "claim": "EAS Submit is a separate app-store delivery workflow requiring platform release configuration and ownership."
+    },
+    {
+      "url": "https://docs.expo.dev/develop/unit-testing/",
+      "title": "Expo unit testing",
+      "claim": "Expo documents unit testing setup for application logic; unit tests do not qualify native platform behavior."
+    },
+    {
+      "url": "https://reactnative.dev/docs/platform-specific-code",
+      "title": "React Native platform-specific code",
+      "claim": "React Native supports platform-specific APIs and file variants when iOS and Android behavior differs."
+    },
+    {
+      "url": "https://reactnative.dev/docs/accessibility",
+      "title": "React Native accessibility",
+      "claim": "React Native provides accessibility APIs, but each platform and supported device still needs product-specific accessibility testing."
+    },
+    {
+      "url": "https://docs.flutter.dev/platform-integration",
+      "title": "Flutter multi-platform support (conditional alternative)",
+      "claim": "Flutter documents supported platform integrations; adopting Flutter adds Dart and a distinct rendering/toolchain choice."
+    },
+    {
+      "url": "https://docs.expo.dev/more/create-expo/",
+      "title": "Expo: create-expo-app, template pinning and SDK 58 transition",
+      "claim": "During the SDK 58 transition, Expo documents that unqualified create-expo-app@latest creates SDK 57 and recommends --template default@sdk-58 when SDK 58 is intended."
+    }
+  ],
+  "open_questions": [
+    "Which iOS and Android versions, phone/tablet form factors and devices are actually supported?",
+    "Does the product need offline reads, offline writes or conflict resolution, and what is the authoritative data owner?",
+    "Which API, identity provider, native SDKs, app links, notifications and permission flows are required?",
+    "Which custom native libraries/config plugins are required, and are exact versions supported by the selected Expo SDK on both platforms?",
+    "Who owns Apple and Google application identities, developer accounts, signing credentials, build service access and store release?"
+  ],
+  "reviewed_on": "2026-10-23"
+}

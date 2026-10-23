@@ -2,7 +2,7 @@
 
 [Project home](../README.md) · [Build and content workflow](website-workflow.md)
 
-The local candidate provides 15 curated component profiles across web applications, services, command-line tools, automation and native mobile. Human pages and agent guidance include selection, chosen-stack building and explicit migration workflows, complete Markdown/JSON records and source references.
+The local candidate provides 16 curated component profiles across web applications, services, command-line tools, automation and native mobile. Human pages and agent guidance include selection, chosen-stack building and explicit migration workflows, complete Markdown/JSON records and source references.
 
 The optional context router validates explicit requirements and returns resources, candidates, exclusions and questions. It calls no model and stores no application data. Known-stack work preserves the choice; new-stack comparisons and migration planning keep constraints and unknowns explicit. The visiting agent interprets the application conversation and reasons about the result.
 
