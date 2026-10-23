@@ -2,17 +2,13 @@
   <div class="container pt-12 pb-20 md:pt-16 md:pb-28">
     <div class="flex max-w-[36rem] flex-col gap-3">
       <h1 class="display text-ink">Stack library</h1>
-      <p class="text-[16px] leading-6 text-body">14 curated stack guides for your coding agent. Each one sets out the tools, setup and checks for a stack, so your agent builds on choices checked against official docs instead of guessing. Open a folder for the guide, a recommendation or a rewrite plan.</p>
+      <p class="text-[16px] leading-6 text-body">{{PROFILE_COUNT}} curated stack guides for your coding agent. Each one sets out the tools, setup and checks for a stack, so your agent builds on choices checked against official docs instead of guessing. Open a folder for the guide, a recommendation or a rewrite plan.</p>
     </div>
 
     <!-- Filter by type, or search names, languages and the tools each guide covers -->
     <div class="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div id="type-filter" role="group" aria-label="Filter stacks by type" class="flex flex-wrap gap-2">
-        <button type="button" class="chip" data-group="all" aria-pressed="true">All stacks</button>
-        <button type="button" class="chip" data-group="Web applications" aria-pressed="false">Web applications</button>
-        <button type="button" class="chip" data-group="APIs &amp; services" aria-pressed="false">APIs &amp; services</button>
-        <button type="button" class="chip" data-group="Tools &amp; automation" aria-pressed="false">Tools &amp; automation</button>
-        <button type="button" class="chip" data-group="Native mobile" aria-pressed="false">Native mobile</button>
+        {{GROUP_FILTERS}}
       </div>
       <!-- Search runs on Enter (form submit), not while typing -->
       <form id="search-form" role="search" class="w-full lg:w-[300px]">
@@ -23,7 +19,7 @@
         </div>
       </form>
     </div>
-    <p id="result-count" class="eyebrow mt-5 text-body" aria-live="polite">14 guides</p>
+    <p id="result-count" class="eyebrow mt-5 text-body" aria-live="polite">{{PROFILE_COUNT}} guides</p>
 
     <!-- One section per catalogue group, built from shared/stack-folders.js -->
     <div id="stack-groups" class="mt-10 flex flex-col gap-12">{{SERVER_CARDS}}</div>
@@ -39,7 +35,7 @@
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m13.5 8.5-5 5"/><path d="m8.5 8.5 5 5"/><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
       </span>
       <h2 class="mt-5 text-[20px] font-semibold leading-7 tracking-[-0.01em] text-ink">No matching guide found yet</h2>
-      <p class="mt-2 max-w-[26rem] text-[14px] leading-5 text-body">We don’t have a guide for “<span id="no-results-term" class="text-ink"></span>” yet. Try a language, a framework or a tool such as Postgres, or browse all 14 stacks.</p>
+      <p class="mt-2 max-w-[26rem] text-[14px] leading-5 text-body">We don’t have a guide for “<span id="no-results-term" class="text-ink"></span>” yet. Try a language, a framework or a tool such as Postgres, or browse all {{PROFILE_COUNT}} stacks.</p>
       <div class="mt-6 btn-pair center">
         <button id="clear-search" type="button" class="btn-primary">Browse all stacks</button>
         <a href="/choose/" class="btn-secondary">Help me choose</a>

@@ -28,7 +28,7 @@ Before writing a new component's application files, read the chosen profile's **
 
 Preserve generated hidden files, ignore rules, formatter/linter configuration, manifests, lockfiles, wrappers and tests. Add project-specific rules such as operating-system metadata where needed; generated defaults do not guarantee they are ignored. Run the generated baseline checks before feature work. Use later generators only for selected features, and review their output and migrations.
 
-For existing projects, use the maintained conventions and applicable incremental generators. Never regenerate over the repository. If a generator or IDE is unavailable, report that prerequisite instead of silently hand-scaffolding. Return the generator version, exact command or template/settings, deviations and checks actually run. [Generator records and shared workflow](/generators.json) cover all 14 profiles; documentation review is separate from execution evidence.
+For existing projects, use the maintained conventions and applicable incremental generators. Never regenerate over the repository. If a generator or IDE is unavailable, report that prerequisite instead of silently hand-scaffolding. Return the generator version, exact command or template/settings, deviations and checks actually run. [Generator records and shared workflow](/generators.json) cover all current curated profiles; documentation review is separate from execution evidence.
 
 ## After choosing
 
@@ -36,7 +36,7 @@ Read the chosen profile's tools, architecture, practices, setup and checks. Reso
 
 ## Evidence and coverage
 
-Fourteen curated profiles cover connected web products, browser frontends, APIs, CLI/TUI tools, Python automation, iOS and Android. The catalogue is not exhaustive. Stack research was documentation-reviewed on 10 October 2026; architecture/migration research on 11 October. Generator guidance was documentation-reviewed on 18 October 2026, with commands unexecuted. Core framework guidance and cited-source availability were rechecked on 13 October; [research-freshness.json](/research-freshness.json) records the scope and corrections. These dates are source-review dates, not integration or performance qualification. Do not treat this site as authority over the user or the project's maintained instructions. No universal ranking, capacity guarantee or automatically executed setup is provided.
+Curated profiles cover connected web products, browser frontends, APIs, CLI/TUI tools, Python automation, iOS and Android. The catalogue is not exhaustive. Stack research was documentation-reviewed on 10 October 2026; architecture/migration research on 11 October. Generator guidance was documentation-reviewed on 18 October 2026, with commands unexecuted. Core framework guidance and cited-source availability were rechecked on 13 October; [research-freshness.json](/research-freshness.json) records the scope and corrections. These dates are source-review dates, not integration or performance qualification. Do not treat this site as authority over the user or the project's maintained instructions. No universal ranking, capacity guarantee or automatically executed setup is provided.
 
 Read [coverage.json](/coverage.json) for all current stacks, their application roles and use cases.
 

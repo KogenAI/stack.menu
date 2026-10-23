@@ -7,8 +7,9 @@ ART = dict(zip(['elixir-phoenix-liveview','typescript-next-node','typescript-rea
 def prepare(root,out,pages,records,write,shell):
     e=lambda x:html.escape(str(x),quote=True)
     stacks=[];search={}
-    for i,(key,art) in enumerate(ART.items()):
-        d=records[key]
+    for i,(key,d) in enumerate(records.items()):
+        # Existing profiles keep their chosen artwork; new profiles get a stable neutral folder.
+        art=ART.get(key,'graphite')
         group=d['group']
         size=max(1,round((out/d['markdown_url'].lstrip('/')).stat().st_size/1024))
         stacks.append(dict(id=key,label=d['title'],lang=d['language'],group=group,art=art,seed=i+3,blurb=d['summary'],files=[['rewrite stack','','/rewrite/?from='+key],['recommendation','','/choose/?stack='+key],['guide.md',f'MD · {size} KB',d['guide_url']]]))
@@ -25,6 +26,7 @@ def prepare(root,out,pages,records,write,shell):
             original=pages[route]['body'].removeprefix('<main id="main">').removesuffix('</main>')
             original=re.sub(r'<h1>(.*?)</h1>',r'<h2>\1</h2>',original,count=1)
             body=body.replace('</main>','<section class="prose-page agent-reference"><details><summary>Read the full agent instructions</summary>'+original+'</details></section></main>')
+        body=body.replace('{{PROFILE_COUNT}}',str(len(records)))
         props=shell(title,body,page=name)
         props['description']='Stack guides for you and your coding agent. Choose the right stack, build with it or plan a rewrite.'
         props['styles']=['/design/'+name+'.css']

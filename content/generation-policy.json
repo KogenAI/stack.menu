@@ -1,6 +1,6 @@
 {
   "reviewed_on": "2026-10-18",
-  "scope": "Project creation and conditional follow-up generation for the 14 curated profiles; documentation guidance, not an execution service or integration certification.",
+  "scope": "Project creation and conditional follow-up generation for the curated profiles; documentation guidance, not an execution service or integration certification.",
   "instructions": [
     "Before writing a new project's application files, read its profile's starting points and use the official framework or language initializer appropriate to the component. Do not hand-recreate a generated skeleton. Where no full application generator exists, use the documented module/package initializer and assemble only the missing application pieces.",
     "Choose one starting point per component. Check the installed generator's version and help, prerequisites, template, database, UI, test and runtime options. Commands are examples: replace names and paths, resolve compatible versions, and record the exact invocation and selected options. Do not blindly run every listed generator.",

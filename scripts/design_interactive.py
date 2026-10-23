@@ -19,9 +19,12 @@ def prepare(root, out, pages, records, write, shell):
             escape(profile['title']) + '</a> — ' + escape(profile['summary']) + '</li>'
             for profile in records.values()) + '</ul>'
 
-    # Initial library HTML is complete and ordinary links work without scripts.
-    # The browser replaces the fallback with the designer's animated folder UI.
+    # Keep the initial library controls and fallback complete before scripts run.
+    # The browser replaces the cards with the designer's animated folder UI.
     groups = list(dict.fromkeys(profile['group'] for profile in records.values()))
+    group_filters = '<button type="button" class="chip" data-group="all" aria-pressed="true">All stacks</button>' + ''.join(
+        '<button type="button" class="chip" data-group="' + escape(group) + '" aria-pressed="false">' + escape(group) + '</button>'
+        for group in groups)
     cards = ''
     for group in groups:
         members = [p for p in records.values() if p['group'] == group]
@@ -43,7 +46,7 @@ def prepare(root, out, pages, records, write, shell):
     write('design/migration-fit.js', (root / 'lib/migration-fit.js').read_text())
     configs = [
         ('library', 'library/index.html', 'Stack library', 'library',
-         'Browse all 14 curated stack guides, search languages and tools, and choose stacks to compare.'),
+         f'Browse all {len(records)} curated stack guides, search languages and tools, and choose stacks to compare.'),
         ('compare', 'compare/index.html', 'Compare stacks', 'library',
          'Compare the roles, tradeoffs, working practices and open questions of two or three curated stacks.'),
         ('recommend', 'choose/index.html', 'Get a stack recommendation', 'recommend',
@@ -53,7 +56,9 @@ def prepare(root, out, pages, records, write, shell):
     ]
     for source, path, title, current, description in configs:
         body = (root / 'src/design' / (source + '.html')).read_text()
-        body = body.replace('{{SERVER_CARDS}}', cards).replace('{{SERVER_LINKS}}', links())
+        body = (body.replace('{{SERVER_CARDS}}', cards).replace('{{SERVER_LINKS}}', links())
+                .replace('{{GROUP_FILTERS}}', group_filters)
+                .replace('{{PROFILE_COUNT}}', str(len(records))))
         props = shell(title, body, page=current)
         props['description'] = description
         props['scripts'] = ['/design/interactive-data.js', '/design/interactive.js']

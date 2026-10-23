@@ -3,9 +3,9 @@
   (function () {
     if (!document.querySelector('main[data-interactive="library"]')) return;
     var data = window.StackFolders;
-    var GROUPS = ['Web applications', 'APIs & services', 'Tools & automation', 'Native mobile'];
-    var groupsEl = document.getElementById('stack-groups');
     if (!data || !data.mount) return;
+    var GROUPS = Array.from(new Set(data.stacks.map(function (stack) { return stack.group; })));
+    var groupsEl = document.getElementById('stack-groups');
     groupsEl.replaceChildren();
     var countEl = document.getElementById('result-count');
     var input = document.getElementById('stack-search');
@@ -469,7 +469,7 @@
       compare.style.top = (labelH + gridH + 24) + 'px';
       compare.classList.toggle('is-hidden', n < 2);
       allLabel.style.top = rowLabelY + 'px';
-      allLabel.textContent = n ? 'Other stack guides' : '14 stack guides';
+      allLabel.textContent = n ? 'Other stack guides' : Object.keys(window.StackInteractiveProfiles).length + ' stack guides';
     }
 
     // Accept useful shared links without allowing query text into markup.
@@ -511,7 +511,7 @@
       split: SVG(20, '<path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"/><path d="m15 9 6-6"/>'),
       circleCheck: SVG(20, '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>')
     };
-    var GROUPS = ['Web applications', 'APIs & services', 'Tools & automation', 'Native mobile'];
+    var GROUPS = Array.from(new Set(Object.keys(window.StackInteractiveProfiles).map(function (id) { return window.StackInteractiveProfiles[id].group; })));
 
     // Contract descriptions come directly from the maintained research.
     function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
