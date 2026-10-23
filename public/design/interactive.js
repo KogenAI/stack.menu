@@ -420,7 +420,7 @@
         var chosen = resolved.task;
         current = {id: task.id, title: task.label, conditional: chosen.pending_questions.length > 0, primaryId: chosen.primary, ids: profiles[chosen.primary] ? [chosen.primary] : []};
         if (rewriteUrl !== false) {
-          updateQuery({use_case: task.id, ecosystem: selection.ecosystem || null, mobile_platform: selection.mobile_platform || null, stack: null});
+          updateQuery({use_case: task.id, ecosystem: selection.ecosystem || null, mobile_platform: selection.mobile_platform || null, stack: null, kind: null});
           setStatus(defaultStatus, null);
         }
         clearSel.hidden = false;
@@ -449,6 +449,11 @@
           requested = legacySelection.task.id;
           values = legacySelection.constraints;
         } catch (error) { setStatus(error.message, null); return; }
+      }
+      var legacyKinds = {web:'web-product', api:'api-service', cli:'cli', automation:'automation', ios:'cross-platform-mobile', android:'cross-platform-mobile'};
+      if (!requested && legacyKinds[query.get('kind')]) {
+        requested = legacyKinds[query.get('kind')];
+        if (['ios','android'].includes(query.get('kind'))) values.mobile_platform = query.get('kind');
       }
       var task = useCases.find(function (item) { return item.id === requested; });
       var linkedProfile = profiles[query.get('stack')];
@@ -537,7 +542,7 @@
       var selected = opts.querySelector('input[name="use_case"]:checked');
       if (selected) selected.checked = false;
       current = null; result.hidden = true;
-      updateQuery({ use_case: null, stack: null, ecosystem: null, mobile_platform: null });
+      updateQuery({ use_case: null, stack: null, ecosystem: null, mobile_platform: null, kind: null });
       document.getElementById('recommendation-constraints').hidden = true;
       setStatus('Choose a job to see one reviewed starting point and when another stack may suit better.', null);
       clearSel.hidden = true;
