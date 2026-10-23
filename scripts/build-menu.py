@@ -2,11 +2,13 @@
 """Generate the human guide and agent records from the same research + editorial view."""
 from pathlib import Path
 import json, html, re, shutil, hashlib
+from datetime import date
 import migration_content
 import generator_content
 R=Path(__file__).resolve().parent.parent
 RESEARCH=R/'menu/inputs/research'
 ELIXIR=R/'menu/inputs/elixir'
+CURATED=R/'menu/curated'
 OUT=R/'.generated/resources'
 shutil.rmtree(R/'.generated',ignore_errors=True)
 OUT.mkdir(parents=True)
@@ -16,9 +18,13 @@ manifest=json.loads((RESEARCH/'catalogue.json').read_text())
 meta=json.loads((R/'menu/profiles.json').read_text())
 freshness=json.loads((RESEARCH/manifest['freshness_file']).read_text()) if manifest.get('freshness_file') else {}
 records={}
+research_ids=set()
 for fn in manifest['record_files']:
  for d in json.loads((RESEARCH/fn).read_text()):
-  d={**d,**meta[d['id']], 'research_file':fn, 'reviewed':'2026-10-10'}
+  if d['id'] in research_ids:raise ValueError(f'Duplicate imported research profile: {d["id"]}')
+  research_ids.add(d['id'])
+  if d['id'] not in meta:raise ValueError(f'Imported research profile lacks metadata: {d["id"]}')
+  d={**d,**meta[d['id']], 'research_file':fn, 'research_source_file':f'inputs/research/{fn}', 'reviewed':manifest['research_date'], 'evidence_status':manifest['status']}
   d['best_practices']=d.pop('practices')
   d['research_freshness']={**freshness.get('profiles',{}).get(d['id'],{}),'scope':freshness.get('scope','Original documentation review only.')}
   for tool in d['tools']:
@@ -28,6 +34,35 @@ for fn in manifest['record_files']:
   d['markdown_url']=f"/stacks/{d['id']}/guide.md"
   d['json_url']=f"/stacks/{d['id']}/record.json"
   records[d['id']]=d
+curated_paths={p.stem:p for p in CURATED.glob('*.json')}
+for sid,path in curated_paths.items():
+ if sid in research_ids:raise ValueError(f'First-party profile duplicates imported research: {sid}')
+ data=json.loads(path.read_text())
+ if data.get('id')!=sid:raise ValueError(f'Curated profile ID mismatch: {sid}')
+ required=['name','use_cases','choose_when','avoid_when','tools','setup_steps','verification_commands','open_questions','sources','reviewed_on','evidence_status']
+ if set(data)!=set(['id',*required]):raise ValueError(f'Unexpected curated profile fields: {sid}')
+ for field in required:
+  if not data.get(field):raise ValueError(f'Missing curated profile field: {sid}.{field}')
+ if sid not in meta:raise ValueError(f'Curated profile lacks profile metadata: {sid}')
+ profile_required=['title','language','group','kind','ui','host','summary','shape','tradeoff','practices']
+ if any(not meta[sid].get(field) for field in profile_required):raise ValueError(f'Incomplete profile metadata: {sid}')
+ for key in ['use_cases','choose_when','avoid_when','setup_steps','verification_commands','open_questions']:
+  if not isinstance(data[key],list) or any(not isinstance(x,str) or not x.strip() for x in data[key]):raise ValueError(f'Invalid curated profile list: {sid}.{key}')
+ for tool in data['tools']:
+  if set(tool)!=set(['job','default','alternatives','reason','limits','source_urls']):raise ValueError(f'Unexpected curated tool fields: {sid}')
+  if not all(tool.get(k) for k in ['job','default','reason','limits','source_urls']):raise ValueError(f'Incomplete curated tool: {sid}')
+  if not isinstance(tool['source_urls'],list) or not tool['source_urls'] or any(not x.startswith('https://') for x in tool['source_urls']):raise ValueError(f'Invalid curated tool sources: {sid}.{tool["job"]}')
+ for source in data['sources']:
+  if set(source)!=set(['url','title','claim']):raise ValueError(f'Unexpected curated source fields: {sid}')
+  if not all(source.get(k) for k in ['url','title','claim']) or not source['url'].startswith('https://'):raise ValueError(f'Invalid curated source: {sid}')
+ try:date.fromisoformat(data['reviewed_on'])
+ except (TypeError,ValueError):raise ValueError(f'Invalid curated review date: {sid}')
+ d={**data,**meta[sid], 'research_file':f'curated/{path.name}', 'reviewed':data['reviewed_on'], 'best_practices':meta[sid]['practices']}
+ d['research_freshness']={'core_guidance_checked_on':data['reviewed_on'],'sources':[s['url'] for s in data['sources']],'scope':data['evidence_status']}
+ d['guide_url']=f"/stacks/{sid}/";d['markdown_url']=f"/stacks/{sid}/guide.md";d['json_url']=f"/stacks/{sid}/record.json"
+ records[sid]=d
+expected=set(meta)
+if set(records)!=expected:raise ValueError(f'Profile coverage mismatch: missing={expected-set(records)}, extra={set(records)-expected}')
 records={i:records[i] for i in meta}
 generator_policy,generators=generator_content.load(R,records)
 for sid,d in records.items():
@@ -141,7 +176,13 @@ def reference_markdown(ref):
  return '\n'.join(lines)
 
 def markdown(d):
- lines=[f"# {d['title']}",'',d['summary'],'',f"Language: {d['language']} | Reviewed: {d['reviewed']} | Evidence: documentation-reviewed",'', 'Core guidance checked: '+d['research_freshness'].get('core_guidance_checked_on',d['reviewed'])+'. See /research-freshness.json for review scope. These recipes and selected dependency combinations need qualification in the actual project.','','## Application role', 'Components: '+', '.join(d['kind']), 'UI: '+d['ui'], 'Deployment: '+d['host'], '', '## Use cases', *['- '+x for x in d['use_cases']], '', '## Fit',*['- '+x for x in d['choose_when']],'','## Choose something else when',*['- '+x for x in d['avoid_when']],'','## Agent workflow',*['- '+x for x in COMMON],'','## Best practices',*['- '+x for x in d['best_practices']],'',generator_content.markdown(d['generators'],generator_policy),'## Tools']
+ source_file=d.get('research_source_file') or d['research_file']
+ if source_file.startswith('curated/'):
+  source_file='menu/'+source_file
+ else:
+  source_file='menu/'+source_file if source_file.startswith('inputs/') else 'menu/inputs/research/'+source_file
+ lines=[f"# {d['title']}",'',d['summary'],'',f"Language: {d['language']} | Reviewed: {d['reviewed']} | Evidence: {d.get('evidence_status','documentation-reviewed')}",'',f"Source record: {source_file}.",'', 'Core guidance checked: '+d['research_freshness'].get('core_guidance_checked_on',d['reviewed'])+'. Review sources are listed below. /research-freshness.json describes the imported research packet; this record retains its own evidence scope. These recipes and selected dependency combinations need qualification in the actual project.']
+ lines += ['','## Application role', 'Components: '+', '.join(d['kind']), 'UI: '+d['ui'], 'Deployment: '+d['host'], '', '## Use cases', *['- '+x for x in d['use_cases']], '', '## Fit',*['- '+x for x in d['choose_when']],'','## Choose something else when',*['- '+x for x in d['avoid_when']],'','## Agent workflow',*['- '+x for x in COMMON],'','## Best practices',*['- '+x for x in d['best_practices']],'',generator_content.markdown(d['generators'],generator_policy),'## Tools']
  for t in d['tools']:
   lines+=['',f"### {t['job']}: {t['default']}",'',t['reason'],'','Limits and integration: '+t['limits'],'','',*['- '+u for u in t.get('source_urls',[])]]
   if t.get('alternatives'):lines+=['','Alternatives: '+'; '.join(str(x) for x in t['alternatives'])]
@@ -164,7 +205,7 @@ write('generators.json',json.dumps({'schema_version':'1.0','policy':generator_po
 write('choose.md',CHOOSE)
 write('llms-full.txt',CHOOSE+'\n\n'+migration_content.workflow_markdown(migration_shared,records)+'\n\n'+'\n\n---\n\n'.join(markdown(d) for d in records.values()))
 RULES={'component':{'field':'kind','match':'includes'},'ui_preference':{'field':'ui','match':'equals'},'static_hosting':{'field':'host','values':['static']},'offline_browser':{'field':'ui','values':['client','full']},'native_both':['ios','android'],'unknown_is_supported':False}
-index={'schema_version':'1.1','reviewed':'2026-10-10','selection_guide':'/choose.md','generators_url':'/generators.json','selection_rules':RULES,'coverage_gaps':manifest['coverage_gaps'],'profiles':[{k:d[k] for k in ['id','title','language','group','summary','shape','kind','ui','host','selection','use_cases','choose_when','avoid_when','tradeoff','guide_url','markdown_url','json_url']} for d in records.values()]}
+index={'schema_version':'1.1','reviewed':'2026-10-10','selection_guide':'/choose.md','generators_url':'/generators.json','selection_rules':RULES,'coverage_gaps':manifest['coverage_gaps'],'profiles':[{k:d[k] for k in ['id','title','language','group','summary','shape','kind','ui','host','selection','use_cases','choose_when','avoid_when','tradeoff','reviewed','evidence_status','research_file','guide_url','markdown_url','json_url']+(['research_source_file'] if d.get('research_source_file') else [])} for d in records.values()]}
 write('selection-index.json',json.dumps(index,ensure_ascii=False,separators=(',',':'))+'\n')
 cat={'schema_version':'1.1','selection_rules':RULES,'reviewed':'2026-10-10','evidence_status':'documentation-reviewed','selection_guide':'/choose.md','agent_entry':'/llms.txt','generators_url':'/generators.json','requirements':[{ 'key':k,'label':t,'description':v} for k,t,v in REQUIREMENTS], 'coverage_gaps':manifest['coverage_gaps'],'field_semantics':{'kind':'Recommended application component; not exhaustive language capability.','host':'Deployment class for this profile; runtime adapters need separate qualification.','ui':'Recommended UI architecture. none means this profile provides no client UI.','generators':'Official initializer/template choices and conditional follow-up generation; documentation-reviewed, not executed.','best_practices':'Editorial summary of the linked research guide; verify installed-version documentation.'},'profiles':list(records.values())}
 cat['research_freshness']=freshness

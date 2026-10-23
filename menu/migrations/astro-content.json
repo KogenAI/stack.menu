@@ -1,0 +1,126 @@
+{
+  "id": "astro-content",
+  "version_scope": "Astro installation and content/routing docs checked 23 October 2026. The disposable official basics scaffold used create-astro 5.3.1, Astro 7.4.2, Node 24.21.0 and npm 11.19.0. It built and served its starter route. This is not application or adapter compatibility evidence.",
+  "operating_model": "Recommendation: use Astro as a content presentation site, statically pre-rendering public pages and optionally hydrating discrete interactive islands. A content collection is not a route until a page template creates it. The selected CMS may own authoring, drafts and assets; existing APIs and application backends remain their own data, identity, migration and side-effect authorities. Astro's request-time mode requires a separately selected and qualified adapter/runtime.",
+  "architecture": [
+    "Inventory public content routes, source formats, existing URL and redirect contracts, canonical domain, sitemap and media. Define a collection schema only for structured content; define explicit routes and getStaticPaths for generated entry URLs.",
+    "Recommendation: keep repository-authored content in reviewed Markdown/data, or name a headless CMS as the editorial owner. A CMS integration needs explicit draft/preview authorization, publish hook, media and failure behavior. Astro does not supply the CMS authoring interface.",
+    "Static output is public build output. Do not place secrets, private drafts or authorization decisions in generated HTML or client JavaScript. Retain an existing API/backend as owner for identity, protected data, mutations, jobs and external effects until a separate transfer is designed.",
+    "A client island is a browser UI boundary, not a backend. Add framework hydration only for the selected interaction and keep useful content in initial HTML.",
+    "Use src image imports where processing is supported; public assets are copied without optimization. Astro has no built-in video streaming/processing. Keep original assets, licenses and delivery owner explicit.",
+    "Static redirects may be emitted as HTML meta refresh and do not provide a portable HTTP redirect status. Check actual host rules, status codes, trailing-slash normalization, cache behavior and 404 response.",
+    "Only enable request-time pages with a selected adapter and host that support needed cookies, headers, runtime APIs and caches. Rehearse deployment and secret handling for that exact target; this record does not qualify any adapter."
+  ],
+  "developer_workflow": [
+    "Start from the content owner, route/URL inventory and project README. Run the official generator in an unused local source directory, inspect installed create-astro help, install using the chosen package manager and preserve its lockfile.",
+    "The disposable baseline used `npm create astro@latest astro -- --template basics --no-install --no-git --no-ai --yes --skip-houston`; installed create-astro was 5.3.1. Node was 24.21.0 and npm was 11.19.0. `npm ci` then `npm run build` passed on the untouched starter; `npm run dev -- --host 127.0.0.1` served `/` as HTTP 200 `text/html`. No application tests were run.",
+    "For content routes, add the collection schema and route template, run the build, and inspect emitted URLs and malformed-entry failures. Keep generated routes synchronized with the authored/cms-owned content inventory.",
+    "Set the production site URL; inspect canonical links, metadata, sitemap, direct route loads, missing pages and redirect behavior in generated output and the selected host. A local build does not establish host status codes, headers, indexing or production delivery.",
+    "For a CMS, adapter, private preview or API, qualify its actual version, auth boundary, secrets, caching, webhooks and production runtime separately. Record commands and results for that application; do not inherit the starter's smoke check as proof."
+  ],
+  "avoid": [
+    "Do not select Astro merely because it can import React, Vue or Svelte; use a rich browser-app framework when most routes require persistent client state and app-like interaction.",
+    "Do not use static build output for account-specific content or pretend that a client island, hidden link or generated HTML protects data.",
+    "Do not treat a Content Collection as CMS, route generation, search index or editorial preview; each requires explicit project-owned setup.",
+    "Do not assume a redirect configured in Astro produces a production HTTP 301/302 on a static host. Verify the provider's routing rule and observed response.",
+    "Do not assume public assets are optimized or that Astro streams video. Inspect the selected pipeline and delivery service.",
+    "Do not infer that replacing a full-stack web application with Astro transfers its API, database, identity, migration or job responsibilities. Retain the current owners or define and qualify each transfer separately."
+  ],
+  "transitions": [
+    {
+      "capability": "client",
+      "existing_contract": "Inventory the current public and authenticated URLs, rendered HTML semantics, navigation, forms, interactive states, metadata, assets, API DTOs and error behavior. Identify which routes are content presentations versus application screens; a shared web label does not make those roles identical.",
+      "coexistence": "Proposed option: move a bounded public content route set to Astro while keeping existing API, authentication, data writer, migrations, jobs and external effects with their current owners. Route a small path/host cohort only after the old and new route maps, cookies and canonical URLs are explicit. Keep any authenticated or stateful application routes on their existing owner until separately planned.",
+      "target": "Proposed option: statically render public content from reviewed local records or the named CMS, with optional islands for specific interactions. Preserve the route and semantic HTML contract where required. If the source role includes authenticated pages, mutations or private APIs, compose or retain that owner; static Astro alone does not cover those duties.",
+      "benefits": [
+        {
+          "benefit": "Public content pages can be emitted as HTML at build time, with browser JavaScript scoped to explicitly hydrated widgets.",
+          "prerequisites": "Content can be available at build time; content routes and schema are identified; a static host serves the generated paths; any dynamic data/API stays explicitly owned.",
+          "tradeoffs": "New content publication requires a build/deploy unless a chosen dynamic route or CMS delivery path is added. A static presentation change does not migrate application APIs, identity or persistence."
+        }
+      ],
+      "checks": [
+        "Compare old/new direct route, trailing-slash, canonical, link, metadata, 404 and redirect behavior on the selected host; confirm actual response codes and route coverage.",
+        "For every moved content type, verify generated entry URLs, required fields, draft visibility, media paths and sitemap membership; a malformed record must fail or be handled by the documented content policy.",
+        "If a migrated route reads or changes private application data, verify that the existing backend still authenticates and authorizes direct requests; do not rely on static content or UI hiding.",
+        "Exercise the selected island with JavaScript disabled/enabled as appropriate and verify accessible keyboard behavior; content remains understandable in the generated HTML.",
+        "Rehearse publishing, cache invalidation and rollback while old assets and API contracts remain available; inspect deployed host headers and redirects."
+      ],
+      "rollback": "Restore the previous route owner or host mapping while retaining the old content build and API compatibility. Reconcile any submitted forms or external effects through their existing backend owner; routing rollback does not undo writes or CMS publication.",
+      "sources": [
+        "https://docs.astro.build/en/concepts/islands/",
+        "https://docs.astro.build/en/guides/content-collections/",
+        "https://docs.astro.build/en/guides/routing/",
+        "https://docs.astro.build/en/guides/configuring-astro/"
+      ],
+      "id": "client-1"
+    },
+    {
+      "capability": "operations",
+      "existing_contract": "Inventory current deploy artifact, route host rules, HTTP status and cache headers, redirects, generated sitemap, media/CDN paths, build-time environment and rollback retention.",
+      "coexistence": "Proposed option: publish Astro's dist output under a bounded route or host mapping while retaining the old artifact and host rules. Keep old and new redirects/canonical origins consistent during the cohort; preserve external API and CMS owners.",
+      "target": "Proposed option: use a static deployment for static pages. If on-demand rendering is selected, add the host adapter and qualify its runtime, credentials and operations as a different deployment profile. Retain old public assets through the rollback window where existing pages may reference them.",
+      "benefits": [
+        {
+          "benefit": "A static site artifact can be served from a static host without operating an Astro request-time server for those pages.",
+          "prerequisites": "Build command, dist output, route fallback/404 policy, redirects, headers, asset paths and canonical site URL are configured for the selected host.",
+          "tradeoffs": "Host behavior is provider-specific; a static artifact cannot compute per-request session output, and dynamic pages introduce a runtime and adapter to operate."
+        }
+      ],
+      "checks": [
+        "Build from a clean lockfile install and inspect generated static routes, assets, canonical links and sitemap.",
+        "Request moved, missing and redirected URLs from the host; verify status codes, location, content type, cache headers and trailing slash behavior.",
+        "Verify the selected CMS publish hook or API contract updates the intended pages without exposing preview secrets; test failed build/publish recovery if used.",
+        "If an adapter is used, verify its exact host/runtime, cookies, headers, private data access, cache and deployment rollback; the static starter build is not evidence for these features.",
+        "Rehearse restoration of the old route mapping/artifact and confirm retained assets and API compatibility allow rollback."
+      ],
+      "rollback": "Restore the previous host mapping and deployment artifact, including old redirect and cache policy, then confirm the previous route set is served. Keep CMS/API/database ownership unchanged unless a separately reviewed transfer requires data reconciliation.",
+      "sources": [
+        "https://docs.astro.build/en/guides/deploy/",
+        "https://docs.astro.build/en/guides/on-demand-rendering/",
+        "https://docs.astro.build/en/guides/routing/",
+        "https://docs.astro.build/en/guides/images/"
+      ],
+      "id": "operations-1"
+    }
+  ],
+  "sources": [
+    {
+      "url": "https://docs.astro.build/en/guides/content-collections/",
+      "title": "Astro Content Collections",
+      "claim": "Schemas validate content entries, while explicit route templates create static URLs for collection records."
+    },
+    {
+      "url": "https://docs.astro.build/en/concepts/islands/",
+      "title": "Astro Islands",
+      "claim": "Interactive components are separately hydrated with client directives while other page content remains HTML."
+    },
+    {
+      "url": "https://docs.astro.build/en/guides/on-demand-rendering/",
+      "title": "Astro On-demand Rendering",
+      "claim": "Request-time pages need a server adapter; the static baseline has no request-time personalization runtime."
+    },
+    {
+      "url": "https://docs.astro.build/en/guides/cms/",
+      "title": "Astro CMS Guide",
+      "claim": "A CMS owns separate authoring capabilities; Astro fetches and presents selected CMS content."
+    },
+    {
+      "url": "https://docs.astro.build/en/guides/routing/",
+      "title": "Astro Routing",
+      "claim": "File-based routes and redirects need review against static output and the deployment host."
+    },
+    {
+      "url": "https://docs.astro.build/en/guides/deploy/",
+      "title": "Astro Deployment",
+      "claim": "Static output is deployed from dist; on-demand output requires an adapter for the chosen runtime."
+    },
+    {
+      "url": "https://docs.astro.build/en/guides/images/",
+      "title": "Astro Images",
+      "claim": "src images can be processed while public files are copied unprocessed; Astro does not provide video streaming."
+    }
+  ],
+  "reviewed_at": "2026-10-23",
+  "evidence": "documentation-reviewed"
+}

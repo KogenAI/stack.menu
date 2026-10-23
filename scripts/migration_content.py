@@ -16,7 +16,7 @@ def load(research, manifest, records):
             sid = profile['id']
             if sid in profiles or sid not in records:
                 raise ValueError('Duplicate or unknown migration profile: ' + sid)
-            profile = {**profile, 'reviewed_at': packet['reviewed_at'], 'evidence': packet['evidence']}
+            profile = {**profile, 'reviewed_at': packet['reviewed_at'], 'evidence': packet['evidence'], 'source_file': f'inputs/research/{name}'}
             if profile['evidence'] != 'documentation-reviewed':
                 raise ValueError('Unexpected qualification claim: ' + sid)
             for field in ['version_scope', 'operating_model', 'architecture', 'developer_workflow', 'avoid', 'transitions', 'sources']:
@@ -37,6 +37,38 @@ def load(research, manifest, records):
                 if not all(s.startswith('https://') for s in transition['sources']):
                     raise ValueError(f'Invalid documentation URL: {sid}/{cap}')
             profiles[sid] = profile
+    curated_dir = research.parent.parent / 'migrations'
+    curated_paths = sorted(curated_dir.glob('*.json'))
+    for path in curated_paths:
+        packet = json.loads(path.read_text())
+        sid = packet.get('id')
+        if not sid or sid in profiles or sid not in records:
+            raise ValueError('Duplicate or unknown first-party migration profile: ' + str(sid))
+        if not packet.get('reviewed_at') or not packet.get('evidence'):
+            raise ValueError('First-party migration record lacks date/evidence: ' + sid)
+        profile = {**packet, 'source_file': f'migrations/{path.name}'}
+        if profile['evidence'] != 'documentation-reviewed':
+            raise ValueError('Unexpected first-party qualification claim: ' + sid)
+        for field in ['version_scope', 'operating_model', 'architecture', 'developer_workflow', 'avoid', 'transitions', 'sources']:
+            if not profile.get(field):
+                raise ValueError(f'Missing {field}: {sid}')
+        if not all(s.get('title') and s.get('url', '').startswith('https://') and s.get('claim') for s in profile['sources']):
+            raise ValueError('Invalid first-party migration source: ' + sid)
+        transition_ids = set()
+        for transition in profile['transitions']:
+            cap = transition['capability']
+            if transition.get('id') in transition_ids or cap not in {c['id'] for c in shared['contracts']}:
+                raise ValueError(f'Duplicate transition or unknown capability {cap}: {sid}')
+            transition_ids.add(transition.get('id'))
+            for field in ['existing_contract', 'coexistence', 'target', 'benefits', 'checks', 'rollback', 'sources']:
+                if not transition.get(field):
+                    raise ValueError(f'Missing transition {field}: {sid}/{cap}')
+            for benefit in transition['benefits']:
+                if not all(benefit.get(k) for k in ['benefit', 'prerequisites', 'tradeoffs']):
+                    raise ValueError(f'Benefit lacks conditions: {sid}/{cap}')
+            if not all(s.startswith('https://') for s in transition['sources']):
+                raise ValueError(f'Invalid documentation URL: {sid}/{cap}')
+        profiles[sid] = profile
     if set(profiles) != set(records):
         raise ValueError('Migration research must cover every current profile')
     return shared, profiles
@@ -53,7 +85,7 @@ def docs(sources):
 def profile_html(profile, contracts):
     labels = {c['id']: c['title'] for c in contracts}
     output = '<section id="architecture"><p class="eyebrow">Build with the stack’s strengths</p><h2>Architecture and developer workflow.</h2>'
-    output += '<p>' + E(profile['operating_model']) + '</p><p class="evidence-note">Version scope: ' + E(profile['version_scope']) + ' · Reviewed ' + E(profile['reviewed_at']) + '</p>'
+    output += '<p>' + E(profile['operating_model']) + '</p><p class="evidence-note">Version scope: ' + E(profile['version_scope']) + ' · Reviewed ' + E(profile['reviewed_at']) + ' · Evidence: ' + E(profile['evidence']) + ' · Source: ' + E(profile.get('source_file', 'imported research snapshot')) + '</p>'
     for title, key in [('Architecture boundaries', 'architecture'), ('Tools and feedback', 'developer_workflow'), ('Translations to avoid', 'avoid')]:
         output += '<h3>' + title + '</h3>' + items(profile[key])
     output += docs([s['url'] for s in profile['sources']]) + '</section>'
@@ -72,7 +104,7 @@ def profile_html(profile, contracts):
 
 def profile_markdown(profile, contracts):
     labels = {c['id']: c['title'] for c in contracts}
-    lines = ['## Architecture and developer workflow', '', profile['operating_model'], '', 'Version scope: ' + profile['version_scope'], 'Reviewed: ' + profile['reviewed_at'] + ' | Evidence: ' + profile['evidence'], '']
+    lines = ['## Architecture and developer workflow', '', profile['operating_model'], '', 'Version scope: ' + profile['version_scope'], 'Reviewed: ' + profile['reviewed_at'] + ' | Evidence: ' + profile['evidence'] + ' | Source record: ' + profile.get('source_file', 'imported research snapshot'), '']
     for title, key in [('Architecture boundaries', 'architecture'), ('Tools and feedback', 'developer_workflow'), ('Translations to avoid', 'avoid')]:
         lines += ['### ' + title, '', *['- ' + value for value in profile[key]], '']
     lines += ['### Architecture sources', '', *['- [' + s['title'] + '](' + s['url'] + '): ' + s['claim'] for s in profile['sources']], '', '## Transition options', '', 'Proposed designs and checks; these are not executed compatibility results.', '']

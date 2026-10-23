@@ -13,7 +13,7 @@ Almir selected Oghogho’s design for implementation on 20 October 2026. The rel
 | Demo media | Maintainer-held original and edit recipe; [`public/media/`](../public/media/) contains publication derivatives only | `stack-menu-demo.mp4` (H.264, silent, 16.5 seconds, 2304×1612) and its actual-frame JPEG poster; selected source ranges sped up 4×/16× |
 | Header/footer | [`src/design/`](../src/design/), `mark.svg` | Shared initial HTML across all pages |
 | Library, comparisons, recommendation and rewrite | [`scripts/design_interactive.py`](../scripts/design_interactive.py), `src/design/`, `public/design/interactive.*` | `/library/`, `/compare/`, `/choose/`, `/rewrite/` |
-| Stack guides | [`scripts/design_guides.py`](../scripts/design_guides.py), maintained profiles/generators/contracts | All 14 `/stacks/{id}/` pages |
+| Stack guides | [`scripts/design_guides.py`](../scripts/design_guides.py), maintained profiles/generators/contracts | All 15 current `/stacks/{id}/` pages |
 | Agent guidance | [`content/agent-entry.md`](../content/agent-entry.md), [`content/generation-policy.json`](../content/generation-policy.json), [`menu/generators/`](../menu/generators/) and attributed records | `/llms.txt`, full guides, Markdown, JSON and `/generators.json` |
 | Contact and footer facts | [`content/contact.json`](../content/contact.json) | `/contact/`, `/contact.json`, Markdown and structured metadata |
 | Browser icon | `mark.svg`, export script | `/favicon.svg` |

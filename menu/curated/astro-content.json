@@ -1,0 +1,192 @@
+{
+  "id": "astro-content",
+  "name": "TypeScript content site with Astro",
+  "use_cases": [
+    "Documentation, guides, blogs, catalogs and marketing sites with repeatable authored content",
+    "Content-first websites that need a few independent interactive widgets",
+    "Public pages that can be generated at build time and served as static files"
+  ],
+  "choose_when": [
+    "Most routes present content and should be available as generated HTML without a request-time application server",
+    "Markdown or structured local data needs schema validation and generated routes",
+    "Interactivity is limited to discrete components that can hydrate independently",
+    "The team wants TypeScript templates while retaining ordinary HTML, CSS and browser APIs"
+  ],
+  "avoid_when": [
+    "The site is a tiny stable page set with no recurring content or build workflow; plain HTML and CSS may be enough",
+    "The main product is a sustained stateful browser application such as an inbox, dashboard or collaborative editor; choose a browser-app framework around that requirement",
+    "Request-time identity, private personalized pages, mutations, APIs, database writes, durable jobs or transactional effects are required and no separately owned backend or selected Astro adapter is in scope",
+    "Nontechnical editors need a managed editorial interface, preview, approval and media workflow; choose and qualify the CMS as content owner before selecting a presentation layer"
+  ],
+  "tools": [
+    {
+      "job": "content site and rendering",
+      "default": "Astro with static output and Content Collections where content is structured",
+      "alternatives": [
+        "Plain HTML and CSS for a tiny stable site",
+        "Hugo where the team needs its Go-based publishing workflow, multilingual support or taxonomy system",
+        "A headless CMS as editorial owner when editors need its workflow; Astro can remain the presentation layer"
+      ],
+      "reason": "Astro pre-renders pages by default and can validate Markdown and data collection entries; islands allow selected components to run in the browser without making the whole site a client application.",
+      "limits": "Collections do not create routes automatically: define routes and getStaticPaths for generated content pages. Static output is public and cannot provide request-time user-specific authorization. On-demand rendering requires a host adapter; qualify that host separately.",
+      "source_urls": [
+        "https://docs.astro.build/en/concepts/why-astro/",
+        "https://docs.astro.build/en/concepts/islands/",
+        "https://docs.astro.build/en/guides/content-collections/",
+        "https://docs.astro.build/en/guides/on-demand-rendering/"
+      ]
+    },
+    {
+      "job": "authored content and editorial ownership",
+      "default": "Markdown and typed local data in the project when code review and Git are the intended publishing workflow",
+      "alternatives": [
+        "A selected headless CMS when editors need a separate visual authoring and collaboration interface"
+      ],
+      "reason": "Keeps the publishing owner explicit and lets collection schemas validate the content shape at build time.",
+      "limits": "Astro supplies Markdown support, not a CMS authoring product. With a CMS, the CMS owns editing, workflow and source assets; this profile does not select a CMS or qualify preview, webhook, asset delivery or draft access behavior.",
+      "source_urls": [
+        "https://docs.astro.build/en/guides/content-collections/",
+        "https://docs.astro.build/en/guides/cms/"
+      ]
+    },
+    {
+      "job": "browser interactivity",
+      "default": "Semantic HTML and browser APIs; add an Astro framework integration only for a component that needs it",
+      "alternatives": [
+        "A separately owned API for private or mutable application data",
+        "React, Svelte or Vue components as explicit islands when an existing component ecosystem is a requirement"
+      ],
+      "reason": "Keeps the ordinary content path rendered as HTML and makes the client-side boundary explicit per component.",
+      "limits": "A client island does not make a static page an authorized backend. Browser-bundled configuration is public. Do not install a component framework or state library until a concrete widget requires it.",
+      "source_urls": [
+        "https://docs.astro.build/en/concepts/islands/",
+        "https://docs.astro.build/en/guides/client-side-scripts/"
+      ]
+    },
+    {
+      "job": "routing and search metadata",
+      "default": "File-based routes under src/pages; set the production site URL and use the sitemap integration when a sitemap is required",
+      "alternatives": [
+        "Host-managed redirects when static HTML redirects cannot provide the required status or behavior"
+      ],
+      "reason": "Route files become public URL paths, and the configured site URL supports canonical and sitemap generation.",
+      "limits": "Check generated URLs, canonical links, sitemap, 404 behavior, trailing-slash policy and redirects against the selected host. Static redirects may be emitted as meta refresh; status semantics are host-dependent.",
+      "source_urls": [
+        "https://docs.astro.build/en/guides/routing/",
+        "https://docs.astro.build/en/guides/configuring-astro/",
+        "https://docs.astro.build/en/guides/integrations-guide/sitemap/"
+      ]
+    },
+    {
+      "job": "media",
+      "default": "Import local images from src/ for Astro image processing where supported",
+      "alternatives": [
+        "public/ for files that must keep a direct stable URL and should be copied without processing",
+        "A selected image or video CDN/service when its delivery workflow is required"
+      ],
+      "reason": "Makes the processing and URL choice explicit for each asset.",
+      "limits": "Astro does not process files in public/. It has no built-in video optimization or streaming; choose and verify a hosted media service if needed. Check remote-image domains and license/attribution in the content owner.",
+      "source_urls": [
+        "https://docs.astro.build/en/guides/images/"
+      ]
+    },
+    {
+      "job": "deployment and dynamic routes",
+      "default": "Static host serving the generated dist directory for the static profile",
+      "alternatives": [
+        "Astro Node, Cloudflare, Netlify or Vercel adapter when specific pages need request-time rendering"
+      ],
+      "reason": "Static publishing has no Astro request-time server to operate; request-time rendering is an explicit adapter and runtime choice.",
+      "limits": "This record does not qualify any host, adapter, CMS or API integration. Keep database, authentication, mutation and durable-work ownership in an existing backend unless their transfer is separately designed and tested.",
+      "source_urls": [
+        "https://docs.astro.build/en/guides/deploy/",
+        "https://docs.astro.build/en/guides/on-demand-rendering/"
+      ]
+    }
+  ],
+  "setup_steps": [
+    "Start in an unused local source directory outside synchronized storage. Read the actual Astro project README and decide whether content is authored in Git or in a separately selected CMS; list public routes, canonical URL, redirect requirements, media needs and any existing API owners before generating files.",
+    "Check Node against current Astro installation requirements and inspect the resolved create-astro CLI help. For the tested CLI, npm create astro@latest my-site -- --template basics --no-install --no-git --no-ai --yes --skip-houston created a basic project without initializing Git or creating AI instruction files.",
+    "Enter the project, install dependencies with the chosen package manager, and preserve its lockfile. Record Node, create-astro and resolved Astro versions in the README. Keep the generated package scripts and configuration as the baseline.",
+    "Add Content Collections only for structured content that benefits from schemas. Define schemas, create route templates explicitly and use getStaticPaths to emit one static URL per content entry. Keep a small one-off page as ordinary Astro or HTML rather than adding a collection layer without need.",
+    "Set the production site URL and decide trailing-slash and redirect behavior. Confirm content routes, canonical links, sitemap and missing-page handling in generated output and on the intended host.",
+    "Use static rendering for public content. If a page truly needs request-time data, identity or cookies, select an Astro adapter and an independently owned API/backend boundary; review host limits and server-only secret handling before adding it.",
+    "Add a client island only for a defined interaction. Add an editor-owned CMS only when its editing workflow is required, then specify who owns source content, drafts, previews, webhooks and assets.",
+    "Decide image processing versus direct public URLs per asset. Choose a separate video delivery service if needed; Astro does not supply video processing or streaming.",
+    "Run the generated build and dev server. Inspect representative routes, generated HTML and asset URLs, then use the host preview to verify redirects, status codes, headers, canonical metadata, sitemap and 404 behavior. The disposable starter's build/dev smoke check is recorded in the evidence; application integration tests were not run."
+  ],
+  "verification_commands": [
+    "node --version",
+    "npm create astro@latest -- --help",
+    "npm ci",
+    "npm run build",
+    "npm run dev -- --host 127.0.0.1"
+  ],
+  "open_questions": [
+    "Which pages are editorial content and which are application routes with private or mutable data?",
+    "Who owns the source content: the repository or a selected CMS, and are draft preview, approval, webhooks and media management required?",
+    "Which existing API, identity provider and database remain authoritative if the page needs account data or mutations?",
+    "What are the intended URL, trailing-slash, redirect status, canonical, sitemap, 404 and cache policies on the selected host?",
+    "Which images need transformation, which assets need stable direct URLs, and who owns video encoding and streaming?",
+    "Does any route actually need request-time rendering, and does the selected adapter/host support the needed API, cookies, headers and runtime?"
+  ],
+  "sources": [
+    {
+      "url": "https://docs.astro.build/install-and-setup/",
+      "title": "Install Astro",
+      "claim": "The create-astro CLI starts a project; current prerequisites, template workflow and dependency installation are documented here."
+    },
+    {
+      "url": "https://docs.astro.build/en/concepts/why-astro/",
+      "title": "Why Astro?",
+      "claim": "Astro is positioned for content-driven websites and supports content collections, UI integrations and server-first output."
+    },
+    {
+      "url": "https://docs.astro.build/en/concepts/islands/",
+      "title": "Islands architecture",
+      "claim": "Components render as HTML unless a client directive explicitly hydrates an interactive island."
+    },
+    {
+      "url": "https://docs.astro.build/en/guides/content-collections/",
+      "title": "Content Collections",
+      "claim": "Schemas validate typed entries; collections do not create pages automatically, and static dynamic routes use getStaticPaths."
+    },
+    {
+      "url": "https://docs.astro.build/en/guides/on-demand-rendering/",
+      "title": "On-demand rendering",
+      "claim": "Pages are static by default; request-time rendering requires a server adapter for the selected runtime."
+    },
+    {
+      "url": "https://docs.astro.build/en/guides/cms/",
+      "title": "Use a CMS with Astro",
+      "claim": "A CMS can own external editing and assets; Astro can fetch and present its content, and Astro can also be used without a CMS."
+    },
+    {
+      "url": "https://docs.astro.build/en/guides/routing/",
+      "title": "Routing",
+      "claim": "Page files define URL routes; configured redirects and static redirect output have host-sensitive behavior."
+    },
+    {
+      "url": "https://docs.astro.build/en/guides/configuring-astro/",
+      "title": "Configuring Astro",
+      "claim": "Set site and base URLs for deployment and canonical/sitemap generation; review trailing slash behavior at the host."
+    },
+    {
+      "url": "https://docs.astro.build/en/guides/integrations-guide/sitemap/",
+      "title": "@astrojs/sitemap",
+      "claim": "The sitemap integration generates a sitemap from the configured site URL and routes."
+    },
+    {
+      "url": "https://docs.astro.build/en/guides/images/",
+      "title": "Images",
+      "claim": "Images in src can be processed; public files are copied as-is, and Astro has no native video processing support."
+    },
+    {
+      "url": "https://docs.astro.build/en/guides/deploy/",
+      "title": "Deploy your Astro Site",
+      "claim": "Static deployment publishes dist; on-demand output requires the appropriate adapter and host configuration."
+    }
+  ],
+  "reviewed_on": "2026-10-23",
+  "evidence_status": "documentation-reviewed; disposable create-astro basics scaffold, install, build and local dev HTTP smoke check executed; no application integration tests run"
+}
