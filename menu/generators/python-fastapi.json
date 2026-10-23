@@ -1,14 +1,45 @@
 {
   "profile_id": "python-fastapi",
-  "reviewed_on": "2026-10-18",
+  "reviewed_on": "2026-10-23",
   "evidence_status": "documentation-reviewed; commands not executed",
   "starting_points": [
+    {
+      "name": "Official fastapi-new project scaffold",
+      "when": "A new FastAPI API where the official basic uv-configured scaffold is a suitable starting point; use the minimal assembly path below when you need a smaller/custom layout, or the full-stack template only when its additional choices fit.",
+      "steps": [
+        "Install uv using its official platform instructions, inspect uvx --help and the fastapi-new project README/release notes, and choose a new absent target directory. The package requires Python 3.10 or newer.",
+        "Run the official scaffold in the source parent, then inspect generated files, dependencies, README, ignore rules and lockfile before adapting it. Record the resolved fastapi-new, uv and Python versions.",
+        "Follow the generated README to start the app and check its initial endpoint; adapt the generated application deliberately to the requested API rather than assuming the scaffold covers production requirements."
+      ],
+      "commands": [
+        {
+          "run": "uvx fastapi-new --help",
+          "cwd": "A local source-workspace parent; target must not already exist",
+          "purpose": "Inspect the selected installed release's options before generating."
+        },
+        {
+          "run": "uvx fastapi-new api-service",
+          "cwd": "A local source-workspace parent; api-service must not already exist",
+          "purpose": "Generate the official basic FastAPI project configured with uv."
+        },
+        {
+          "run": "uv run fastapi dev",
+          "cwd": "The generated api-service directory",
+          "purpose": "Run the generated development application after reviewing its README and files."
+        }
+      ],
+      "notes": [
+        "This is an official FastAPI organization project, but PyPI classifies it as Development Status 4 - Beta, has one maintainer, and its 0.0.7 release was uploaded 19 June 2026. Treat it as an optional scaffold and review the generated output; the documentation was reviewed but the command was not executed here.",
+        "The official repository README documents `uvx fastapi-new <project-name>` and bare `uvx fastapi-new` for an existing directory. Do not use the latter on a populated project without first inspecting what it will add or change.",
+        "This scaffold is distinct from FastAPI CLI's `fastapi dev`/`fastapi run` commands, which serve an existing application, and from the larger Full Stack FastAPI Template."
+      ]
+    },
     {
       "name": "uv project initialization with explicit minimal FastAPI assembly",
       "when": "A new API/service requiring FastAPI without an entire full-stack template.",
       "steps": [
         "Install uv and inspect uv --version and uv init --help. Replace /path/to/local/source with an existing local source parent; use a new, absent target directory. Set PYTHON_VERSION to a supported Python minor compatible with the selected framework and dependencies. Record generator versions, selected flags and deliberate deviations.",
-        "Run uv initialization and dependency installation, then implement the minimal FastAPI application in app/main.py with app/__init__.py. This application file is deliberate assembly, not output of a nonexistent fastapi new command.",
+        "Run uv initialization and dependency installation, then implement the minimal FastAPI application in app/main.py with app/__init__.py. This is deliberate assembly for the custom minimal uv path; use the official fastapi-new scaffold above when its generated baseline fits.",
         "Use the official first-steps example as the initial app, add the required endpoint and test, then start the development server. Configure [tool.fastapi] entrypoint when the project uses a different import path."
       ],
       "commands": [
@@ -29,7 +60,7 @@
         }
       ],
       "notes": [
-        "FastAPI documents a small application assembled from Python modules. The official fastapi dev and fastapi run commands serve existing apps; neither is a universal project generator.",
+        "FastAPI documents a small application assembled from Python modules. The official fastapi dev and fastapi run commands serve existing apps; `fastapi-new` is the separate optional official project scaffold documented above.",
         "Inspect the generated uv sample main.py; adapt/remove it explicitly if app/main.py replaces it. Document any chosen package layout instead of letting two entry points drift.",
         "Choose a source parent outside another uv workspace, or intentionally use --no-workspace when creating an independent project under a directory with parent pyproject.toml metadata."
       ]
@@ -96,6 +127,14 @@
     "Compare project metadata with a disposable scaffold from the same uv version and flags, or the selected official template revision. Review tracked/staged files and ensure local environments, secrets and .DS_Store are excluded."
   ],
   "sources": [
+    {
+      "title": "Official fastapi-new project scaffold and command",
+      "url": "https://github.com/fastapi/fastapi-new"
+    },
+    {
+      "title": "fastapi-new package metadata, release and maturity classification",
+      "url": "https://pypi.org/project/fastapi-new/"
+    },
     {
       "title": "uv project creation and layout choices",
       "url": "https://docs.astral.sh/uv/concepts/projects/init/"
