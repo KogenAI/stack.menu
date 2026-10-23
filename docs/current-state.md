@@ -94,9 +94,13 @@ Selecting a chooser task updates its result in place instead of triggering revea
 
 Chooser option and clear-selection controls grow with wrapped text, preserving readable labels and focus indicators on narrow screens.
 
+### Make inline text links visibly interactive
+
+Inline text links have underlines and visible hover/focus states in the shared interactive styles.
+
 ## Outstanding final-review findings
 
-A later Claude Opus high review and focused reproduction found unresolved issues: inline links use an undefined styling class; negotiated chooser Markdown concatenates labels; older `?kind=` chooser links lose their selection. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.
+A later Claude Opus high review and focused reproduction found unresolved issues: negotiated chooser Markdown concatenates labels; older `?kind=` chooser links lose their selection. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.
 
 ## Reader access limit
 

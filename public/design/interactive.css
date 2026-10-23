@@ -156,6 +156,9 @@
   .clear-btn:hover { background: var(--hairline-soft); color: var(--ink); }
   .clear-btn[hidden] { display: none; }
 
+  .text-link { color: var(--link); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .text-link:hover { text-decoration-thickness: 2px; }
+  .text-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 3px; }
 
   /* ---------- Stage: matching folders come forward to the centre; the rest wait in a row at the bottom ---------- */
   .rec-stage { position: relative; }
