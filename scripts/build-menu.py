@@ -76,6 +76,13 @@ for sid,d in records.items():
  d['architecture_and_migration']=migration_profiles[sid]
  d['rewrite_url']='/rewrite/guide.md'
  d['migration_contracts_url']='/rewrite/contracts.json'
+# Keep the imported check receipt intact; later scoped reviews have separate owners.
+freshness={**freshness,
+ 'first_party_profiles':{sid:{'reviewed_on':d['reviewed'],'source_file':d['research_file'],'evidence_status':d['evidence_status']} for sid,d in records.items() if sid not in research_ids},
+ 'generator_reviews':{sid:{'reviewed_on':g['reviewed_on'],'evidence_status':g['evidence_status']} for sid,g in generators.items()},
+ 'current_corrections':current_corrections}
+latest_profile_review=max(d['reviewed'] for d in records.values())
+review_scope='Latest profile source-review date; individual records retain their own dates. Imported source availability was checked separately on '+freshness['checked_on']+'. No catalogue-wide execution or compatibility qualification is implied.'
 # Existing elixir.menu remains the editorial owner. Import a derived, dated view;
 # never maintain its optional/runtime recommendations in this repository.
 elixir=records['elixir-phoenix-liveview']
@@ -194,12 +201,13 @@ write('generators.json',json.dumps({'schema_version':'1.0','policy':generator_po
 write('choose.md',CHOOSE)
 write('llms-full.txt',CHOOSE+'\n\n'+migration_content.workflow_markdown(migration_shared,records)+'\n\n'+'\n\n---\n\n'.join(markdown(d) for d in records.values()))
 RULES={'component':{'field':'kind','match':'includes'},'ui_preference':{'field':'ui','match':'equals'},'static_hosting':{'field':'host','values':['static']},'offline_browser':{'field':'ui','values':['client','full']},'native_both':['ios','android'],'unknown_is_supported':False}
-index={'schema_version':'1.1','reviewed':'2026-10-10','selection_guide':'/choose.md','generators_url':'/generators.json','recommendations_url':'/recommendations.json','selection_rules':RULES,'coverage_gaps':manifest['coverage_gaps'],'profiles':[{k:d[k] for k in ['id','title','language','group','summary','shape','kind','ui','host','selection','use_cases','choose_when','avoid_when','tradeoff','reviewed','evidence_status','research_file','guide_url','markdown_url','json_url']+(['research_source_file'] if d.get('research_source_file') else [])} for d in records.values()]}
+index={'schema_version':'1.1','reviewed':latest_profile_review,'review_scope':review_scope,'selection_guide':'/choose.md','generators_url':'/generators.json','recommendations_url':'/recommendations.json','selection_rules':RULES,'coverage_gaps':manifest['coverage_gaps'],'profiles':[{k:d[k] for k in ['id','title','language','group','summary','shape','kind','ui','host','selection','use_cases','choose_when','avoid_when','tradeoff','reviewed','evidence_status','research_file','guide_url','markdown_url','json_url']+(['research_source_file'] if d.get('research_source_file') else [])} for d in records.values()]}
 write('selection-index.json',json.dumps(index,ensure_ascii=False,separators=(',',':'))+'\n')
-cat={'schema_version':'1.1','selection_rules':RULES,'reviewed':'2026-10-10','evidence_status':'documentation-reviewed','selection_guide':'/choose.md','agent_entry':'/llms.txt','generators_url':'/generators.json','requirements':[{ 'key':k,'label':t,'description':v} for k,t,v in REQUIREMENTS], 'coverage_gaps':manifest['coverage_gaps'],'field_semantics':{'kind':'Recommended application component; not exhaustive language capability.','host':'Deployment class for this profile; runtime adapters need separate qualification.','ui':'Recommended UI architecture. none means this profile provides no client UI.','generators':'Official initializer/template choices and conditional follow-up generation; documentation-reviewed, not executed.','best_practices':'Editorial summary of the linked research guide; verify installed-version documentation.'},'profiles':list(records.values())}
+cat={'schema_version':'1.1','selection_rules':RULES,'reviewed':latest_profile_review,'review_scope':review_scope,'evidence_status':'documentation-reviewed','selection_guide':'/choose.md','agent_entry':'/llms.txt','generators_url':'/generators.json','requirements':[{ 'key':k,'label':t,'description':v} for k,t,v in REQUIREMENTS], 'coverage_gaps':manifest['coverage_gaps'],'field_semantics':{'kind':'Recommended application component; not exhaustive language capability.','host':'Deployment class for this profile; runtime adapters need separate qualification.','ui':'Recommended UI architecture. none means this profile provides no client UI.','generators':'Official initializer/template choices and conditional follow-up generation; read each record’s review date, execution evidence and qualification limits.','best_practices':'Editorial summary of the linked research guide; verify installed-version documentation.'},'profiles':list(records.values())}
 cat['research_freshness']=freshness
 write('research-freshness.json',json.dumps(freshness,ensure_ascii=False,indent=2)+'\n')
-cat['migration_reviewed_at']=migration_shared['reviewed_at']
+cat['migration_reviewed_at']=max(p['reviewed_at'] for p in migration_profiles.values())
+cat['migration_review_scope']='Latest profile documentation review; each profile retains its source date and evidence. Shared contracts retain '+migration_shared['reviewed_at']+'. Application migrations remain unqualified.'
 cat['rewrite_guide']='/rewrite/guide.md'
 cat['migration_contracts']='/rewrite/contracts.json'
 cat['migration_evidence_status']='documentation-reviewed; application compatibility untested'
