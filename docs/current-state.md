@@ -102,6 +102,10 @@ Inline text links have underlines and visible hover/focus states in the shared i
 
 Generated page Markdown separates form labels and select options instead of concatenating their text.
 
+### Qualify async costs in Rust CLI advice
+
+The Rust CLI alternative makes asynchronous-runtime complexity conditional on the workload; ordinary synchronous CLIs do not require an async runtime.
+
 ## Outstanding final-review findings
 
 A later Claude Opus high review and focused reproduction found unresolved issues: older `?kind=` chooser links lose their selection. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.

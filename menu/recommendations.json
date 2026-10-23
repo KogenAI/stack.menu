@@ -315,7 +315,7 @@
       "profile_id": "rust-cli",
       "use_cases": ["cli"],
       "choose_when": "A Rust library or measured resource-control requirement materially benefits the product and the team can own Rust tooling and target verification.",
-      "caveat": "Rust adds language, async and cross-compilation complexity; use Go for conventional compiled distribution when those constraints do not matter.",
+      "caveat": "Rust adds language, tooling and cross-compilation complexity; use Go for conventional compiled distribution when those constraints do not matter. An asynchronous runtime is an additional choice only when the workload needs it.",
       "sources": [{"title": "The Rust Programming Language", "url": "https://doc.rust-lang.org/book/"}]
     },
     {
