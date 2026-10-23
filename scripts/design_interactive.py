@@ -44,13 +44,20 @@ def prepare(root, out, pages, records, write, shell):
     write('design/interactive-data.js', 'window.StackInteractiveProfiles=' +
           json.dumps(canonical, ensure_ascii=False).replace('</', '<\\/') + ';\n')
     write('design/migration-fit.js', (root / 'lib/migration-fit.js').read_text())
+    recommendation_path = root / 'menu/recommendations.json'
+    recommendations = json.loads(recommendation_path.read_text()) if recommendation_path.exists() else {'use_cases': []}
+    server_use_cases = ''.join(
+        '<label class="opt"><input type="radio" name="use_case" value="' + escape(use_case['id']) + '"><span>' + escape(use_case['label']) + '</span></label>'
+        for use_case in recommendations.get('use_cases', []))
+    if not server_use_cases:
+        server_use_cases = '<p class="rec-unavailable">Task recommendations are unavailable in this build. Browse the full stack library below.</p>'
     configs = [
         ('library', 'library/index.html', 'Stack library', 'library',
          f'Browse all {len(records)} curated stack guides, search languages and tools, and choose stacks to compare.'),
         ('compare', 'compare/index.html', 'Compare stacks', 'library',
          'Compare the roles, tradeoffs, working practices and open questions of two or three curated stacks.'),
         ('recommend', 'choose/index.html', 'Get a stack recommendation', 'recommend',
-         'Filter curated stack guides by application type, then compare the tradeoffs with your agent.'),
+         'Get one task-based stack recommendation with its trade-off and the conditions for considering alternatives.'),
         ('rewrite', 'rewrite/index.html', 'Rewrite your stack', 'rewrite',
          'Evaluate a migration between curated stacks with a current agent brief, contracts and rollback checks.'),
     ]
@@ -58,6 +65,7 @@ def prepare(root, out, pages, records, write, shell):
         body = (root / 'src/design' / (source + '.html')).read_text()
         body = (body.replace('{{SERVER_CARDS}}', cards).replace('{{SERVER_LINKS}}', links())
                 .replace('{{GROUP_FILTERS}}', group_filters)
+                .replace('{{SERVER_USE_CASES}}', server_use_cases if source == 'recommend' else '')
                 .replace('{{PROFILE_COUNT}}', str(len(records))))
         props = shell(title, body, page=current)
         props['description'] = description
@@ -65,4 +73,6 @@ def prepare(root, out, pages, records, write, shell):
         props['styles'] = ['/design/stack-guide.css', '/design/interactive.css']
         if source == 'rewrite':
             props['styles'].append('/design/rewrite-scope.css')
+        if source == 'recommend':
+            props['styles'].append('/design/recommend.css')
         write(path, props)

@@ -6,6 +6,7 @@ from datetime import date
 import migration_content
 import generator_content
 import current_content
+import recommendation_content
 R=Path(__file__).resolve().parent.parent
 RESEARCH=R/'menu/inputs/research'
 ELIXIR=R/'menu/inputs/elixir'
@@ -107,32 +108,16 @@ REQUIREMENTS=[
 ('data_security','Data and access','Tenancy, authorization, durability, retention, backups and recovery.'),
 ('maintenance','Maintenance','Team experience, delivery constraints, licensing, support and budget.')]
 AGENT_INTRO=''
-CHOOSE='''# Choosing a stack from requirements
+recommendation_policy=recommendation_content.load_policy(R)
+CHOOSE='# Choosing a stack from requirements\n\nPreserve an existing stack unless reconsidering it is requested. Separate the product into components; a web client, API and mobile client may have different owners.\n\n## Gather requirements\n\n'+'\n'.join(f'- **{title}:** {desc}' for _,title,desc in REQUIREMENTS)+'\n\n'+recommendation_content.markdown(recommendation_policy)+"""
+## Apply the recommendation
 
-First distinguish product components: a native client, browser frontend and backend may require different stacks. Do not force one language across all components. Honor an existing stack unless the user asks to revisit it.
+Use the job as an editorial starting point. Apply hard constraints before recommending its primary; explain a conflict rather than silently relaxing the requirement. Read /selection-index.json and the finalist's complete guide. The kind, ui and host fields describe curated compositions, not every theoretical use of a language. Static browser output does not supply a backend, and an offline client still needs storage, synchronization and conflict rules.
 
-## Gather requirements
+Explain the recommended composition, the requirements favoring it, its drawback and any conditional alternative whose stated trigger applies. Ask only unresolved questions that change the decision; use information already present in the conversation. For unknown or uncovered jobs, research beyond this catalogue. Existing healthy stacks remain valid for deliberate selection and rewrites; they are not obsolete because another profile is the task default.
 
-'''+ '\n'.join(f'- **{title}:** {desc}' for _,title,desc in REQUIREMENTS)+'''
-
-## Compare feasible options
-
-1. Separate hard constraints from preferences. Reject a candidate that cannot serve its proposed component; do not reject a backend merely because a separate client must work offline.
-2. Use selection-index.json for candidate discovery, then read the full guide.md or record.json for each finalist. The `kind`, `ui` and `host` fields describe these recommended profiles, not every theoretical capability of a language.
-3. For native iOS use the SwiftUI profile; native Android uses Compose. For both platforms, evaluate two clients with a shared API. A browser wrapper is not evidence of native UI equivalence.
-4. Compare connected server-led web apps (Phoenix, Rails, Laravel, Django), full-stack React (Next.js), or an API-backed browser client (React/Vite) according to the product. Services and clients can be combined.
-5. Confirm required SDKs, platform APIs, runtime/deployment support and version compatibility in primary documentation before choosing. Unknown is not supported. If coverage is absent (desktop, .NET, games, embedded, scientific computing), say so and research beyond this catalogue.
-6. Explain two or three feasible alternatives, the requirement favoring your recommendation, a drawback and any unresolved question. There are no measured cross-stack productivity scores here.
-7. Resolve a consequential uncertainty with a small representative prototype before treating the choice as settled.
-
-## Chooser rules for these curated profiles
-
-The compact index publishes the curated `selection_rules` used by the context router and the visiting agent. Filter `kind` by the requested component. For web profiles, an explicit UI preference matches `ui` exactly; static-only frontend hosting requires `host == static`; offline browser editing keeps `ui` in `client, full`. These are starting points needing storage and sync qualification, not a claim that offline editing works out of the box. Server profiles can still supply the backend for an offline client. For native iOS + Android, make a separate context request for each client and evaluate the backend separately. If filters leave no profiles, explain the conflict instead of silently relaxing a hard constraint. Unknown categories are coverage gaps.
-
-## Return a usable handoff
-
-State the recommended component/stack composition, requirements satisfied, rejected alternatives and reasons, selected tools and why each is needed, version/documentation sources, verification plan, and unresolved questions. After selection, follow the chosen stack's setup and best-practice guidance. Separate documented capability from checks actually executed.
-'''
+Return requirements satisfied or unresolved, selected tools by actual job, current primary documentation and versions, checks actually executed and a representative qualification plan. No measured cross-stack ranking or guaranteed capacity is claimed.
+"""
 
 def write(path,s):
  if isinstance(s,dict):
@@ -209,7 +194,7 @@ write('generators.json',json.dumps({'schema_version':'1.0','policy':generator_po
 write('choose.md',CHOOSE)
 write('llms-full.txt',CHOOSE+'\n\n'+migration_content.workflow_markdown(migration_shared,records)+'\n\n'+'\n\n---\n\n'.join(markdown(d) for d in records.values()))
 RULES={'component':{'field':'kind','match':'includes'},'ui_preference':{'field':'ui','match':'equals'},'static_hosting':{'field':'host','values':['static']},'offline_browser':{'field':'ui','values':['client','full']},'native_both':['ios','android'],'unknown_is_supported':False}
-index={'schema_version':'1.1','reviewed':'2026-10-10','selection_guide':'/choose.md','generators_url':'/generators.json','selection_rules':RULES,'coverage_gaps':manifest['coverage_gaps'],'profiles':[{k:d[k] for k in ['id','title','language','group','summary','shape','kind','ui','host','selection','use_cases','choose_when','avoid_when','tradeoff','reviewed','evidence_status','research_file','guide_url','markdown_url','json_url']+(['research_source_file'] if d.get('research_source_file') else [])} for d in records.values()]}
+index={'schema_version':'1.1','reviewed':'2026-10-10','selection_guide':'/choose.md','generators_url':'/generators.json','recommendations_url':'/recommendations.json','selection_rules':RULES,'coverage_gaps':manifest['coverage_gaps'],'profiles':[{k:d[k] for k in ['id','title','language','group','summary','shape','kind','ui','host','selection','use_cases','choose_when','avoid_when','tradeoff','reviewed','evidence_status','research_file','guide_url','markdown_url','json_url']+(['research_source_file'] if d.get('research_source_file') else [])} for d in records.values()]}
 write('selection-index.json',json.dumps(index,ensure_ascii=False,separators=(',',':'))+'\n')
 cat={'schema_version':'1.1','selection_rules':RULES,'reviewed':'2026-10-10','evidence_status':'documentation-reviewed','selection_guide':'/choose.md','agent_entry':'/llms.txt','generators_url':'/generators.json','requirements':[{ 'key':k,'label':t,'description':v} for k,t,v in REQUIREMENTS], 'coverage_gaps':manifest['coverage_gaps'],'field_semantics':{'kind':'Recommended application component; not exhaustive language capability.','host':'Deployment class for this profile; runtime adapters need separate qualification.','ui':'Recommended UI architecture. none means this profile provides no client UI.','generators':'Official initializer/template choices and conditional follow-up generation; documentation-reviewed, not executed.','best_practices':'Editorial summary of the linked research guide; verify installed-version documentation.'},'profiles':list(records.values())}
 cat['research_freshness']=freshness

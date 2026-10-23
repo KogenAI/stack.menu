@@ -1,0 +1,367 @@
+{
+  "version": 1,
+  "reviewed_on": "2026-10-23",
+  "scope": "Task-based editorial defaults for new applications. The primary picks are reasoned editorial judgments from documented roles, not measured winners or a universal ranking. A use case identifies a strong starting profile for the stated job; it is not compatibility proof or authority to replace an existing stack.",
+  "evidence_limits": "Recommendations summarize documented framework roles and primary documentation. They do not establish application fit, dependency compatibility, capacity, migration safety, production readiness, or executed setup. Apply hard constraints first and qualify the actual project.",
+  "use_cases": [
+    {
+      "id": "content-site",
+      "label": "Content-led site",
+      "component": "web",
+      "required_roles": ["web"],
+      "primary": "astro-content",
+      "why": "Astro is a focused default when the main job is publishing content as mostly static pages and the product does not need an application server for each visitor.",
+      "tradeoff": "Interactive islands and server endpoints add explicit client/runtime choices; a mostly static content site should not inherit a full application backend without a requirement.",
+      "sources": [
+        {"title": "Astro content collections", "url": "https://docs.astro.build/en/guides/content-collections/"},
+        {"title": "Astro rendering modes", "url": "https://docs.astro.build/en/guides/server-side-rendering/"}
+      ]
+    },
+    {
+      "id": "web-product",
+      "label": "Integrated web product",
+      "component": "web",
+      "required_roles": ["web"],
+      "primary": "rails-hotwire-postgresql",
+      "why": "Rails is a strong default for ordinary database-backed product work where server-rendered pages, forms, accounts, persistence and background jobs benefit from one cohesive application.",
+      "tradeoff": "It owns a running server and conventional server-rendered workflow; a client-heavy interface, a Python-centered team or a deliberate React full stack can justify another profile.",
+      "sources": [
+        {"title": "Getting Started with Rails", "url": "https://guides.rubyonrails.org/getting_started.html"},
+        {"title": "Active Record Basics", "url": "https://guides.rubyonrails.org/active_record_basics.html"}
+      ]
+    },
+    {
+      "id": "live-web",
+      "label": "Live multiuser web application",
+      "component": "web",
+      "required_roles": ["web"],
+      "primary": "elixir-phoenix-liveview",
+      "why": "Phoenix and LiveView are a strong default when multiple connected users need server-owned live interface state and the product benefits from the Elixir process and PubSub model.",
+      "tradeoff": "Persistent connections, state ownership, authorization, reconnects, fanout, overload and deployment need deliberate design and workload qualification; this recommendation does not claim a capacity limit.",
+      "sources": [
+        {"title": "Phoenix LiveView documentation", "url": "https://phoenix-live-view.hexdocs.pm/"},
+        {"title": "Phoenix PubSub", "url": "https://hexdocs.pm/phoenix_pubsub/Phoenix.PubSub.html"}
+      ]
+    },
+    {
+      "id": "admin-web",
+      "label": "Python-centered data or admin web application",
+      "component": "web",
+      "required_roles": ["web"],
+      "primary": "python-django",
+      "why": "Django is a strong default when relational data, forms, accounts, staff administration and conventional CRUD workflows are central, and the team's Python skills or ecosystem are a material product need.",
+      "tradeoff": "A rich browser-owned interface or specialized API may need a separate client or a different profile; Django's admin is a staff tool, not a substitute for product authorization and domain UI.",
+      "sources": [
+        {"title": "Django overview", "url": "https://docs.djangoproject.com/en/stable/intro/overview/"},
+        {"title": "Django admin site", "url": "https://docs.djangoproject.com/en/stable/ref/contrib/admin/"}
+      ]
+    },
+    {
+      "id": "browser-client",
+      "label": "Browser client for an existing or separate API",
+      "component": "web",
+      "required_roles": ["web"],
+      "primary": "typescript-react-vite-browser",
+      "why": "React with Vite is a strong default when the browser UI is the deliverable and an existing or separately owned API already handles identity, permissions, data and durable work.",
+      "tradeoff": "The profile is a frontend, not a backend. Routing, server state, authentication integration and offline synchronization remain separate choices and contracts.",
+      "sources": [
+        {"title": "React: Start a New React Project", "url": "https://react.dev/learn/start-a-new-react-project"},
+        {"title": "Vite guide", "url": "https://vite.dev/guide/"}
+      ]
+    },
+    {
+      "id": "react-fullstack",
+      "label": "Full-stack React application",
+      "component": "web",
+      "required_roles": ["web"],
+      "primary": "typescript-next-node",
+      "why": "Next.js is a strong default when the team deliberately wants React with server rendering, server/client components, route handlers and application logic in one web framework.",
+      "tradeoff": "The server/client boundary, caching, deployment adapter and data access need explicit design; choose it for those responsibilities rather than assuming every React app needs a full-stack framework.",
+      "sources": [
+        {"title": "Next.js App Router", "url": "https://nextjs.org/docs/app"},
+        {"title": "Next.js Server and Client Components", "url": "https://nextjs.org/docs/app/getting-started/server-and-client-components"}
+      ]
+    },
+    {
+      "id": "api-service",
+      "label": "General-purpose HTTP API or service",
+      "component": "api",
+      "required_roles": ["api"],
+      "primary": "go-service",
+      "why": "Go is a strong default for a standalone HTTP API or service when a small, explicit service boundary and straightforward binary deployment fit the team and operations model.",
+      "tradeoff": "Authentication, permissions, persistence conventions, administration and durable jobs require deliberate assembly; a product framework or Python integration ecosystem may reduce unrelated work.",
+      "sources": [
+        {"title": "Go net/http package", "url": "https://pkg.go.dev/net/http"},
+        {"title": "Writing Web Applications in Go", "url": "https://go.dev/doc/articles/wiki/"}
+      ]
+    },
+    {
+      "id": "python-api",
+      "label": "Python API for integrations or data work",
+      "component": "api",
+      "required_roles": ["api"],
+      "primary": "python-fastapi",
+      "why": "FastAPI is a strong default for a typed Python API when provider SDKs, data libraries or Python application code are important and automatic OpenAPI-based interface documentation helps.",
+      "tradeoff": "Identity, authorization, migrations, persistence and durable background execution are separate integrations; an ordinary data-heavy product may fit Django better.",
+      "sources": [
+        {"title": "FastAPI features", "url": "https://fastapi.tiangolo.com/features/"},
+        {"title": "FastAPI first steps", "url": "https://fastapi.tiangolo.com/tutorial/first-steps/"}
+      ]
+    },
+    {
+      "id": "cli",
+      "label": "Distributed command-line tool",
+      "component": "cli",
+      "required_roles": ["cli"],
+      "primary": "go-cli",
+      "why": "Go is a strong default for a command-line product that should ship as a compiled binary across supported operating systems and architectures.",
+      "tradeoff": "Cross-compilation, platform behavior, packaging, terminal interaction and release signing still need target-specific verification; choose a script-oriented profile for bounded automation instead.",
+      "sources": [
+        {"title": "Go command documentation", "url": "https://go.dev/doc/cmd"},
+        {"title": "Cobra documentation", "url": "https://cobra.dev/docs/"}
+      ]
+    },
+    {
+      "id": "automation",
+      "label": "Automation, integration or worker",
+      "component": "automation",
+      "required_roles": ["automation"],
+      "primary": "python-scripts-workers",
+      "why": "Python is a strong default for scheduled scripts, provider integrations, data transformations and workers when its SDK and data ecosystem directly serve the task.",
+      "tradeoff": "Persistent work needs an operated worker or workflow platform, bounded retries and idempotent external effects; a one-off script should stay small.",
+      "sources": [
+        {"title": "Python tutorial", "url": "https://docs.python.org/3/tutorial/"},
+        {"title": "Python logging cookbook", "url": "https://docs.python.org/3/howto/logging-cookbook.html"}
+      ]
+    },
+    {
+      "id": "cross-platform-mobile",
+      "label": "One application for iOS and Android",
+      "required_roles": ["ios", "android"],
+      "primary": "expo-react-native",
+      "why": "Expo with React Native is a strong default when one shared application team and codebase must deliver iOS and Android clients, and required native capabilities fit the Expo workflow.",
+      "tradeoff": "Native module compatibility, app lifecycle, platform-specific behavior, signing and store release still need iOS and Android qualification; use separate native profiles when platform APIs or experience dominate.",
+      "sources": [
+        {"title": "Expo documentation", "url": "https://docs.expo.dev/"},
+        {"title": "React Native: Get started with a framework", "url": "https://reactnative.dev/docs/getting-started-with-a-framework"}
+      ]
+    },
+    {
+      "id": "ios",
+      "label": "Platform-first iOS application",
+      "component": "ios",
+      "required_roles": ["ios"],
+      "primary": "swift-swiftui-ios",
+      "why": "Swift and SwiftUI are a strong default when iOS platform APIs, native interaction, accessibility, lifecycle or Apple ecosystem integration define the client.",
+      "tradeoff": "A separate Android client is needed for Android; builds and distribution require Xcode and Apple platform ownership.",
+      "sources": [
+        {"title": "Apple SwiftUI documentation", "url": "https://developer.apple.com/documentation/swiftui"},
+        {"title": "Apple SwiftUI tutorials", "url": "https://developer.apple.com/tutorials/swiftui"}
+      ]
+    },
+    {
+      "id": "android",
+      "label": "Platform-first Android application",
+      "component": "android",
+      "required_roles": ["android"],
+      "primary": "kotlin-compose-android",
+      "why": "Kotlin and Jetpack Compose are a strong default when Android platform behavior, lifecycle, device APIs or Android-specific UX define the client.",
+      "tradeoff": "A separate iOS client is needed for iOS; device diversity, background limits, signing and release qualification remain Android-specific.",
+      "sources": [
+        {"title": "Android Jetpack Compose documentation", "url": "https://developer.android.com/develop/ui/compose"},
+        {"title": "Android architecture recommendations", "url": "https://developer.android.com/topic/architecture/recommendations"}
+      ]
+    }
+  ],
+  "alternatives": [
+    {
+      "id": "hugo-content",
+      "label": "Hugo content site",
+      "profile_id": null,
+      "use_cases": ["content-site"],
+      "choose_when": "The site is a conventional static publication and the team specifically values Hugo's content organization and build model.",
+      "caveat": "This is a conditional research lead without a curated Stack Menu profile; assess templates, content authoring and deployment for the actual site.",
+      "sources": [{"title": "Hugo content organization", "url": "https://gohugo.io/content-management/organization/"}]
+    },
+    {
+      "id": "plain-html-content",
+      "label": "Plain HTML and CSS",
+      "profile_id": null,
+      "use_cases": ["content-site"],
+      "choose_when": "The site is small, rarely updated and has no need for a content workflow, component system or application behavior.",
+      "caveat": "A manual page collection becomes harder to maintain as content, shared layouts or publishing needs grow.",
+      "sources": [{"title": "MDN HTML basics", "url": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Basic_HTML_syntax"}]
+    },
+    {
+      "id": "content-to-full-framework",
+      "label": "Full web application framework",
+      "profile_id": "rails-hotwire-postgresql",
+      "use_cases": ["content-site"],
+      "choose_when": "The site also needs accounts, database-backed workflows, staff operations or durable jobs that make it an application rather than primarily published content.",
+      "caveat": "This adds an application server and product responsibilities; do not choose it solely to render mostly static content.",
+      "sources": [{"title": "Getting Started with Rails", "url": "https://guides.rubyonrails.org/getting_started.html"}]
+    },
+    {
+      "id": "django-product",
+      "label": "Python product application",
+      "profile_id": "python-django",
+      "use_cases": ["web-product"],
+      "choose_when": "Python ecosystem integration, relational workflows, forms or built-in staff administration are central.",
+      "caveat": "Django is a product framework choice, not an automatic alternative based only on language familiarity.",
+      "sources": [{"title": "Django overview", "url": "https://docs.djangoproject.com/en/stable/intro/overview/"}]
+    },
+    {
+      "id": "laravel-product",
+      "label": "PHP product application",
+      "profile_id": "laravel-livewire-postgresql",
+      "use_cases": ["web-product", "admin-web"],
+      "choose_when": "The team or existing system is PHP/Laravel-centered and the integrated Livewire/auth/queue conventions fit.",
+      "caveat": "The web process, queue workers and scheduler have separate operating needs; browser/client-heavy work may need a distinct client.",
+      "sources": [{"title": "Laravel starter kits", "url": "https://laravel.com/docs/starter-kits"}]
+    },
+    {
+      "id": "rails-admin",
+      "label": "Integrated server-rendered product application",
+      "profile_id": "rails-hotwire-postgresql",
+      "use_cases": ["admin-web"],
+      "choose_when": "A conventional integrated product matters more than Python-native data tooling or Django's administration workflow.",
+      "caveat": "This is not the same as adopting Django's built-in admin; design product-facing authorization and workflows explicitly.",
+      "sources": [{"title": "Getting Started with Rails", "url": "https://guides.rubyonrails.org/getting_started.html"}]
+    },
+    {
+      "id": "next-as-product",
+      "label": "Full-stack React application",
+      "profile_id": "typescript-next-node",
+      "use_cases": ["web-product", "admin-web"],
+      "choose_when": "The interface is intentionally React-led and the team wants route handlers and server/client React composition in the same framework.",
+      "caveat": "It has more server/client, cache and deployment choices than a conventional integrated CRUD workflow.",
+      "sources": [{"title": "Next.js App Router", "url": "https://nextjs.org/docs/app"}]
+    },
+    {
+      "id": "separate-api-client",
+      "label": "Separate browser client and API",
+      "profile_id": "typescript-react-vite-browser",
+      "use_cases": ["web-product", "admin-web", "react-fullstack"],
+      "choose_when": "An API already owns identity, permissions and data, or the product has a clear independent frontend/backend boundary.",
+      "caveat": "React + Vite is frontend-only and does not replace backend responsibilities.",
+      "sources": [{"title": "React: Start a New React Project", "url": "https://react.dev/learn/start-a-new-react-project"}, {"title": "Vite guide", "url": "https://vite.dev/guide/"}]
+    },
+    {
+      "id": "phoenix-live",
+      "label": "Live connected web application",
+      "profile_id": "elixir-phoenix-liveview",
+      "use_cases": ["web-product"],
+      "choose_when": "Connected multiuser state, realtime interaction or Elixir/OTP operational fit is central.",
+      "caveat": "Qualify authorization, reconnects, fanout, persistence and overload with representative workload; no capacity is implied.",
+      "sources": [{"title": "Phoenix LiveView documentation", "url": "https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html"}]
+    },
+    {
+      "id": "rails-live",
+      "label": "Integrated server-rendered application",
+      "profile_id": "rails-hotwire-postgresql",
+      "use_cases": ["live-web"],
+      "choose_when": "The collaboration is primarily CRUD/workflow and ordinary server interactions are sufficient; live updates are a smaller feature rather than the product's central behavior.",
+      "caveat": "Reassess if shared live state, frequent presence or high fanout is central.",
+      "sources": [{"title": "Getting Started with Rails", "url": "https://guides.rubyonrails.org/getting_started.html"}]
+    },
+    {
+      "id": "go-api",
+      "label": "Separate Go service",
+      "profile_id": "go-service",
+      "use_cases": ["python-api"],
+      "choose_when": "A separate service boundary, binary deployment, infrastructure integration or an independently scaled API is an explicit requirement.",
+      "caveat": "It is not a browser UI or full product framework; auth, persistence, jobs and client ownership must be assembled.",
+      "sources": [{"title": "Go net/http package", "url": "https://pkg.go.dev/net/http"}]
+    },
+    {
+      "id": "rust-service",
+      "label": "Rust HTTP service",
+      "profile_id": "rust-service",
+      "use_cases": ["api-service"],
+      "choose_when": "A measured resource or latency constraint, an existing Rust service boundary, or a required Rust library justifies the language and asynchronous service model.",
+      "caveat": "The curated Rust service guide starts with Cargo and treats Axum, Tokio and database integrations as explicit composition choices. Measure the reason to accept their runtime and type complexity.",
+      "sources": [{"title": "axum documentation", "url": "https://docs.rs/axum/latest/axum/"}]
+    },
+    {
+      "id": "hono-workers-api",
+      "label": "TypeScript API on Cloudflare Workers",
+      "profile_id": null,
+      "use_cases": ["api-service"],
+      "choose_when": "The API is intentionally deployed to Cloudflare Workers and the team wants a Web Standards-based TypeScript routing layer.",
+      "caveat": "Runtime APIs, storage, background work and limits are provider-specific; there is no curated Stack Menu profile for this deployment.",
+      "sources": [{"title": "Hono on Cloudflare Workers", "url": "https://hono.dev/docs/getting-started/cloudflare-workers"}]
+    },
+    {
+      "id": "django-api",
+      "label": "Python API and data application",
+      "profile_id": "python-django",
+      "use_cases": ["api-service", "python-api"],
+      "choose_when": "The API is closely tied to relational product data, forms, staff administration or conventional Django workflows.",
+      "caveat": "Django's product framework can be broader than a narrow stateless service needs.",
+      "sources": [{"title": "Django overview", "url": "https://docs.djangoproject.com/en/stable/intro/overview/"}]
+    },
+    {
+      "id": "fastapi-general-api",
+      "label": "Python API framework",
+      "profile_id": "python-fastapi",
+      "use_cases": ["api-service"],
+      "choose_when": "The service specifically benefits from Python integrations, typed request/response models or OpenAPI generation.",
+      "caveat": "Choose Go for a general standalone API when Python's ecosystem is not a material need; FastAPI still needs explicit auth, persistence and jobs.",
+      "sources": [{"title": "FastAPI features", "url": "https://fastapi.tiangolo.com/features/"}]
+    },
+    {
+      "id": "rust-cli",
+      "label": "Rust command-line product",
+      "profile_id": "rust-cli",
+      "use_cases": ["cli"],
+      "choose_when": "A Rust library or measured resource-control requirement materially benefits the product and the team can own Rust tooling and target verification.",
+      "caveat": "Rust adds language, async and cross-compilation complexity; use Go for conventional compiled distribution when those constraints do not matter.",
+      "sources": [{"title": "The Rust Programming Language", "url": "https://doc.rust-lang.org/book/"}]
+    },
+    {
+      "id": "sveltekit-fullstack",
+      "label": "Full-stack Svelte application",
+      "profile_id": null,
+      "use_cases": ["web-product", "react-fullstack"],
+      "choose_when": "The team has a concrete Svelte/SvelteKit ecosystem preference and wants its routing and server/client application model.",
+      "caveat": "There is no curated Stack Menu profile here; validate the current adapter, rendering and server boundary before choosing it.",
+      "sources": [{"title": "SvelteKit introduction", "url": "https://svelte.dev/docs/kit/introduction"}]
+    },
+    {
+      "id": "nuxt-fullstack",
+      "label": "Full-stack Vue application",
+      "profile_id": null,
+      "use_cases": ["web-product", "react-fullstack"],
+      "choose_when": "The project or team is materially invested in Vue/Nuxt and wants an integrated full-stack application framework.",
+      "caveat": "There is no curated Stack Menu profile here; validate the current Nuxt version, modules, deployment adapter and server/client boundary.",
+      "sources": [{"title": "Nuxt tutorial", "url": "https://learn.nuxt.com/en"}]
+    },
+    {
+      "id": "native-platform-clients",
+      "label": "Separate native iOS and Android clients",
+      "profile_id": null,
+      "use_cases": ["cross-platform-mobile"],
+      "choose_when": "Platform-first experience, native APIs, lifecycle behavior or platform distribution justify separate teams/codebases for iOS and Android.",
+      "caveat": "This changes the one-shared-codebase premise: it is a two-client composition with two delivery and verification paths.",
+      "sources": [{"title": "Apple SwiftUI documentation", "url": "https://developer.apple.com/documentation/swiftui"}, {"title": "Android Jetpack Compose documentation", "url": "https://developer.android.com/develop/ui/compose"}]
+    },
+    {
+      "id": "flutter-mobile",
+      "label": "Flutter iOS and Android application",
+      "profile_id": null,
+      "use_cases": ["cross-platform-mobile"],
+      "choose_when": "A shared Dart and Flutter application fits the team's skills, UI needs and required native platform capabilities.",
+      "caveat": "There is no curated Stack Menu Flutter profile; verify plugin support, platform behavior, tooling and release paths for both targets.",
+      "sources": [{"title": "Flutter multi-platform development", "url": "https://docs.flutter.dev/platform-integration"}]
+    },
+    {
+      "id": "tanstack-start-conditional",
+      "label": "Typed React routing and server functions",
+      "profile_id": null,
+      "use_cases": ["react-fullstack", "web-product"],
+      "choose_when": "Only when type-safe file-based routing or framework-provided server functions directly solve a stated requirement and the project owner wants a JavaScript/TypeScript alternative.",
+      "caveat": "TanStack Start 1.0 is stable, but there is no curated Stack Menu profile. Check its runtime adapters, server boundary and documentation for the chosen version; it is a conditional research lead, not a default or a reason to migrate a healthy application.",
+      "sources": [{"title": "TanStack Start 1.0 announcement", "url": "https://tanstack.com/blog/tanstack-start-1-0"}, {"title": "TanStack Start documentation", "url": "https://tanstack.com/start/latest/docs/framework/react/overview"}]
+    }
+  ]
+}

@@ -278,126 +278,227 @@
 
   (function () {
     if (!document.querySelector('main[data-interactive="recommend"]')) return;
-    // The maintained records own the application kinds and shortlist membership.
-    var OPTIONS = [
-      { id: 'web', label: 'Website or web app', title: 'websites and web apps', ids: ['elixir-phoenix-liveview', 'typescript-next-node', 'typescript-react-vite-browser', 'rails-hotwire-postgresql', 'laravel-livewire-postgresql', 'python-django'] },
-      { id: 'api', label: 'API or backend service', title: 'APIs and backend services', ids: ['go-service', 'rust-service', 'python-fastapi', 'elixir-phoenix-liveview'] },
-      { id: 'cli', label: 'Command-line tool', title: 'command-line tools', ids: ['go-cli', 'rust-cli'] },
-      { id: 'automation', label: 'Automation, scripts or AI workflows', title: 'automation, scripts and AI workflows', ids: ['python-scripts-workers'] },
-      { id: 'ios', label: 'iPhone or iPad app', title: 'iPhone and iPad apps', ids: ['swift-swiftui-ios'] },
-      { id: 'android', label: 'Android app', title: 'Android apps', ids: ['kotlin-compose-android'] },
-      { id: 'other', label: 'Something else', title: '', ids: [] }
-    ];
-    OPTIONS.forEach(function (o) { o.ids = Object.keys(window.StackInteractiveProfiles).filter(function (id) { return window.StackInteractiveProfiles[id].kind.indexOf(o.id) !== -1; }); });
-    var MAX_COMPARE = 3;
-
+    var profiles = window.StackInteractiveProfiles || {};
     var stage = document.getElementById('stage');
     var host = document.getElementById('folders');
-    var msg = document.getElementById('msg'), gap = document.getElementById('gap');
-    var matchLabel = document.getElementById('match-label'), allLabel = document.getElementById('all-label');
-    var compare = document.getElementById('compare'), compareBtn = document.getElementById('compare-btn');
-    var compareLabel = compareBtn.querySelector('[data-label]'), compareHint = document.getElementById('compare-hint');
-    var compareCancel = document.getElementById('compare-cancel');
-    var cells = [].slice.call(host.querySelectorAll('.gf-cell'));
-    if (!cells.length) return;
-    var byId = Object.create(null);
-    cells.forEach(function (c) { byId[c.getAttribute('data-id')] = c; });
-
-    var current = null, picking = false;
-    var revealEl = document.getElementById('reveal');
-
-    // ---- Options ----
     var opts = document.getElementById('opts');
-    OPTIONS.forEach(function (o) {
-      var label = document.createElement('label');
-      label.className = 'opt';
-      label.innerHTML = '<input type="radio" name="build" value="' + o.id + '"><span></span>';
-      label.querySelector('span').appendChild(document.createTextNode(o.label));
-      label.querySelector('input').addEventListener('change', function () { choose(o); });
-      opts.appendChild(label);
-    });
-
-    // ---- Pick-to-compare checkboxes (only used when more than 3 stacks match) ----
-    cells.forEach(function (cell) {
-      var name = cell.querySelector('.gf-title').textContent;
-      var wrap = document.createElement('label');
-      wrap.className = 'rec-check';
-      wrap.innerHTML = '<input type="checkbox" class="checkbox">';
-      var box = wrap.firstChild;
-      box.setAttribute('aria-label', 'Compare ' + name);
-      box.value = cell.getAttribute('data-id');
-      box.addEventListener('change', updatePicks);
-      cell.appendChild(wrap);
-      // While picking, a click on a centred folder ticks it instead of opening the guide
-      cell.querySelector('.gf-hit').addEventListener('click', function (e) {
-        if (picking && cell.classList.contains('is-center')) { e.preventDefault(); if (!box.disabled || box.checked) { box.checked = !box.checked; updatePicks(); } }
-      });
-    });
-    function boxes() { return cells.filter(function (c) { return c.classList.contains('is-center'); }).map(function (c) { return c.querySelector('.rec-check input'); }); }
-    function picked() { return boxes().filter(function (b) { return b.checked; }).map(function (b) { return b.value; }); }
-    function updatePicks() {
-      var ids = picked(), n = ids.length;
-      boxes().forEach(function (b) { b.disabled = !b.checked && n >= MAX_COMPARE; });
-      var ready = n >= 2;
-      compareBtn.href = ready ? '/compare/?stacks=' + ids.join(',') : '#';
-      compareBtn.setAttribute('aria-disabled', String(!ready));
-      compareLabel.textContent = n ? 'Compare ' + n + ' of ' + MAX_COMPARE : 'Compare';
-    }
-    function setPicking(on) {
-      picking = on;
-      if (on) stage.setAttribute('data-picking', ''); else stage.removeAttribute('data-picking');
-      cells.forEach(function (c) { var b = c.querySelector('.rec-check input'); b.checked = false; b.disabled = false; });
-      compareBtn.className = on ? 'btn-primary' : 'btn-secondary';
-      compareHint.hidden = !on; compareCancel.hidden = !on;
-      if (on) updatePicks(); else setCompareLink();
-    }
-    function setCompareLink() {
-      var ids = current ? current.ids : [];
-      compareLabel.textContent = 'Compare stacks';
-      compareBtn.removeAttribute('aria-disabled');
-      // 2 or 3 matches compare straight away; more than 3 asks the viewer to pick
-      compareBtn.href = ids.length >= 2 && ids.length <= MAX_COMPARE ? '/compare/?stacks=' + ids.join(',') : '#';
-    }
-    compareBtn.addEventListener('click', function (e) {
-      if (!current) return;
-      if (picking) { if (compareBtn.getAttribute('aria-disabled') === 'true') e.preventDefault(); return; }
-      if (current.ids.length > MAX_COMPARE) { e.preventDefault(); setPicking(true); var first = boxes()[0]; if (first) first.focus(); }
-    });
-    compareCancel.addEventListener('click', function () { setPicking(false); compareBtn.focus(); });
-
+    var status = document.getElementById('recommendation-status');
+    var result = document.getElementById('recommendation-result');
+    var msg = document.getElementById('msg');
+    var matchLabel = document.getElementById('match-label');
+    var allLabel = document.getElementById('all-label');
+    var cells = [].slice.call(host.querySelectorAll('.gf-cell'));
+    var revealEl = document.getElementById('reveal');
     var clearSel = document.getElementById('clear-sel');
-    clearSel.addEventListener('click', function () {
-      var on = opts.querySelector('input:checked');
-      if (on) on.checked = false;
-      current = null;
-      history.replaceState(null, '', location.pathname);
-      if (picking) setPicking(false);
-      clearSel.hidden = true;
-      layout(true);
-      var first = opts.querySelector('input'); if (first) first.focus();
-    });
-
-    function choose(o) {
-      current = o;
-      history.replaceState(null, '', '?kind=' + encodeURIComponent(o.id));
-      clearSel.hidden = false;
-      if (picking) setPicking(false);
-      setCompareLink();
-      layout(true);
-      if (window.StackMenu) window.StackMenu.reveal(revealEl);
+    var current = null;
+    if (!cells.length) {
+      status.textContent = 'Stack guides are available in the library.';
+      return;
     }
 
-    // ---- Layout: picked folders in a centred grid, the rest in an overlapping row at the bottom ----
+    function esc(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
+      });
+    }
+    function setStatus(message, linkedProfile) {
+      status.replaceChildren(document.createTextNode(message + ' '));
+      if (linkedProfile) {
+        var guide = document.createElement('a');
+        guide.className = 'text-link';
+        guide.href = linkedProfile.guide_url || '/library/';
+        guide.textContent = 'Open ' + linkedProfile.title + ' guide';
+        status.appendChild(guide);
+        status.appendChild(document.createTextNode(' · '));
+      }
+      var workflow = document.createElement('a');
+      workflow.className = 'text-link';
+      workflow.href = '/choose.md';
+      workflow.textContent = 'Complete selection workflow';
+      status.appendChild(workflow);
+      status.appendChild(document.createTextNode(' · '));
+      var library = document.createElement('a');
+      library.className = 'text-link';
+      library.href = '/library/';
+      library.textContent = 'Browse every stack guide';
+      status.appendChild(library);
+    }
+    function writeQuery(query) {
+      var search = query.toString();
+      history.replaceState(null, '', location.pathname + (search ? '?' + search : '') + location.hash);
+    }
+    function updateQuery(changes) {
+      var query = new URLSearchParams(location.search);
+      Object.keys(changes).forEach(function (key) {
+        if (changes[key] == null) query.delete(key);
+        else query.set(key, changes[key]);
+      });
+      writeQuery(query);
+    }
+    function sourcesHtml(sources) {
+      return (sources || []).filter(function (source) {
+        return source && source.title && /^https?:\/\//i.test(String(source.url || ''));
+      }).map(function (source) {
+        return '<a class="text-link" href="' + esc(source.url) + '" target="_blank" rel="noopener">' + esc(source.title) + '<span class="sr-only"> (opens in a new tab)</span></a>';
+      }).join(' · ');
+    }
+    function renderAlternatives(useCase, alternatives) {
+      var relevant = alternatives.filter(function (alternative) {
+        return Array.isArray(alternative.use_cases) && alternative.use_cases.indexOf(useCase.id) !== -1;
+      });
+      if (!relevant.length) return '';
+      return '<section class="recommendation-alternatives"><h2>Consider another stack when</h2><div class="recommendation-options">' + relevant.map(function (alternative) {
+        var id = alternative.profile_id;
+        var profile = id && profiles[id];
+        var title = (profile && profile.title) || alternative.label;
+        var links = '';
+        if (id) {
+          var href = (profile && profile.guide_url) || '/library/';
+          links = '<div class="recommendation-actions"><a class="recommendation-link" href="' + esc(href) + '" aria-label="Read ' + esc(title) + ' guide">Read guide <span aria-hidden="true">→</span></a>';
+          if (profile && useCase.primary && id !== useCase.primary) {
+            links += '<a class="recommendation-link" href="/compare/?stacks=' + encodeURIComponent(useCase.primary) + ',' + encodeURIComponent(id) + '" aria-label="Compare ' + esc(title) + ' with ' + esc((profiles[useCase.primary] || {}).title || useCase.primary) + '">Compare <span aria-hidden="true">→</span></a>';
+          }
+          links += '</div>';
+        }
+        var sourceLinks = sourcesHtml(alternative.sources);
+        return '<article class="recommendation-alternative"><h3>' + esc(title) + '</h3>' +
+          (alternative.choose_when ? '<p><strong>Choose it when:</strong> ' + esc(alternative.choose_when) + '</p>' : '') +
+          (alternative.caveat ? '<p><strong>Trade-off:</strong> ' + esc(alternative.caveat) + '</p>' : '') +
+          '<div class="recommendation-footer">' + links + (sourceLinks ? '<p class="recommendation-sources">Sources: ' + sourceLinks + '</p>' : '') + '</div></article>';
+      }).join('') + '</div></section>';
+    }
+    function renderRecommendation(useCase, alternatives) {
+      var id = useCase.primary;
+      var profile = id && profiles[id];
+      var title = (profile && profile.title) || id || 'Recommended stack';
+      var href = (profile && profile.guide_url) || '/library/';
+      var sourceLinks = sourcesHtml(useCase.sources);
+      var actions = '<div class="recommendation-actions"><a class="btn-primary" href="' + esc(href) + '" aria-label="Read ' + esc(title) + ' guide">Read guide <span aria-hidden="true">→</span></a>';
+      actions += '<a class="recommendation-link" href="/library/">All stack guides <span aria-hidden="true">→</span></a></div>';
+      var missing = profile ? '' : '<p class="recommendation-missing">The matching guide is not present in this catalogue build yet. Browse the library while it is added.</p>';
+      result.innerHTML = '<div class="recommendation-primary"><p class="eyebrow">Recommended starting point</p><h2><a class="text-link" href="' + esc(href) + '">' + esc(title) + '</a></h2>' +
+        '<p>' + esc(useCase.why || '') + '</p>' +
+        (useCase.tradeoff ? '<p class="recommendation-tradeoff"><strong>Trade-off:</strong> ' + esc(useCase.tradeoff) + '</p>' : '') +
+        missing + actions + (sourceLinks ? '<p class="recommendation-sources">Editorial sources: ' + sourceLinks + '</p>' : '') + '</div>' +
+        renderAlternatives(useCase, alternatives);
+      result.hidden = false;
+    }
+
+    // Keep the designer's single-choice radio behavior, populated from the shared editorial records.
+    function start(contract) {
+      var useCases = Array.isArray(contract.use_cases) ? contract.use_cases : [];
+      var alternatives = Array.isArray(contract.alternatives) ? contract.alternatives : [];
+      if (!useCases.length) throw new Error('No recommendation use cases were published.');
+      var existing = [].slice.call(opts.querySelectorAll('input[name="use_case"]'));
+      if (existing.length !== useCases.length || existing.some(function (input, index) { return input.value !== useCases[index].id; })) {
+        opts.querySelectorAll('.opt').forEach(function (label) { label.remove(); });
+        useCases.forEach(function (useCase) {
+          var label = document.createElement('label');
+          label.className = 'opt';
+          var input = document.createElement('input');
+          input.type = 'radio'; input.name = 'use_case'; input.value = useCase.id;
+          var text = document.createElement('span'); text.textContent = useCase.label;
+          label.appendChild(input); label.appendChild(text); opts.appendChild(label);
+        });
+      }
+      var inputs = [].slice.call(opts.querySelectorAll('input[name="use_case"]'));
+      inputs.forEach(function (input) {
+        input.addEventListener('change', function () {
+          var useCase = useCases.filter(function (item) { return item.id === input.value; })[0];
+          if (useCase) choose(useCase, alternatives);
+        });
+      });
+      var defaultStatus = 'One editorial starting point per job, with its trade-off and conditions for alternatives.';
+      var query = new URLSearchParams(location.search);
+      var requestedUseCase = query.get('use_case');
+      var requestedStack = query.get('stack');
+      var initial = useCases.filter(function (item) { return item.id === requestedUseCase; })[0];
+      var invalidUseCase = !!requestedUseCase && !initial;
+      var linkedProfile = requestedStack && profiles[requestedStack];
+      var contextMessage = '';
+      // Older folder links use ?stack=<profile-id>. Resolve them to an editorial
+      // job without treating the linked stack as a user-selected recommendation.
+      if (!initial && query.get('stack')) {
+        initial = useCases.filter(function (item) { return item.primary === requestedStack; })[0];
+        if (!initial) {
+          var linkedAlternative = alternatives.filter(function (alternative) {
+            return alternative.profile_id === requestedStack && Array.isArray(alternative.use_cases) && alternative.use_cases.length;
+          })[0];
+          if (linkedAlternative) {
+            initial = useCases.filter(function (item) { return item.id === linkedAlternative.use_cases[0]; })[0];
+            if (initial && linkedProfile && requestedStack !== initial.primary) {
+              contextMessage = 'This older link opens ' + linkedProfile.title + ', a conditional alternative for ' + initial.label + '. The editorial starting point remains ' + ((profiles[initial.primary] && profiles[initial.primary].title) || initial.primary) + '.';
+            }
+          }
+        }
+      }
+      if (initial && requestedStack && linkedProfile) {
+        var matchingAlternative = alternatives.some(function (alternative) {
+          return alternative.profile_id === requestedStack && Array.isArray(alternative.use_cases) && alternative.use_cases.indexOf(initial.id) !== -1;
+        });
+        if (requestedStack !== initial.primary && matchingAlternative) {
+          contextMessage = 'This older link opens ' + linkedProfile.title + ', a conditional alternative for ' + initial.label + '. The editorial starting point remains ' + ((profiles[initial.primary] && profiles[initial.primary].title) || initial.primary) + '.';
+        } else if (requestedStack !== initial.primary) {
+          contextMessage = 'This link also names ' + linkedProfile.title + ', which is not a conditional alternative for ' + initial.label + '. Showing the reviewed recommendation for that job.';
+        } else if (requestedUseCase) {
+          contextMessage = 'This older stack link matches the reviewed starting point for ' + initial.label + '.';
+        }
+      }
+      if (initial) {
+        if (invalidUseCase) contextMessage = 'The requested job could not be matched. Showing the job related to this older stack link. ' + contextMessage;
+        setStatus(contextMessage || defaultStatus, contextMessage && linkedProfile ? linkedProfile : null);
+        if (requestedStack && !linkedProfile) {
+          query.delete('stack');
+          setStatus('This bookmark included a stack that is no longer in the catalogue. Showing the reviewed recommendation for ' + initial.label + '.', null);
+        }
+        query.set('use_case', initial.id);
+        writeQuery(query);
+      } else {
+        if (invalidUseCase) query.delete('use_case');
+        if (requestedStack && !linkedProfile) query.delete('stack');
+        writeQuery(query);
+        if (invalidUseCase && requestedStack && !linkedProfile) {
+          setStatus('This bookmark names a job and stack we cannot match. Choose a job or open the library.', null);
+        } else if (invalidUseCase && requestedStack && linkedProfile) {
+          setStatus('That job link is no longer available, and this stack has no related task recommendation. You can open its guide or choose a job.', linkedProfile);
+        } else if (invalidUseCase) {
+          setStatus('That job link is no longer available. Choose a job or open the library.', null);
+        } else if (requestedStack && !linkedProfile) {
+          setStatus('That stack link is no longer available. Choose a job or open the library.', null);
+        } else if (requestedStack && linkedProfile) {
+          setStatus('This stack guide is available, but it is not linked to a task recommendation. Choose a job or open its guide.', linkedProfile);
+        } else {
+          setStatus(defaultStatus, null);
+        }
+      }
+      if (initial) {
+        var radio = inputs.filter(function (input) { return input.value === initial.id; })[0];
+        if (radio) radio.checked = true;
+        choose(initial, alternatives, false);
+      }
+
+      function choose(useCase, conditionalAlternatives, updateUrl) {
+        current = { id: useCase.id, title: useCase.label, primaryId: useCase.primary, ids: profiles[useCase.primary] ? [useCase.primary] : [] };
+        if (updateUrl !== false) {
+          updateQuery({ use_case: useCase.id, stack: null });
+          setStatus(defaultStatus, null);
+        }
+        clearSel.hidden = false;
+        renderRecommendation(useCase, conditionalAlternatives);
+        layout(true);
+        if (window.StackMenu) window.StackMenu.reveal(revealEl);
+      }
+    }
+
+    var matchLabel = document.getElementById('match-label');
     function layout(animate) {
       var vw = stage.clientWidth;
       var small = vw < 640;
-      var CW = 220, CH = (byId[cells[0].getAttribute('data-id')].offsetHeight) || 211;
+      var CW = 220, CH = (cells[0].offsetHeight) || 211;
       var ids = current ? current.ids : [];
-      var pickedSet = {};
+      var pickedSet = Object.create(null);
       ids.forEach(function (id) { pickedSet[id] = true; });
       var n = ids.length;
-
-      // Centre grid: as many columns as fit while folders stay readable
       var cgap = small ? 12 : 24, cols = n, rows = 1, cs = 1;
       if (n) {
         var minScale = small ? .6 : .72;
@@ -408,92 +509,68 @@
         }
       }
       var cellW = CW * cs, cellH = CH * cs;
-      var labelH = 36;                       // "6 stacks for …" above the grid
-      var gridH = n ? rows * cellH + (rows - 1) * cgap : 0;
-      var compareH = n >= 2 ? 72 : 0;
-
-      // Centre area height: grid + label + compare, or the message / no-guide panel
-      var centreH;
-      if (n) centreH = labelH + gridH + compareH + 24;
-      else if (current && current.id === 'other') centreH = gap.offsetHeight + 48;
-      else centreH = small ? 160 : 220;
-
-      // Bottom row of the remaining folders
-      var rest = cells.filter(function (c) { return !pickedSet[c.getAttribute('data-id')]; });
-      var m = Math.max(rest.length, 1);
-      var rs = small ? .38 : vw < 1024 ? .44 : .52;
+      var labelH = 36, gridH = n ? rows * cellH + (rows - 1) * cgap : 0;
+      var rowLabelY = (n ? labelH + gridH + 24 : (small ? 160 : 220)) + 24;
+      var rest = cells.filter(function (cell) { return !pickedSet[cell.getAttribute('data-id')]; });
+      var m = Math.max(rest.length, 1), rs = small ? .38 : vw < 1024 ? .44 : .52;
       var rw = CW * rs, rh = CH * rs;
       var step = m < 2 ? 0 : Math.min(rw + 12, (vw - rw) / (m - 1));
-      var rowW = step * (m - 1) + rw;
-      var rowX = (vw - rowW) / 2;
-      var rowLabelY = centreH + 24;
-      var rowY = rowLabelY + 32;
+      var rowW = step * (m - 1) + rw, rowX = (vw - rowW) / 2, rowY = rowLabelY + 32;
       stage.style.height = (rowY + rh + 8) + 'px';
-      // Area to bring into view after a choice: the matches and Compare, or the no-guide panel
-      revealEl.style.height = Math.max(1, n ? labelH + gridH + compareH : centreH) + 'px';
-
-      // Place
+      revealEl.style.height = Math.max(1, n ? labelH + gridH + 24 : 180) + 'px';
       var order = 0;
-      cells.forEach(function (c, i) {
-        var id = c.getAttribute('data-id'), isPicked = !!pickedSet[id];
-        c.classList.toggle('is-center', isPicked);
-        c.classList.toggle('is-dim', !!current && !isPicked);
-        c.style.zIndex = isPicked ? 30 : 10 + i;
-        var x, y, s;
+      cells.forEach(function (cell, i) {
+        var id = cell.getAttribute('data-id'), isPicked = !!pickedSet[id];
+        cell.classList.toggle('is-center', isPicked);
+        cell.classList.toggle('is-dim', !!current && !isPicked);
+        cell.style.zIndex = isPicked ? 30 : 10 + i;
+        var x, y, scale;
         if (isPicked) {
-          var k = ids.indexOf(id), r = Math.floor(k / cols), col = k % cols;
-          var inRow = Math.min(cols, n - r * cols);
-          var rowWidth = inRow * cellW + (inRow - 1) * cgap;
-          x = (vw - rowWidth) / 2 + col * (cellW + cgap);
-          y = labelH + r * (cellH + cgap);
-          s = cs;
-          c.style.transitionDelay = animate ? (order++ * 60) + 'ms' : '0ms';
+          var k = ids.indexOf(id), row = Math.floor(k / cols), col = k % cols;
+          var inRow = Math.min(cols, n - row * cols);
+          x = (vw - (inRow * cellW + (inRow - 1) * cgap)) / 2 + col * (cellW + cgap);
+          y = labelH + row * (cellH + cgap); scale = cs;
+          cell.style.transitionDelay = animate ? (order++ * 60) + 'ms' : '0ms';
         } else {
-          x = rowX + rest.indexOf(c) * step; y = rowY; s = rs;
-          c.style.transitionDelay = '0ms';
+          x = rowX + rest.indexOf(cell) * step; y = rowY; scale = rs; cell.style.transitionDelay = '0ms';
         }
-        c.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) scale(' + s.toFixed(3) + ')';
-        c.style.setProperty('--gf-tip-scale', (1 / s).toFixed(3));
+        cell.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) scale(' + scale.toFixed(3) + ')';
+        cell.style.setProperty('--gf-tip-scale', (1 / scale).toFixed(3));
       });
-
-      // Messages
-      msg.style.top = (centreH / 2 - msg.offsetHeight / 2) + 'px';
+      msg.style.top = (((small ? 160 : 220) / 2) - msg.offsetHeight / 2) + 'px';
       msg.classList.toggle('is-hidden', !!current);
-      gap.style.top = '0px';
-      var isGap = !!current && current.id === 'other';
-      gap.classList.toggle('is-hidden', !isGap);
-      gap.setAttribute('aria-hidden', String(!isGap));
       matchLabel.style.top = '0px';
-      matchLabel.classList.toggle('is-hidden', !n);
-      matchLabel.textContent = n ? n + (n === 1 ? ' stack for ' : ' stacks for ') + current.title : '';
-      compare.style.top = (labelH + gridH + 24) + 'px';
-      compare.classList.toggle('is-hidden', n < 2);
+      matchLabel.classList.toggle('is-hidden', !current);
+      matchLabel.textContent = current ? 'Recommended for ' + current.title : '';
       allLabel.style.top = rowLabelY + 'px';
-      allLabel.textContent = n ? 'Other stack guides' : Object.keys(window.StackInteractiveProfiles).length + ' stack guides';
+      allLabel.textContent = current ? 'Other stack guides' : Object.keys(profiles).length + ' stack guides';
     }
 
-    // Accept useful shared links without allowing query text into markup.
-    var query = new URLSearchParams(location.search);
-    var requestedKind = query.get('kind');
-    var requestedStackId = query.get('stack');
-    var requestedStack = Object.hasOwn(window.StackInteractiveProfiles, requestedStackId) ? window.StackInteractiveProfiles[requestedStackId] : null;
-    if (!requestedKind && requestedStack) requestedKind = requestedStack.kind[0];
-    var initialOption = OPTIONS.filter(function (o) { return o.id === requestedKind; })[0];
-    if (initialOption) {
-      var initialRadio = opts.querySelector('input[value="' + initialOption.id + '"]');
-      initialRadio.checked = true;
-      current = initialOption; clearSel.hidden = false; setCompareLink();
-    }
+    clearSel.addEventListener('click', function () {
+      var selected = opts.querySelector('input[name="use_case"]:checked');
+      if (selected) selected.checked = false;
+      current = null; result.hidden = true;
+      updateQuery({ use_case: null, stack: null });
+      setStatus('Choose a job to see one reviewed starting point and when another stack may suit better.', null);
+      clearSel.hidden = true;
+      layout(true);
+      var first = opts.querySelector('input[name="use_case"]'); if (first) first.focus();
+    });
 
-    // First paint without animation, then animate every later change
-    cells.forEach(function (c) { c.style.transition = 'none'; });
+    fetch('/recommendations.json').then(function (response) {
+      if (!response.ok) throw new Error(response.status);
+      return response.json();
+    }).then(start).catch(function () {
+      opts.disabled = true;
+      setStatus('Recommendations are temporarily unavailable. Read the complete selection workflow or browse the library.', null);
+    });
+    cells.forEach(function (cell) { cell.style.transition = 'none'; });
     layout(false);
-    requestAnimationFrame(function () { requestAnimationFrame(function () { cells.forEach(function (c) { c.style.transition = ''; }); }); });
-    var rt;
-    window.addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { layout(false); }, 80); });
+    requestAnimationFrame(function () { requestAnimationFrame(function () { cells.forEach(function (cell) { cell.style.transition = ''; }); }); });
+    var resizeTimer;
+    window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(function () { layout(false); }, 80); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { layout(false); });
   })();
-
 
   (function () {
     if (!document.querySelector('main[data-interactive="rewrite"]')) return;
