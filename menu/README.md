@@ -14,3 +14,5 @@ Imported architecture/migration records retain their 11 October source date and 
 
 
 [Generator guidance](generators/README.md) is a first-party current layer, separate from the imported research snapshots. It owns creation/template choices and conditional follow-up generation for every curated profile; `content/generation-policy.json` owns the common requirement. The compiler merges it into every profile representation and publishes `/generators.json`. Its source-review dates do not update or imply execution of older setup recipes.
+
+`updates.json` owns narrowly sourced current corrections over imported tool facts. `scripts/current_content.py` applies each correction only while its declared previous wording still matches, so a later reimport requires reconciliation. Each served record and guide keeps the correction date/evidence alongside its unchanged original review date.

@@ -1,0 +1,17 @@
+{
+  "scope": "Specific current corrections over dated imported research. Original review dates and source snapshots remain unchanged.",
+  "updates": [
+    {
+      "profile_id": "typescript-next-node",
+      "tool_job": "application framework",
+      "reviewed_on": "2026-10-23",
+      "evidence_status": "documentation-reviewed; no TanStack Start application integration executed",
+      "previous_limits": "TanStack Start official homepage labelled RC at review; web UI is not native UI; framework does not supply business correctness",
+      "limits": "TanStack Start 1.0 became stable on 13 October 2026; the imported 10 October RC observation is historical. Consider Start when its typed routing and server-function model fit the project, after checking the selected adapter and integrations. Web UI is not native UI; no framework supplies business correctness.",
+      "sources": [
+        {"title": "TanStack Start 1.0 is stable", "url": "https://tanstack.com/blog/tanstack-start-1-0", "claim": "The official release announcement dates the stable 1.0 release to 13 October 2026."},
+        {"title": "TanStack Start overview", "url": "https://tanstack.com/start/latest/docs/framework/react/overview", "claim": "Start provides typed routing, rendering and server functions; project-specific hosting and integration choices remain explicit."}
+      ]
+    }
+  ]
+}

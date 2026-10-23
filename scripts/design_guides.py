@@ -92,7 +92,8 @@ def prepare(root, out, pages, records, write, shell):
         checks = section('run-checks', 'Run checks', '<p class="guide-caption">Run these in the configured application. They are instructions, not recorded passes.</p><div class="cmd"><pre><code>' + escape('\n'.join(record['verification_commands'])) + '</code></pre></div>')
         practices = section('working-practices', 'Working practices', '<div class="g-card guide-rows">' + items(record['best_practices']) + '</div>')
         questions = section('questions', 'Questions to resolve', '<div class="g-card guide-rows">' + items(record['open_questions']) + '</div>')
-        sources = section('sources', 'Sources', '<p class="guide-caption">Original source review: ' + escape(record['reviewed']) + '. Core guidance rechecked: ' + escape(record['research_freshness'].get('core_guidance_checked_on', record['reviewed'])) + '. <a href="/research-freshness.json">Check scope</a>.</p>'
+        correction_note = ''.join('<p class="guide-caption">Current correction reviewed ' + escape(c['reviewed_on']) + ': ' + escape(c['limits']) + ' Evidence: ' + escape(c['evidence_status']) + '.</p>' for c in record.get('current_corrections', []))
+        sources = section('sources', 'Sources', correction_note + '<p class="guide-caption">Original source review: ' + escape(record['reviewed']) + '. Core guidance rechecked: ' + escape(record['research_freshness'].get('core_guidance_checked_on', record['reviewed'])) + '. <a href="/research-freshness.json">Check scope</a>.</p>'
             '<div class="sources">' + ''.join('<a class="source" href="' + escape(source['url']) + '"><span>' + escape(source.get('title', source['url'])) + '</span><span aria-hidden="true">↗</span></a>' for source in record['sources']) + '</div>')
         extended = ''
         if record.get('extended_reference'):

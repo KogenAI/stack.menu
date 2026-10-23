@@ -5,6 +5,7 @@ import json, html, re, shutil, hashlib
 from datetime import date
 import migration_content
 import generator_content
+import current_content
 R=Path(__file__).resolve().parent.parent
 RESEARCH=R/'menu/inputs/research'
 ELIXIR=R/'menu/inputs/elixir'
@@ -64,6 +65,7 @@ for sid,path in curated_paths.items():
 expected=set(meta)
 if set(records)!=expected:raise ValueError(f'Profile coverage mismatch: missing={expected-set(records)}, extra={set(records)-expected}')
 records={i:records[i] for i in meta}
+current_corrections=current_content.apply(R,records)
 generator_policy,generators=generator_content.load(R,records)
 for sid,d in records.items():
  d['generators']={**generators[sid], 'policy':generator_policy}
@@ -183,6 +185,8 @@ def markdown(d):
   source_file='menu/'+source_file if source_file.startswith('inputs/') else 'menu/inputs/research/'+source_file
  lines=[f"# {d['title']}",'',d['summary'],'',f"Language: {d['language']} | Reviewed: {d['reviewed']} | Evidence: {d.get('evidence_status','documentation-reviewed')}",'',f"Source record: {source_file}.",'', 'Core guidance checked: '+d['research_freshness'].get('core_guidance_checked_on',d['reviewed'])+'. Review sources are listed below. /research-freshness.json describes the imported research packet; this record retains its own evidence scope. These recipes and selected dependency combinations need qualification in the actual project.']
  lines += ['','## Application role', 'Components: '+', '.join(d['kind']), 'UI: '+d['ui'], 'Deployment: '+d['host'], '', '## Use cases', *['- '+x for x in d['use_cases']], '', '## Fit',*['- '+x for x in d['choose_when']],'','## Choose something else when',*['- '+x for x in d['avoid_when']],'','## Agent workflow',*['- '+x for x in COMMON],'','## Best practices',*['- '+x for x in d['best_practices']],'',generator_content.markdown(d['generators'],generator_policy),'## Tools']
+ for correction in d.get('current_corrections',[]):
+  lines += ['', 'Current correction reviewed '+correction['reviewed_on']+': '+correction['limits'], 'Evidence: '+correction['evidence_status'], *['- ['+source['title']+']('+source['url']+')' for source in correction['sources']], '']
  for t in d['tools']:
   lines+=['',f"### {t['job']}: {t['default']}",'',t['reason'],'','Limits and integration: '+t['limits'],'','',*['- '+u for u in t.get('source_urls',[])]]
   if t.get('alternatives'):lines+=['','Alternatives: '+'; '.join(str(x) for x in t['alternatives'])]
