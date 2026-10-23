@@ -1,6 +1,6 @@
 {
   "profile_id": "rails-hotwire-postgresql",
-  "reviewed_on": "2026-10-18",
+  "reviewed_on": "2026-10-23",
   "evidence_status": "documentation-reviewed; commands not executed",
   "starting_points": [
     {
@@ -31,6 +31,37 @@
       "notes": [
         "Replace my_app with the intended unused Rails name. The normal generator initializes Git without committing; review any custom application templates for extra effects.",
         "Do not add --skip-git just to avoid a commit: it also skips generated .gitignore/.gitattributes. Rails defaults already include Turbo/Stimulus; do not install a separate SPA or skip Hotwire without a product reason."
+      ]
+    },
+    {
+      "name": "Rails API-only application",
+      "when": "Choose for a new API-first backend whose clients consume JSON; this is a distinct application mode from the normal Rails/Hotwire web application above.",
+      "steps": [
+        "Select a supported Rails/Ruby release and inspect the installed `rails new --help`; the current Rails 8.1 guide documents the --api mode.",
+        "Generate into a new absent directory with PostgreSQL and API mode, then inspect generated middleware, controller base class, resource generators, database setup and tests.",
+        "Before implementing endpoints, decide whether clients are server-side, native, or browser-based and select the matching authentication/session contract. API mode omits browser middleware such as cookies by default; add only the browser/session pieces required by the chosen contract."
+      ],
+      "commands": [
+        {
+          "run": "rails new --help",
+          "cwd": "A local source-workspace parent outside synchronized storage; my_api must not already exist",
+          "purpose": "Confirm the installed generator supports the selected database and API flags."
+        },
+        {
+          "run": "rails new my_api --api --database=postgresql",
+          "cwd": "A local source-workspace parent outside synchronized storage; my_api must not already exist",
+          "purpose": "Generate a Rails API-only app with PostgreSQL configuration."
+        },
+        {
+          "run": "bin/rails db:prepare",
+          "cwd": "The generated my_api directory after configuring the intended development database",
+          "purpose": "Prepare the generated app's development database."
+        }
+      ],
+      "notes": [
+        "Rails 8.1 `--api` reduces middleware, makes ApplicationController inherit from ActionController::API, and configures resource generators to omit views/helpers/assets. This changes the web application shape; use the normal Hotwire app when server-rendered browser pages are primary.",
+        "Do not install authentication, cookie/session middleware or CORS support by reflex. Select an identity provider/token or cookie-session design from actual client needs; cookie-authenticated browser requests need a deliberate CSRF contract. Configure narrowly scoped CORS only for cross-origin browser clients, and test allowed and rejected origins.",
+        "If a follow-up resource scaffold is selected, its generated JSON CRUD is only a starting point, not a proven API contract. Define request/response schemas, status/error behavior, versioning and object-level authorization before exposing resources."
       ]
     }
   ],
@@ -90,10 +121,19 @@
   ],
   "verification": [
     "Inspect bin/rails generate and the relevant generator --help for the installed version.",
-    "Run database migration status, bin/rails zeitwerk:check, domain/system tests and generated security/style checks that are present.",
+    "Run database migration status, bin/rails zeitwerk:check, domain/system tests and generated security/style checks that are present. For browser UI flows, inspect a browser journey; API-only apps should verify HTTP contracts through request/integration tests instead.",
+    "For API mode, test documented JSON request/response and error contracts, authentication and object authorization; when browser clients are used, verify CSRF/session behavior and both permitted and rejected CORS origins.",
     "Run the generated server and inspect a browser journey; authentication/authorization still require behavior tests."
   ],
   "sources": [
+    {
+      "title": "Rails 8.1 API-only applications",
+      "url": "https://guides.rubyonrails.org/v8.1/api_app.html"
+    },
+    {
+      "title": "Rails 8.1 command line and application generation",
+      "url": "https://guides.rubyonrails.org/v8.1/command_line.html"
+    },
     {
       "title": "Rails command line and generators",
       "url": "https://guides.rubyonrails.org/command_line.html"
@@ -118,7 +158,8 @@
   "integration_steps": [
     "Configure ignored development/test database credentials and prepare the intended databases using the generated configuration. Use the conditional authentication generator when login is required; implement signup and resource-level permissions deliberately.",
     "If Pundit is the selected authorization library, add it through Bundler and run bin/rails generate pundit:install after reviewing installed help; implement and invoke policies rather than relying on authentication alone.",
-    "Start bin/rails server and inspect a browser journey. Configure Solid Queue using the installed-version guide and run its bin/jobs worker only when background work is required and enabled.",
+    "For an API-first product, use the separate Rails --api starting point. Choose a client-specific identity and session model; configure cookies/CSRF only when browser sessions require them, and configure restricted CORS only for cross-origin browser clients. Test JSON request/response contracts, authentication, per-resource authorization, error statuses, and permitted/rejected origins as applicable.",
+    "For the Hotwire web app, start bin/rails server and inspect a browser journey; for an API-only app, verify its HTTP request/response journeys instead. Configure Solid Queue using the installed-version guide and run its bin/jobs worker only when background work is required and enabled.",
     "Preserve Gemfile.lock and the generated checks. Add bundler-audit in development only if it is required and absent. Define authorization, duplicate-job and migration tests for the features present.",
     "Prepare the chosen deployment configuration, secret ownership, database persistence and backup/restore procedure. When Kamal is the selected host tooling and deployment is authorized, use bundle exec kamal setup for initial setup or bundle exec kamal deploy for a subsequent release."
   ]

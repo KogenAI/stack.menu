@@ -1,6 +1,6 @@
 {
   "profile_id": "python-django",
-  "reviewed_on": "2026-10-18",
+  "reviewed_on": "2026-10-23",
   "evidence_status": "documentation-reviewed; commands not executed",
   "starting_points": [
     {
@@ -36,6 +36,27 @@
     }
   ],
   "follow_up_generators": [
+    {
+      "name": "Conditional Django REST Framework API layer",
+      "when": "Only after completing the Django project bootstrap above, and only when the application needs JSON API endpoints. Django has no built-in API-only project mode.",
+      "commands": [
+        {
+          "run": "uv add djangorestframework",
+          "cwd": "/path/to/local/source/django-app",
+          "purpose": "Install and lock the optional REST API framework in this project."
+        },
+        {
+          "run": "uv run python manage.py startapp api",
+          "cwd": "/path/to/local/source/django-app",
+          "purpose": "Generate the app that will own API serializers, views and routes."
+        }
+      ],
+      "notes": [
+        "Django's own `startproject` remains the general project bootstrap; DRF is a separately installed library and API layer, not a native Django API-only generator. Add both `rest_framework` and `api.apps.ApiConfig` (or the chosen generated API AppConfig) to INSTALLED_APPS, then follow the upstream quickstart for serializers, views, routers and API tests.",
+        "DRF's default permission policy is AllowAny. Set an intentional global or per-view permission policy and add object/tenant checks where needed; authentication alone does not authorize access. Select authentication based on client type, and treat session-authenticated browser requests' CSRF requirements deliberately.",
+        "Add CORS middleware/package and narrowly allow required origins only if a browser client actually calls the API cross-origin. Same-origin, server-to-server and native clients need different handling; do not install CORS or token-auth packages by default."
+      ]
+    },
     {
       "name": "Django application module",
       "when": "A new domain app is needed inside the existing project; substitute a domain name for core.",
@@ -90,11 +111,32 @@
   ],
   "verification": [
     "From /path/to/local/source/django-app: uv sync --locked; uv run python manage.py check; uv run python manage.py makemigrations --check --dry-run.",
+    "For a DRF API, test explicit public/protected permissions, object/tenant denials, input validation and response contracts with DRF APIClient/APIRequestFactory; test session CSRF and narrowly allowed/rejected CORS origins when browser clients require them.",
     "After reviewed migrations on the configured development database: uv run python manage.py migrate --check. Run application tests using its configured runner and a production-relevant isolated database.",
     "Run uv run python manage.py check --deploy against the actual production settings module once it exists; runserver is a development server.",
     "Compare a disposable scaffold made with the same uv/Django versions and flags; review the generated baseline and document deviations. Inspect tracked/staged files and verify ignore rules against local debris, caches and secrets."
   ],
   "sources": [
+    {
+      "title": "Django 6.0 project bootstrap and supported Python version",
+      "url": "https://docs.djangoproject.com/en/6.0/intro/tutorial01/"
+    },
+    {
+      "title": "Django REST framework quickstart and project setup",
+      "url": "https://www.django-rest-framework.org/tutorial/quickstart/"
+    },
+    {
+      "title": "Django REST framework authentication schemes",
+      "url": "https://www.django-rest-framework.org/api-guide/authentication/"
+    },
+    {
+      "title": "Django REST framework permissions and AllowAny default",
+      "url": "https://www.django-rest-framework.org/api-guide/permissions/"
+    },
+    {
+      "title": "Django REST framework API request testing",
+      "url": "https://www.django-rest-framework.org/api-guide/testing/"
+    },
     {
       "title": "uv project creation and layout choices",
       "url": "https://docs.astral.sh/uv/concepts/projects/init/"

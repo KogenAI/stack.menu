@@ -1,6 +1,6 @@
 {
   "profile_id": "laravel-livewire-postgresql",
-  "reviewed_on": "2026-10-18",
+  "reviewed_on": "2026-10-23",
   "evidence_status": "documentation-reviewed; commands not executed",
   "starting_points": [
     {
@@ -51,6 +51,27 @@
     }
   ],
   "follow_up_generators": [
+    {
+      "name": "Conditional API routes and client authentication",
+      "when": "Only when the application needs API endpoints for external, native or browser clients. Use this on the existing Laravel application after creation; the normal Livewire starter remains the web UI baseline.",
+      "commands": [
+        {
+          "run": "php artisan install:api",
+          "cwd": "The generated my-app directory",
+          "purpose": "Install Sanctum and create the stateless routes/api.php route file."
+        },
+        {
+          "run": "php artisan route:list --path=api -v",
+          "cwd": "The generated my-app directory",
+          "purpose": "Inspect API routes and middleware after the API setup."
+        }
+      ],
+      "notes": [
+        "Current Laravel 13 docs describe `install:api` as creating routes/api.php and installing Sanctum. The generated API route group is stateless; that does not mean every API endpoint must be stateless or authenticated. Keep intended public endpoints public, and apply auth:sanctum plus policy/ability checks only to protected routes. This setup is not necessary for a Livewire-only product.",
+        "Choose the client contract deliberately. Sanctum supports bearer API tokens for native/third-party clients and cookie-based session authentication with CSRF protection for first-party SPAs sharing the same top-level domain. For cookie clients, configure stateful domains, CORS credentials, cookie scope and XSRF headers together; for cross-origin browser clients, allow only the required origins. Do not use bearer tokens for a first-party SPA when Sanctum's documented cookie flow fits.",
+        "`php artisan install:api --passport` is a separate choice only when OAuth2 server capabilities are required. Do not install Passport and Sanctum indiscriminately."
+      ]
+    },
     {
       "name": "Eloquent model and migration",
       "when": "Adding an example Product domain resource.",
@@ -114,10 +135,23 @@
   ],
   "verification": [
     "Run composer check-platform-reqs, php artisan about, php artisan migrate:status, php artisan test and npm run build.",
+    "When API routes are selected, add HTTP tests for public/protected route behavior, authentication, policy denials, validation and response contracts; test CSRF, cookies and allowed/rejected CORS origins for browser clients that need them.",
     "Run the generated style/security checks available in the project; verify database tests use a dedicated test database.",
     "Use composer run dev and verify registration/login and one authorized plus one rejected browser flow. Record resolved versions and generation choices."
   ],
   "sources": [
+    {
+      "title": "Laravel 13 API routing and install:api behavior",
+      "url": "https://laravel.com/framework/docs/13.x/routing"
+    },
+    {
+      "title": "Laravel 13 Sanctum tokens, SPA sessions and CSRF",
+      "url": "https://laravel.com/framework/docs/13.x/sanctum"
+    },
+    {
+      "title": "Laravel 13 Passport and OAuth2 selection",
+      "url": "https://laravel.com/framework/docs/13.x/passport"
+    },
     {
       "title": "Laravel starter kits",
       "url": "https://laravel.com/framework/docs/13.x/starter-kits"
@@ -157,6 +191,7 @@
   ],
   "integration_steps": [
     "Configure ignored .env database/mail/queue settings for the features selected and confirm application key generation. Review the target database and migration status before applying pending migrations; preserve the starter authentication and selected test framework.",
+    "When a stateless API is required, run the conditional install:api setup and classify each route as public or protected. Choose Sanctum bearer tokens, first-party cookie sessions with CSRF, or OAuth2 only from the actual clients; add explicit per-resource policies and test both allowed and denied requests. Configure CORS and credentials narrowly for cross-origin browser clients, not as a default for native/server clients.",
     "Build frontend assets and start composer run dev for local verification. Configure a supervised queue worker and scheduler separately for production when the application uses them.",
     "If Laravel Boost is selected, add composer require laravel/boost --dev only if absent, inspect php artisan help boost:install and configure the chosen integration. Honor repository instruction ownership; for README-only policies inspect installer opt-outs or configure supported MCP integration manually.",
     "When static analysis is selected, install a compatible Larastan development dependency and configure phpstan.neon from its installed-version guide. For selected browser testing, install laravel/dusk as a development dependency and run php artisan dusk:install; keep database/browser tests isolated.",
