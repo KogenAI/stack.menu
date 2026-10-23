@@ -9,6 +9,7 @@ Almir selected Oghogho’s design for implementation on 20 October 2026. The rel
 | Surface | Editable text/source | Asset or output |
 | --- | --- | --- |
 | Homepage | [`src/design/home.html`](../src/design/home.html) | `/`; centered real ChatGPT recording and matching player in the agent panel |
+| Agent marks | [LobeHub Icons at pinned revision](https://github.com/lobehub/lobe-icons/tree/680f1d7f95b5ae6a494fe43539da8a992f17b53d/packages/static-svg/icons) | [`public/design/orbit/`](../public/design/orbit/) contains unchanged Claude, Codex and Cursor SVGs at their existing URLs. [`public/attribution/logos-NOTICE.txt`](../public/attribution/logos-NOTICE.txt) maps each asset to its upstream file and SHA-256 hashes; [`lobehub-icons-LICENSE.txt`](../public/attribution/lobehub-icons-LICENSE.txt) contains the full MIT notice |
 | Demo media | Maintainer-held original and edit recipe; [`public/media/`](../public/media/) contains publication derivatives only | `stack-menu-demo.mp4` (H.264, silent, 16.5 seconds, 2304×1612) and its actual-frame JPEG poster; selected source ranges sped up 4×/16× |
 | Header/footer | [`src/design/`](../src/design/), `mark.svg` | Shared initial HTML across all pages |
 | Library, comparisons, recommendation and rewrite | [`scripts/design_interactive.py`](../scripts/design_interactive.py), `src/design/`, `public/design/interactive.*` | `/library/`, `/compare/`, `/choose/`, `/rewrite/` |
@@ -19,6 +20,6 @@ Almir selected Oghogho’s design for implementation on 20 October 2026. The rel
 | Shared URL card | `share-card.svg`, `mark.svg` | `/share-card.png`; shared Open Graph metadata |
 | Production website | [`src/layouts/Menu.astro`](../src/layouts/Menu.astro), Pages handlers/configuration | Canonical `https://stack.menu` on Cloudflare Pages; current evidenced release is 21 October 2026 |
 
-Local fonts retain their [Geist](../public/design/geist-LICENSE.txt) and [JetBrains Mono](../public/design/jetbrains-mono-LICENSE.txt) notices. Preserve the imported Elixir Menu and earlier Plex notices as well. Designer folder artwork is generated locally by the retained portable implementation. No unverified third-party agent logo pack is redistributed in the homepage strip.
+Local fonts retain their [Geist](../public/design/geist-LICENSE.txt) and [JetBrains Mono](../public/design/jetbrains-mono-LICENSE.txt) notices. Preserve the imported Elixir Menu and earlier Plex notices as well. Designer folder artwork is generated locally by the retained portable implementation. The homepage’s three agent marks use the pinned LobeHub files and license listed above; this attribution does not claim trademark clearance or endorsement.
 
 The iCloud product record `publishing/branding/stack-menu/MESSAGING.md` owns accepted messaging/provenance; the templates implement it. That folder’s `SURFACES.md` owns external account/deployment evidence. This map owns source-to-output paths. A local export does not establish a saved live card or publication. Analytics and contact/privacy claims must describe the actual production configuration.

@@ -100,8 +100,7 @@
   .orbit__pill:hover { scale: 1.06; background: var(--orbit-glass-hover); }
   .orbit__pill:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
   .orbit__tile { width: 13.6cqw; height: 13.6cqw; border-radius: 3.9cqw; display: grid; place-items: center; animation: float 6s ease-in-out infinite; }
-  .orbit__tile img { width: 48%; height: 48%; }
-  .orbit__tile--ink img { filter: var(--orbit-ink-mark); }
+  .orbit__tile img { width: 48%; height: 48%; filter: var(--orbit-ink-mark); }
   @keyframes float { 50% { transform: translateY(-6px); } }
 
   /* ---------- Agent link panel ---------- */

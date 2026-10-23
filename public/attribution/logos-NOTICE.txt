@@ -1,0 +1,16 @@
+Agent marks
+
+The following SVGs are copied unchanged from LobeHub Icons, revision
+680f1d7f95b5ae6a494fe43539da8a992f17b53d. Their shared license is MIT;
+the full copyright and permission notice is in lobehub-icons-LICENSE.txt.
+
+File | Upstream source | SHA-256 of upstream SVG | SHA-256 of exact path data
+--- | --- | --- | ---
+public/design/orbit/claude.svg | https://github.com/lobehub/lobe-icons/blob/680f1d7f95b5ae6a494fe43539da8a992f17b53d/packages/static-svg/icons/claude.svg | 365a70a7eb3956d9b9a96086058ebe04e1dbd8e291a756ad964e8a283fbd6d38 | 7c9c195500ec3caed3a183d8f8758a2252955ee76af691b3fc5c20b3cd8caa58
+public/design/orbit/codex.svg | https://github.com/lobehub/lobe-icons/blob/680f1d7f95b5ae6a494fe43539da8a992f17b53d/packages/static-svg/icons/codex.svg | d08b4e824cd6727e89617f59e4737273ff53e44c1da849d016dd64dfd08b33e1 | 667c7f51889219b60d4b67260502b52583a29c188bde0c38fe5ac0123ce30f76
+public/design/orbit/cursor.svg | https://github.com/lobehub/lobe-icons/blob/680f1d7f95b5ae6a494fe43539da8a992f17b53d/packages/static-svg/icons/cursor.svg | 0cb51bddf264ae108926fd554c063ef40fc1aac3c5c921ddb39ad184e4e5d0ef | cdd5e1bfb853a05516afd21f5c47613f780940dde3b2ba4bcddb404491d5cfce
+
+The path-data hash is SHA-256 over the UTF-8 path `d` attribute value(s),
+joined with a single newline in document order. The SVG files are unchanged
+upstream copies. These names identify the products represented by the marks;
+this attribution does not claim trademark clearance or endorsement.
