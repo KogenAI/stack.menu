@@ -2,7 +2,7 @@
 
 [Project home](../README.md) · [Build and content workflow](website-workflow.md)
 
-The local candidate provides 16 full stack guides across content websites, web applications, services, command-line tools, automation and native mobile. Human and agent paths use the same task-based recommendation policy and complete records. Production remains at the separately evidenced 21 October release until these local changes are approved for publication.
+The local candidate provides 16 full stack guides across content websites, web applications, services, command-line tools, automation and native mobile. Human and agent paths use the same task-based recommendation policy and complete records. The reviewed 23 October base was pushed as `9aa317f`. The task/rewrite-source follow-up is local and held for Almir’s review; production delivery is tracked separately from local verification.
 
 The optional context router validates explicit requirements and returns resources, candidates, exclusions and questions. It calls no model and stores no application data. Known-stack work preserves the choice; new-stack comparisons and migration planning keep constraints and unknowns explicit. The visiting agent interprets the application conversation and reasons about the result.
 
@@ -52,7 +52,7 @@ The normal build passed. Browser review checked desktop and 390/320-pixel phone 
 
 This release superseded the earlier local-only state. Signed commit `2ce8993dfff5e16b4764ccc07426f5df5a7fb0ec` and Cloudflare Pages deployment `e031b7ef-7198-4372-a304-b1b477392769` identify the release. At approximately 20:42 EAT, the canonical site served the redesign and real demonstration; 23 sitemap pages, 37 direct resource/media cases, and production browser checks passed. Earlier Google/Bing indexing and reporting observations retain their original dated limits.
 
-## Current source — 23 October 2026, local only
+## Reviewed source base — 23 October 2026
 
 The catalogue now recommends one editorial starting point for each of 13 defined jobs, with the reason, tradeoff and conditional alternatives. Astro fills the content-site role; Expo fills a shared iOS/Android project role. TanStack Start 1.0, Hugo, plain HTML, Flutter, Hono and other ecosystem choices are scoped alternatives rather than additional equal-looking guides. All 16 full guides remain available for deliberate stack choices and rewrites; no healthy existing profile was reclassified as obsolete or source-only.
 
@@ -64,7 +64,15 @@ Earlier candidate checks covered task defaults, hard-constraint conflicts, chose
 
 The history reconstruction built each intermediate revision and checked its stored message, signature and assigned changes. Final direct checks resolved 1,192 initial HTML href/src references, 26 distinct titles and descriptions, 25 canonical sitemap pages and all 32 per-profile Markdown/JSON resources. The 16-profile catalogue has 13 task defaults, and all 256 documented role/responsibility pair assessments ran without an inconsistent clarification result. These are website and documentation checks, not application setup or migration-compatibility qualification.
 
-Nothing in this 23 October candidate has been pushed or deployed. The 21 October release above remains the latest evidenced production revision.
+This reviewed base was subsequently pushed as `9aa317fd6d85c4108343bb4a4062b77eed58cce9` on 23 October; GitHub signature verification passed for all 17 commits. Deployment was queued at that readback. This is source-publication evidence, not a later live-delivery verification. The follow-up below remains local.
+
+## Local changes — 23 October 2026
+
+Almir authorized these local changes and their signed commits. Pushes remain on hold until his approval.
+
+### Record the published 23 October source base
+
+The reviewed base `9aa317f` was pushed on 23 October. Its recorded deployment was queued at readback; this is source-publication evidence, not a later live-delivery check.
 
 ## Outstanding final-review findings
 
