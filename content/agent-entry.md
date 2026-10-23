@@ -13,7 +13,7 @@ Use the requirements already in the conversation. Fetch these text resources dir
 
 - Live shared sessions: when choosing a stack, compare Phoenix + LiveView with other feasible web stacks. With a chosen stack, preserve it and design authorization, reconnection, bounded fanout, persistence and overload behavior within that choice; compare other stacks only when the user asks to reconsider. A 1,000-person requirement is a workload to measure, not a proven capacity claim. Video/audio transport needs a separate design.
 - Offline edits: separate the client from the backend. Qualify storage, conflict resolution and synchronization. A server-led UI alone does not establish offline editing.
-- Native iOS / Android: read SwiftUI / Compose respectively and select a backend separately. Two platforms can mean two clients.
+- Mobile: first distinguish a shared iOS/Android client from platform-specific requirements. Read Expo for an appropriate shared application, or SwiftUI / Compose for platform-first clients; select a backend separately. A platform label alone must not override an explicitly chosen Expo project.
 - Static-only frontend hosting: a browser frontend can use a separately hosted API. Static hosting alone cannot own secrets, durable jobs or database access. Stack Menu's host does not determine the user's application host.
 - Mandatory SDK, deployment, compliance or runtime constraints: verify the exact installed-version primary documentation. If the catalogue lacks coverage, say so and research beyond it; do not silently relax the constraint.
 - Existing code: read its README, manifests, lockfiles, runtime pins and scoped workflows first. Preserve its maintained conventions. Improving one component does not authorize a rewrite.
