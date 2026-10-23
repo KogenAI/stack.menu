@@ -645,17 +645,32 @@
       }
 
       var roleLabels = { web: 'browser interface', api: 'API or backend service', cli: 'command-line interface', automation: 'automation', ios: 'iOS app', android: 'Android app' };
-      function describeRoles(roles) { return roles.map(function (role) { return roleLabels[role] || role; }).join(', '); }
+      var responsibilityLabels = { 'server-runtime': 'server runtime', 'browser-ui': 'browser interface' };
+      function describeRoles(roles) { return (roles || []).map(function (role) { return roleLabels[role] || role; }).join(', '); }
+      function describeResponsibilities(responsibilities, roles) {
+        var existing = (roles || []).map(function (role) { return roleLabels[role] || role; });
+        return (responsibilities || []).map(function (responsibility) { return responsibilityLabels[responsibility] || responsibility; })
+          .filter(function (label) { return existing.indexOf(label) === -1; }).join(', ');
+      }
       function scopeDetails(fit) {
-        var summary = '<div class="scope-roles"><p><strong>Current stack</strong><span>' + esc(describeRoles(fit.source_roles)) + '</span></p><p><strong>Target stack</strong><span>' + esc(describeRoles(fit.target_roles)) + '</span></p></div>';
-        var warning = '<p class="scope-warning">The target profile does not cover the current ' + esc(describeRoles(fit.missing_roles)) + '. Name the part being moved and what stays, or describe the intended change to the application’s interface.</p>';
-        if (state.confirmed) return '<section class="scope-panel" aria-labelledby="scope-heading"><h2 id="scope-heading">' + (state.scope === 'extract' ? 'Component boundary' : 'Interface change') + '</h2>' + summary +
+        var missingResponsibilities = fit.missing_responsibilities || [];
+        var missingRoles = fit.missing_roles || [];
+        var sourceResponsibilities = describeResponsibilities(fit.source_responsibilities, fit.source_roles);
+        var targetResponsibilities = describeResponsibilities(fit.target_responsibilities, fit.target_roles);
+        var responsibilityGap = missingResponsibilities.length > 0;
+        var responsibilityOnlyGap = responsibilityGap && missingRoles.length === 0;
+        var currentTitle = responsibilityOnlyGap ? 'Clarify the application boundary' : 'These stacks serve different roles';
+        var panelTitle = responsibilityOnlyGap ? 'Application boundary' : (state.scope === 'extract' ? 'Component boundary' : 'Interface change');
+        var summary = '<div class="scope-roles"><p><strong>Current stack</strong><span>' + esc(describeRoles(fit.source_roles)) + (sourceResponsibilities ? '<br>Responsibilities: ' + esc(sourceResponsibilities) : '') + '</span></p><p><strong>Target stack</strong><span>' + esc(describeRoles(fit.target_roles)) + (targetResponsibilities ? '<br>Responsibilities: ' + esc(targetResponsibilities) : '') + '</span></p></div>';
+        var gaps = describeRoles(missingRoles).split(', ').concat(describeResponsibilities(missingResponsibilities).split(', ')).filter(function (label, i, all) { return label && all.indexOf(label) === i; });
+        var warning = '<p class="scope-warning">The target profile does not cover the current ' + esc(gaps.join(', ')) + '. Name the part being moved and what stays, or describe the intended change to the application’s interface.</p>';
+        if (state.confirmed) return '<section class="scope-panel" aria-labelledby="scope-heading"><h2 id="scope-heading">' + panelTitle + '</h2>' + summary +
           '<dl><dt>Part being moved</dt><dd>' + esc(state.boundary) + '</dd><dt>What stays and how it connects</dt><dd>' + esc(state.retained) + '</dd>' +
           (state.scope === 'redesign' ? '<dt>Intended changes or removals</dt><dd>' + esc(state.changed) + '</dd>' : '') + '</dl><button type="button" class="btn-secondary" data-edit-scope>Change these details</button></section>';
         var fields = state.scope ? '<label>Which part are you moving?<textarea name="boundary" rows="3" maxlength="1200" required>' + esc(state.boundary) + '</textarea></label>' +
           '<label>What stays in the existing app, and how will it connect?<textarea name="retained" rows="3" maxlength="1200" required>' + esc(state.retained) + '</textarea></label>' +
           (state.scope === 'redesign' ? '<label>Which interfaces or behavior are intentionally changed or removed?<textarea name="changed" rows="3" maxlength="1200" required>' + esc(state.changed) + '</textarea></label>' : '') : '';
-        return '<section class="scope-panel" aria-labelledby="scope-heading"><h2 id="scope-heading">These stacks serve different roles</h2>' + summary + warning +
+        return '<section class="scope-panel" aria-labelledby="scope-heading"><h2 id="scope-heading">' + currentTitle + '</h2>' + summary + warning +
           '<form id="scope-form"><fieldset><legend>What are you changing?</legend>' +
           '<label class="scope-option"><input class="radio" type="radio" name="scope" value="extract" required' + (state.scope === 'extract' ? ' checked' : '') + '><span><strong>Move one component</strong><span>Keep the existing interface and connect the extracted component.</span></span></label>' +
           '<label class="scope-option"><input class="radio" type="radio" name="scope" value="redesign" required' + (state.scope === 'redesign' ? ' checked' : '') + '><span><strong>Change the application’s interface</strong><span>Describe the behavior that changes and the parts that remain.</span></span></label></fieldset>' + fields +
@@ -670,9 +685,17 @@
             ? 'Evaluate extracting a component from ' + src.title + ' into ' + tgt.title + '. Preserve the rest of the existing application.'
             : 'Evaluate a product interface change from ' + src.title + ' toward ' + tgt.title + '. This is not a compatible replacement of the whole application.';
           var scopedMode = state.scope === 'redesign' ? 'target architecture' : R.modes.find(function (m) { return m.id === state.mode; }).title.toLowerCase();
+          var profileRoles = [];
+          if (fit.source_roles && fit.source_roles.length) profileRoles.push('The source profile documents ' + describeRoles(fit.source_roles) + '.');
+          if (fit.target_roles && fit.target_roles.length) profileRoles.push('The target profile documents ' + describeRoles(fit.target_roles) + '.');
+          var profileResponsibilities = [];
+          var sourceResponsibilityText = describeResponsibilities(fit.source_responsibilities, fit.source_roles);
+          var targetResponsibilityText = describeResponsibilities(fit.target_responsibilities, fit.target_roles);
+          if (sourceResponsibilityText) profileResponsibilities.push('The source covers ' + sourceResponsibilityText + '.');
+          if (targetResponsibilityText) profileResponsibilities.push('The target covers ' + targetResponsibilityText + '.');
           return lead + '\n\nPart being moved: ' + state.boundary + '\nRetained interfaces and integration: ' + state.retained +
             (state.scope === 'redesign' ? '\nIntended changes or removals: ' + state.changed : '') +
-            '\n\nThe source profile documents ' + describeRoles(fit.source_roles) + '; the target documents ' + describeRoles(fit.target_roles) + '. ' +
+            '\n\n' + profileRoles.concat(profileResponsibilities).join(' ') + ' ' +
             'Evaluate ' + scopedMode + ' only within this named boundary. First verify that the target can serve the named responsibility and that the retained composition supplies every required interface. Do not treat a filled form as evidence of compatibility. ' +
             'Read https://stack.menu/rewrite/guide.md, https://stack.menu' + src.markdown_url + ' and https://stack.menu' + tgt.markdown_url + '. Compare keeping the existing implementation before making changes. Inspect exact dependencies, data and execution owners. ' +
             'Qualify the component contracts, connection/adapters, deployment or client-release gates and rollback. Retire only the explicitly replaced responsibility after those checks pass; do not retire the whole source application by implication. Report versions, checks actually run, results and unknowns.';
