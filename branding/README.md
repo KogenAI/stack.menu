@@ -14,6 +14,7 @@ Almir selected Oghogho’s design for implementation on 20 October 2026. The rel
 | Header/footer | [`src/design/`](../src/design/), `mark.svg` | Shared initial HTML across all pages |
 | Library, comparisons, recommendation and rewrite | [`scripts/design_interactive.py`](../scripts/design_interactive.py), `src/design/`, `public/design/interactive.*` | `/library/`, `/compare/`, `/choose/`, `/rewrite/` |
 | Stack guides | [`scripts/design_guides.py`](../scripts/design_guides.py), maintained profiles/generators/contracts | All 16 current `/stacks/{id}/` pages |
+| Additional rewrite sources | [`menu/rewrite-sources.json`](../menu/rewrite-sources.json), [`scripts/rewrite_sources.py`](../scripts/rewrite_sources.py) | Five `/rewrite/sources/{id}/` pages, complete Markdown and JSON, plus source-only picker entries |
 | Agent guidance | [`content/agent-entry.md`](../content/agent-entry.md), [`content/generation-policy.json`](../content/generation-policy.json), [`menu/generators/`](../menu/generators/) and attributed records | `/llms.txt`, full guides, Markdown, JSON and `/generators.json` |
 | Contact and footer facts | [`content/contact.json`](../content/contact.json) | `/contact/`, `/contact.json`, Markdown and structured metadata |
 | Browser icon | `mark.svg`, export script | `/favicon.svg` |

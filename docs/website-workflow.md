@@ -12,6 +12,7 @@ Start at the checkout root with Node 24 (minimum 22.12), npm 9.6.5+ and Python 3
 | Context fields and selection behavior | [`content/routing.md`](../content/routing.md), [`lib/router.js`](../lib/router.js), shared [`lib/migration-fit.js`](../lib/migration-fit.js) |
 | Generator workflow and per-profile recipes | [`content/generation-policy.json`](../content/generation-policy.json), [`menu/generators/`](../menu/generators/), rendered by [`scripts/generator_content.py`](../scripts/generator_content.py) |
 | Task defaults, preferences and aliases | [`menu/recommendations.json`](../menu/recommendations.json), [`lib/recommendation-policy.js`](../lib/recommendation-policy.js), [`scripts/recommendation_content.py`](../scripts/recommendation_content.py) |
+| Additional rewrite sources | [`menu/rewrite-sources.json`](../menu/rewrite-sources.json), [`scripts/rewrite_sources.py`](../scripts/rewrite_sources.py), browser [`rewrite.js`](../public/design/rewrite.js) |
 | Profile summaries | [`menu/profiles.json`](../menu/profiles.json) |
 | Dated research and imported attribution | [`menu/inputs/`](../menu/inputs/) and [`menu/README.md`](../menu/README.md) |
 | Contact, company identity and mailbox purposes | [`content/contact.json`](../content/contact.json) |

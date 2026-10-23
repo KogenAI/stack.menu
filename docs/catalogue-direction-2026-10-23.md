@@ -28,6 +28,18 @@ A healthy omitted stack is not obsolete. WordPress and WooCommerce can be rewrit
 
 Prefer per-task conditions over a global ranked badge. SwiftUI can be the primary for an iOS-specific requirement while Expo fits a shared iOS/Android brief. Language, team knowledge, hosting, an existing backend and device requirements narrow the task. Do not infer PHP expertise merely from owning WordPress.
 
+## Historical observations at the 23 October base
+
+The audited source is `9aa317fd6d85c4108343bb4a4062b77eed58cce9`, pushed on 23 October. Deployment is not certified by this review. The local follow-up reconciles the older unpublished wording with that source-publication receipt; this does not certify a later deployment.
+
+- `src/design/recommend.html` labels all guide folders “Recommended stacks.” Guide browsing and actual recommendations need distinct presentation.
+- `menu/recommendations.json` includes technology-shaped top-level jobs such as Python admin, Python API and full-stack React. The useful constraints should survive without reserving a headline category for each guide.
+- `lib/router.js` accepts existing and target stacks from the same finite profile list. WordPress and WooCommerce fail as unknown profiles. Sources and recommended targets need distinct eligibility and an honest path for unlisted systems.
+- `lib/migration-fit.js` currently knows browser UI and server-runtime responsibilities. A CMS or commerce rewrite also needs an application-specific inventory; matching language or component labels cannot establish a safe replacement.
+- The browser rejects identical source and target selections even though maintaining or upgrading within an ecosystem can be useful. Supporting that path is a proposed detail, not a newly accepted product journey.
+
+A primary recommendation currently references a full profile. Under the clarified scope, that is not inherently a defect: the main output should remain stack guidance. Revisit the record shape only where concrete stack compositions or source coverage require it; do not expand it to support a general procurement product.
+
 ## Task-based recommendations
 
 Proposed reader-facing tasks should describe the software being built: content websites, business applications, collaborative applications, APIs/services, integrations/automation, command-line tools and mobile applications. Exact labels and grouping remain to be designed; no fixed number of categories is approved.
@@ -63,6 +75,18 @@ React's documentation recommends frameworks while explicitly supporting build-to
 
 TanStack Start is stable and supports full-stack React with typed routing and server functions. A missing local guide is not evidence that Next.js is better. First add an honest, scoped Next/Start comparison with deciding requirements, not eight equal-looking alternatives. A new full Start guide should meet the normal source, generator and baseline-check bar; distinguish documentation review from actual starter/deployment execution. Apply that evidence standard consistently, including the existing failed Expo baseline checks. Do not imply a representative starter trial certifies real applications. [Start overview](https://tanstack.com/start/latest/docs/framework/react/overview), [Next deployment options](https://nextjs.org/docs/app/getting-started/deploying).
 
+## Rewrite-source coverage
+
+The local candidate adds the following initial source coverage:
+
+- **Create React App, AngularJS and Vue 2:** version/tooling-specific source guidance with actual lifecycle evidence. CRA modernization can preserve React while changing tooling; Vue 2 can lead to Vue 3 rather than forcing a move to a framework we happen to document. [CRA lifecycle](https://react.dev/blog/2025/02/14/sunsetting-create-react-app), [AngularJS support](https://docs.angularjs.org/misc/version-support-status), [Vue 2 lifecycle](https://v2.vuejs.org/eol/).
+- **WordPress and WooCommerce:** important real-world sources from Almir's examples, with inventories for publishing, plugins and commerce behavior. They are supported-platform source coverage, not automatically “legacy.” WooCommerce's source notes should reference shared WordPress responsibilities instead of duplicating them. [WordPress features](https://wordpress.org/about/features/), [WooCommerce migration considerations](https://help.shopify.com/en/manual/migrating-to-shopify/migrating-from-woocommerce).
+- **Other sources:** report coverage gaps honestly. Drupal, Magento, Shopify and other platforms need scoped source research as relevant; they are not automatically scheduled full additions.
+
+Separate normal source and target eligibility. Lifecycle-only records should not appear as recommended new-project targets. A documented source is not a promise that every target can replace it. Conversely, absent capabilities in a target guide are not proof replacement is impossible.
+
+For a real rewrite, inventory responsibilities as **kept**, **replaced** or **retired**, naming their owners, interfaces and validation. This is software migration scope, not general business consultancy. Plugin behavior remains unknown until inspected. A frontend-only replacement must not silently discard a backend, editing workflow, checkout or order system. Full replacement can still be appropriate when those responsibilities are implemented elsewhere or deliberately removed.
+
 ## Commerce and specialized tools within this boundary
 
 Commerce remains relevant when choosing software architecture or scoping a rewrite. Identify whether the work is a storefront, an integration or an entire commerce application, and what already owns catalogue, orders, payment, tax/shipping rules, subscriptions and fulfillment. A custom storefront does not automatically require a custom commerce backend. [Shopify headless architecture](https://shopify.dev/docs/storefronts/headless).
@@ -70,3 +94,27 @@ Commerce remains relevant when choosing software architecture or scoping a rewri
 The short preface can mention hosted commerce or specialized commerce software as alternatives to rebuilding everything. The core stack guidance should account for retained tools and interfaces. This does not authorize a Shopify/WooCommerce product-selection wizard, a payment-provider eligibility engine, vendor price comparisons or new full platform setup guides.
 
 The best custom-commerce recommendation still needs a focused comparison of the actual software requirements. “Online store” should not automatically yield a generic web framework, nor should it automatically yield a hosted vendor. That narrower research remains proposed; no commerce default was approved.
+
+## Completion checks and separate problems
+
+Accepted local implementation checks:
+
+1. The library keeps all 16 guides without labeling them all recommendations.
+2. An API task can be narrowed by Python needs without presenting “Python API” as its own top-level task.
+3. The preface is brief and nonblocking; an explicit build in Laravel, Phoenix or Rust proceeds within that choice.
+4. CRA/Vue 2 modernization can retain the application's ecosystem and replace only the relevant version/tooling.
+5. A WordPress or WooCommerce source receives the right inventory and is not mapped to Laravel merely because it uses PHP.
+6. A browser-only rewrite cannot silently discard backend or commerce responsibilities; a deliberate full replacement can explain their new owners or retirement.
+7. An unlisted source gets an honest coverage/research path without invented compatibility.
+8. An iOS-specific requirement can select SwiftUI as the primary.
+9. Human HTML, direct/negotiated Markdown, llms discovery, JSON and routing guidance agree; useful published IDs and links remain meaningful.
+
+Map actual implementation changes to independently assessable problems before choosing a commit count. The recommendation presentation/curation, task taxonomy and rewrite-source support have distinct observable outcomes; sharing a file is not a reason to mix unrelated changes. The current schema and source records are implemented locally for review; broader additions remain proposals.
+
+At the proposal stage, Expo routing, malformed Expo alternatives, chooser scrolling/focus, long labels, inline-link styling, negotiated Markdown, legacy `?kind=` behavior and the migration clarification hole were separate open defects. Their subsequent repairs and verification are recorded in [current implementation scope](current-state.md). Reader HTTP 403/1010 remains a separate hosting problem. The scope decision itself did not close any implementation defect.
+
+## Provenance and remaining decisions
+
+The lead and Claude Code 2.1.306, main model `claude-opus-5-5`, high effort, completed an independent audit and a follow-up challenge in session `1f1afb61-fb8a-4837-847f-8168214ab582`. Both rounds succeeded without permission denials. Evidence is retained at `/Users/almirsarajcic/Areas/Kogen/stack.menu-review/2026-10-23/catalogue-direction/`.
+
+Almir's later clarification in this chat owns the narrower product boundary and the three accepted principles above. Earlier Opus/lead proposals are historical evidence, not additional authority or an approved backlog. The local candidate makes the task labels, initial source list and source/target behavior concrete for review. Broader commerce comparisons and any additional full guide remain proposals. The research review did not execute an application benchmark or migration. Almir then authorized the local implementation candidate; current checks and remaining limits belong to [implementation scope](current-state.md). Broader guide expansions and commerce defaults remain deferred.

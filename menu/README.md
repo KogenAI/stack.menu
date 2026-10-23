@@ -23,3 +23,5 @@ Imported architecture/migration records retain their 11 October source date and 
 ## Current recommendation and rewrite-source owners
 
 [`recommendations.json`](recommendations.json) owns task defaults, optional ecosystem/mobile constraints, conditional overrides and the older task-ID aliases. The shared resolver in [`lib/recommendation-policy.js`](../lib/recommendation-policy.js) applies that policy in the browser and optional endpoint. Guide coverage remains distinct from a recommendation for a particular task.
+
+[`rewrite-sources.json`](rewrite-sources.json) owns five additional source references, their lifecycle evidence, version checks and application inventories. [`scripts/rewrite_sources.py`](../scripts/rewrite_sources.py) validates and renders the same records as HTML, Markdown and JSON. These sources do not enter the full-guide target index or require fictional new-project generators. Supported platforms and obsolete versions retain different lifecycle descriptions. Additions must cite primary guidance and state actual qualification limits.

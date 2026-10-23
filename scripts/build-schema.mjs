@@ -13,6 +13,6 @@ for(const alternative of recommendations.alternatives){
  if(alternative.profile_id&&!profileIds.has(alternative.profile_id))throw new Error(`Recommendation alternative ${alternative.id} references unknown profile ${alternative.profile_id}.`);
  for(const useCaseId of alternative.use_cases)if(!useCaseIds.has(useCaseId))throw new Error(`Recommendation alternative ${alternative.id} references unknown use case ${useCaseId}.`);
 }
-const properties=Object.fromEntries(Object.entries(fields).map(([name,type])=>[name,type==='boolean'?{type:'boolean'}:{type:'string',enum:type==='profile'?index.profiles.map(p=>p.id):type}]));
+const properties=Object.fromEntries(Object.entries(fields).map(([name,type])=>[name,type==='boolean'?{type:'boolean'}:type==='source'?{type:'string',minLength:1,maxLength:120,description:'Existing profile or rewrite-source ID, or an unlisted system. Unknown sources return an inventory/research path; target eligibility is separate.'}:type==='label'?{type:'string',minLength:1,maxLength:240,description:'Optional unlisted-source label. Do not send private application details.'}:{type:'string',enum:type==='profile'?index.profiles.map(p=>p.id):type}]));
 await writeFile('.generated/resources/context.schema.json',JSON.stringify({$schema:'https://json-schema.org/draft/2020-12/schema',$id:'https://stack.menu/context.schema.json',title:'Stack Menu context routing',type:'object',additionalProperties:false,properties},null,2)+'\n');
 await writeFile('.generated/resources/recommendations.json',JSON.stringify(recommendations,null,2)+'\n');

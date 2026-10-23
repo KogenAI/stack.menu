@@ -122,6 +122,10 @@ Nine neutral task choices replace technology-shaped jobs. Human and optional age
 
 Older `?kind=` links resolve to a task and, for iOS/Android, the original platform preference. Changing or clearing the choice removes the stale parameter.
 
+### Support existing systems as rewrite sources
+
+Create React App, AngularJS, Vue 2, WordPress and WooCommerce have HTML, Markdown and JSON source references plus offline discovery. They are source-only entries beside the 16 full-guide targets; supported WordPress/WooCommerce are not called obsolete. Scoped briefs preserve kept/replaced/retired responsibilities, owners, interfaces and checks. Unknown sources receive research guidance. Upgrade assessments need no unrelated target. Downloads read the current mode at click time. The AngularJS UpgradeModule citation, linked WordPress inventory and Rewrite navigation are corrected.
+
 ## Reader access limit
 
 Python-urllib readers still receive Cloudflare HTTP 403 / error 1010; the cause remains unresolved. Maintainer-held surface and access records own the operational diagnostics.

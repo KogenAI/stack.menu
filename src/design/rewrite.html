@@ -4,13 +4,12 @@
       <ol class="crumbs">
         <li><a href="/library/">Stack library</a></li>
         <li aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></li>
-        <li aria-current="page">Rewrite stack</li>
+        <li aria-current="page">Plan a rewrite</li>
       </ol>
       <div class="rw-intro">
-        <h1 class="display text-ink">Rewrite your stack</h1>
-        <p class="guide-lede mt-3">Choose the stack your app currently uses and the target you want to evaluate. If they serve different roles, first define the component boundary or the intended interface change.</p>
+        <h1 class="display text-ink">Plan a rewrite</h1>
+        <p class="guide-lede mt-3">Choose the source system and the stack you want to evaluate. A source can be a legacy platform or another supported system; source coverage does not mean every target can replace it.</p>
       </div>
-
       <div class="rw-pair" id="pair">
         <span class="field-label l1" id="lbl-from">Current stack</span>
         <div class="picker f1" data-picker="from" data-ph="Choose your current stack"></div>
@@ -19,6 +18,13 @@
         <div class="picker f2" data-picker="to" data-ph="Choose the stack to move to"></div>
         <p class="field-msg msg" id="pair-msg" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg><span>Pick a different stack to move to.</span></p>
       </div>
+      <section class="rewrite-source-details" id="rewrite-source-details" aria-live="polite" hidden></section>
+      <div class="rewrite-other-source" id="rewrite-other-source-field" hidden>
+        <label class="field-label" for="rewrite-other-source">Name the current system</label>
+        <textarea id="rewrite-other-source" name="current-source" maxlength="240" rows="2" aria-describedby="rewrite-other-source-note"></textarea>
+        <p class="rewrite-source-note" id="rewrite-other-source-note">Enter a name only. Don’t include a URL or private information.</p>
+      </div>
+      <footer class="rewrite-source-links"></footer>
     </div>
   </div>
 
@@ -26,4 +32,5 @@
     <!-- Loading state, replaced once the records arrive -->
     <div class="guide-wrap" style="padding-block:48px 112px"><div class="state"><p>Loading the rewrite records…</p></div></div>
   </div>
+<details class="guide-wrap rewrite-source-library"><summary>Rewrite source guides</summary>{{REWRITE_SOURCE_LINKS}}</details>
 <noscript><div class="guide-wrap pb-12"><p>Read the <a class="text-link" href="/rewrite/guide.md">complete migration workflow</a> and the source and target guides.</p>{{SERVER_LINKS}}</div></noscript></main>

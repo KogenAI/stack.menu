@@ -45,6 +45,9 @@ def prepare(root, out, pages, records, write, shell):
           json.dumps(canonical, ensure_ascii=False).replace('</', '<\\/') + ';\n')
     write('design/migration-fit.js', (root / 'lib/migration-fit.js').read_text())
     write('design/recommendation-policy.js', (root / 'lib/recommendation-policy.js').read_text())
+    from rewrite_sources import load_sources
+    rewrite_sources = load_sources(root, records)
+    source_links = '<ul class="stack-server-links">' + ''.join('<li><a href="' + escape(item['guide_url']) + '">' + escape(item['title']) + '</a></li>' for item in rewrite_sources.values()) + '</ul>'
     recommendation_path = root / 'menu/recommendations.json'
     recommendations = json.loads(recommendation_path.read_text()) if recommendation_path.exists() else {'use_cases': []}
     server_use_cases = ''.join(
@@ -60,20 +63,22 @@ def prepare(root, out, pages, records, write, shell):
         ('recommend', 'choose/index.html', 'Get a stack recommendation', 'recommend',
          'Get one task-based stack recommendation with its trade-off and the conditions for considering alternatives.'),
         ('rewrite', 'rewrite/index.html', 'Rewrite your stack', 'rewrite',
-         'Evaluate a migration between curated stacks with a current agent brief, contracts and rollback checks.'),
+         'Plan a software rewrite from an existing or legacy system, with explicit scope, ownership, contracts and rollback checks.'),
     ]
     for source, path, title, current, description in configs:
         body = (root / 'src/design' / (source + '.html')).read_text()
         body = (body.replace('{{SERVER_CARDS}}', cards).replace('{{SERVER_LINKS}}', links())
                 .replace('{{GROUP_FILTERS}}', group_filters)
                 .replace('{{SERVER_USE_CASES}}', server_use_cases if source == 'recommend' else '')
-                .replace('{{PROFILE_COUNT}}', str(len(records))))
+                .replace('{{PROFILE_COUNT}}', str(len(records)))
+                .replace('{{REWRITE_SOURCE_LINKS}}', source_links))
         props = shell(title, body, page=current)
         props['description'] = description
         props['scripts'] = ['/design/interactive-data.js', '/design/interactive.js']
         props['styles'] = ['/design/stack-guide.css', '/design/interactive.css']
         if source == 'rewrite':
             props['styles'].append('/design/rewrite-scope.css')
+            props['scripts'].append('/design/rewrite.js')
         if source == 'recommend':
             props['styles'].append('/design/recommend.css')
         write(path, props)

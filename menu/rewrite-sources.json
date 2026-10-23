@@ -1,0 +1,367 @@
+{
+  "version": 1,
+  "reviewed_on": "2026-10-23",
+  "evidence": "documentation-reviewed",
+  "qualification": "Source guidance based on public documentation. It does not certify compatibility or establish what is installed in a particular application. Inventory the actual source, versions, extensions, data and operational owners before planning a rewrite.",
+  "sources": [
+    {
+      "id": "create-react-app",
+      "title": "Create React App",
+      "language": "JavaScript / TypeScript",
+      "group": "Rewrite sources",
+      "summary": "A React application bootstrapped and built with Create React App (CRA). React deprecated CRA for new applications in February 2025; existing applications can keep React while changing the build or application framework.",
+      "kind": [
+        "web"
+      ],
+      "roles": [
+        "browser-ui"
+      ],
+      "ui": "client-rendered React; inspect routing, rendering, state and browser APIs in the actual app",
+      "host": "Typically emits static assets for a web server or CDN. Any separately owned API, authentication, jobs and data services remain outside CRA and must be inventoried independently.",
+      "responsibilities": [
+        "browser-ui: client-rendered React; inspect routing, rendering, state and browser APIs in the actual app",
+        "React component and page behavior",
+        "CRA scripts, webpack/Babel configuration and environment variables",
+        "Routes, client state, forms and browser-side validation",
+        "Static asset paths, public files, service workers and deployment rewrites",
+        "Any separately owned API, identity, persistence, jobs and integrations",
+        "server-runtime: inventory the actual API, identity, data, job, integration and hosting owners; the browser framework itself does not establish whether or how these exist."
+      ],
+      "lifecycle": {
+        "status": "Deprecated for new applications; existing applications remain in maintenance mode",
+        "date": "Deprecation announced 2025-02-14; CRA continues to work in maintenance mode",
+        "as_of": "2026-10-23",
+        "sources": [
+          "https://react.dev/blog/2025/02/14/sunsetting-create-react-app"
+        ]
+      },
+      "version_check": [
+        "Read package.json and the lockfile for react-scripts, React, Node and related tooling versions.",
+        "Record custom webpack overrides, eject status, Babel/Jest configuration and installed scripts.",
+        "Check CRA's official deprecation guidance and the target tool/framework's migration documentation at planning time; versions and ecosystem support can change."
+      ],
+      "inventory": [
+        "Map route behavior, authentication boundaries, browser storage, analytics, service worker and asset URL assumptions.",
+        "List every API and service owner; record endpoints, request/response shapes, credentials and error behavior.",
+        "Capture test, lint, build and deploy commands, environment variables, browser support and direct-route behavior.",
+        "Identify build-time assumptions such as proxy configuration, public URL and imported environment variables."
+      ],
+      "options": [
+        "Keep CRA temporarily while making a scoped dependency or application change, with an explicit maintenance and security plan.",
+        "Retain React and replace CRA tooling with a build tool such as Vite, Parcel or Rsbuild when the app remains a client application; explicitly recreate required routing, testing, environment and deployment behavior.",
+        "Move to a React framework when its routing, server rendering or full-stack capabilities match actual requirements; server rendering is not mandatory for every migration.",
+        "Partially replace routes or isolated UI while preserving API, identity and data owners."
+      ],
+      "target_research": "React can remain the UI ecosystem. Compare the maintained React framework or build-tool paths against server-rendering, routing, deployment, API ownership and team requirements. A target guide is a starting point, not proof that its framework replaces every source responsibility.",
+      "caution": "Do not equate CRA deprecation with React deprecation. A tooling change can alter routing, asset paths, environment variable conventions, service-worker behavior and build outputs. Verify each against the deployed app.",
+      "sources": [
+        {
+          "title": "Sunsetting Create React App",
+          "url": "https://react.dev/blog/2025/02/14/sunsetting-create-react-app",
+          "claim": "React deprecated CRA for new apps, says existing apps continue in maintenance mode, and describes migration to a framework or build tool; client-side rendering can still be appropriate."
+        },
+        {
+          "title": "Creating a React App",
+          "url": "https://react.dev/learn/creating-a-react-app",
+          "claim": "Current official React guidance describes framework and build-tool choices."
+        }
+      ]
+    },
+    {
+      "id": "angularjs",
+      "title": "AngularJS (1.x)",
+      "language": "JavaScript",
+      "group": "Rewrite sources",
+      "summary": "An application built on AngularJS 1.x, the original AngularJS framework. Official support ended in January 2022. AngularJS and modern Angular are distinct frameworks; migration requires mapping behavior and boundaries rather than assuming a version upgrade.",
+      "kind": [
+        "web"
+      ],
+      "roles": [
+        "browser-ui"
+      ],
+      "ui": "client-rendered AngularJS directives, templates and scopes; determine whether the app uses single-page routing or embedded widgets",
+      "host": "Usually static browser assets plus separately owned APIs/services. Identify any server-side template or API responsibilities because they are not supplied by the browser framework.",
+      "responsibilities": [
+        "browser-ui: client-rendered AngularJS directives, templates and scopes; determine whether the app uses single-page routing or embedded widgets",
+        "Controllers/components, directives, templates, scopes and digest-driven UI updates",
+        "AngularJS module and dependency-injection graph",
+        "Routes, forms, validation, filters and client-side HTTP behavior",
+        "Build pipeline, polyfills, browser support and any custom framework extensions",
+        "Separately owned authentication, APIs, databases, jobs and integrations",
+        "server-runtime: inventory the actual API, identity, data, job, integration and hosting owners; the browser framework itself does not establish whether or how these exist."
+      ],
+      "lifecycle": {
+        "status": "Official support ended",
+        "date": "End of official support: January 2022",
+        "as_of": "2026-10-23",
+        "sources": [
+          "https://docs.angularjs.org/misc/version-support-status",
+          "https://docs.angularjs.org/guide/migration"
+        ]
+      },
+      "version_check": [
+        "Find exact angular.js/angular.min.js version, package lock entries and any locally patched or vendor-copied files.",
+        "Inventory AngularJS modules and third-party directives, including their maintenance and license status.",
+        "Consult official migration documentation for the exact 1.x APIs and breaking changes used; official support has ended, so verify current security and compatibility exposure separately."
+      ],
+      "inventory": [
+        "Map routes, templates, directives, controller/service interactions, watchers and global state.",
+        "Record form validation, accessibility behavior, browser support, localization and deep-link behavior.",
+        "Trace each HTTP call, authentication/session mechanism and server endpoint; note interceptors and error handling.",
+        "Identify build and test commands, custom directives, direct DOM manipulation, plugins and deployment constraints."
+      ],
+      "options": [
+        "Keep the source while stabilizing behavior and containing risk, with an explicit support and security plan.",
+        "Use a staged/strangler migration: introduce a maintained target around selected routes or capabilities while old and new portions coexist behind explicit boundaries.",
+        "Move the browser application to modern Angular if its architecture and team fit; plan component, dependency-injection, routing, forms and RxJS changes explicitly.",
+        "Replace only a portion of the browser UI and keep existing APIs and data services under their current owners."
+      ],
+      "target_research": "Compare modern Angular and other browser targets against existing team knowledge, routing, forms, accessibility needs, API contracts and coexistence constraints. AngularJS support status does not by itself determine the target framework.",
+      "caution": "AngularJS support ended, but that does not reveal the application's actual exposure or a safe migration path. Inventory exact versions, third-party modules and custom DOM behavior. Do not treat modern Angular as a drop-in version update.",
+      "sources": [
+        {
+          "title": "AngularJS Version Support Status",
+          "url": "https://docs.angularjs.org/misc/version-support-status",
+          "claim": "The official AngularJS support policy records that support ended in January 2022."
+        },
+        {
+          "title": "Migrating an App to a newer version",
+          "url": "https://docs.angularjs.org/guide/migration",
+          "claim": "Official migration documentation describes breaking changes across AngularJS releases and points to actively supported Angular separately."
+        },
+        {
+          "title": "UpgradeModule: AngularJS and Angular coexistence",
+          "url": "https://angular.dev/api/upgrade/static/UpgradeModule",
+          "claim": "Angular documents bootstrapping a hybrid AngularJS/Angular application and sharing components and services through upgrade/static. Qualify this path against the actual versions and dependencies."
+        }
+      ]
+    },
+    {
+      "id": "vue-2",
+      "title": "Vue 2",
+      "language": "JavaScript / TypeScript",
+      "group": "Rewrite sources",
+      "summary": "An application using Vue 2, including the final Vue 2.7 release. Vue 2 reached end of life on 2023-12-31. Vue 3 is a natural migration candidate when the application should stay in the Vue ecosystem; the source's plugins and APIs still require review.",
+      "kind": [
+        "web"
+      ],
+      "roles": [
+        "browser-ui"
+      ],
+      "ui": "client-rendered Vue component tree; inspect Options API/Composition API usage, plugins, router and state management",
+      "host": "Often static browser assets plus separately owned APIs/services. Identify server rendering, server templates and deployment responsibilities separately.",
+      "responsibilities": [
+        "browser-ui: client-rendered Vue component tree; inspect Options API/Composition API usage, plugins, router and state management",
+        "Vue components, directives, filters and reactive state",
+        "Vue Router routes, navigation guards and history fallback where used",
+        "Vuex or other shared state and persistence plugins where used",
+        "Build tooling, single-file component compilation, polyfills and browser support",
+        "Separately owned APIs, identity, persistence, background work and integrations",
+        "server-runtime: inventory the actual API, identity, data, job, integration and hosting owners; the browser framework itself does not establish whether or how these exist."
+      ],
+      "lifecycle": {
+        "status": "End of life; no new features, updates or fixes from the Vue team",
+        "date": "End of life: 2023-12-31; final Vue 2 release: 2.7.16",
+        "as_of": "2026-10-23",
+        "sources": [
+          "https://v2.vuejs.org/eol/"
+        ]
+      },
+      "version_check": [
+        "Read package.json and lockfiles to find Vue, vue-template-compiler, Vue CLI/Vite plugins, router and state-library versions.",
+        "Identify whether the application uses Vue 2.7 Composition API support, custom render functions, filters, plugins or compiler options.",
+        "Use the official Vue 3 migration guide and the migration build guidance against the actual feature set; recheck plugin compatibility at planning time."
+      ],
+      "inventory": [
+        "Map route names, URL patterns, navigation guards, forms, validation and browser-visible behavior.",
+        "Trace global state, persistence, event buses, custom directives, filters and third-party component libraries.",
+        "Record SSR/SSG behavior, build commands, asset paths, browser support and deployment routing.",
+        "List API contracts, authentication, permissions, data owners and tests for critical journeys."
+      ],
+      "options": [
+        "Keep Vue 2 only as a bounded transition or maintenance choice with a documented support and security plan.",
+        "Upgrade within Vue to Vue 3, using the migration build or staged component conversion where appropriate and qualifying each dependency.",
+        "Replace selected modules or routes incrementally while preserving APIs and data ownership.",
+        "Choose another browser stack only when requirements or team constraints justify leaving Vue; do not force that outcome because another guide exists."
+      ],
+      "target_research": "Vue 3 is the natural first target to investigate for a Vue 2 source. Compare the official migration path, build tooling, component/library compatibility, router/state changes and required server behavior before considering a different framework.",
+      "caution": "Vue 2 end of life does not make a migration automatic. Third-party packages and custom component behavior may be the largest constraints. Vue 3 is not guaranteed compatible with the installed Vue 2 ecosystem.",
+      "sources": [
+        {
+          "title": "Vue 2 Has Reached End of Life",
+          "url": "https://v2.vuejs.org/eol/",
+          "claim": "Vue records the 2023-12-31 end-of-life date, no further Vue-team features/updates/fixes, final version 2.7.16 and recommends Vue 3 for new work."
+        },
+        {
+          "title": "Migration to Vue 2.7",
+          "url": "https://v2.vuejs.org/v2/guide/migration-vue-2-7",
+          "claim": "Vue's final 2.7 release has selected Composition API and tooling support that can inform a staged migration."
+        },
+        {
+          "title": "Migration Build",
+          "url": "https://v3-migration.vuejs.org/migration-build",
+          "claim": "The official Vue 3 migration build can expose compatibility warnings and support incremental migration, subject to its documented limits."
+        }
+      ]
+    },
+    {
+      "id": "wordpress",
+      "title": "WordPress",
+      "language": "PHP / JavaScript",
+      "group": "Rewrite sources",
+      "summary": "A WordPress site or application. WordPress remains a supported system; source coverage does not classify it as obsolete or recommend replacing it. Its real behavior can extend well beyond core through themes, plugins and custom code.",
+      "kind": [
+        "web"
+      ],
+      "roles": [
+        "browser-ui",
+        "server-runtime",
+        "publishing",
+        "plugins"
+      ],
+      "ui": "Public theme/site pages plus WordPress administration and editor interfaces; block editor, classic editor or custom editorial interfaces depend on installation.",
+      "host": "A PHP runtime, database and web server or managed WordPress host, with files/media and operational services. Hosting, cache, search, email, backups and CDN may be external; inventory the actual topology.",
+      "responsibilities": [
+        "browser-ui: Public theme/site pages plus WordPress administration and editor interfaces; block editor, classic editor or custom editorial interfaces depend on installation.",
+        "Pages, posts, taxonomies, custom post types, metadata, revisions, media and permalink behavior",
+        "Administrator/editor/author/contributor roles, login, sessions and editorial permissions",
+        "Theme templates, blocks, widgets, menus, styles and custom theme code",
+        "Plugins, must-use plugins, custom plugins, hooks, shortcodes and integrations",
+        "PHP and WordPress core versions, database, uploads, cron, cache, search, email and hosting/deployment",
+        "SEO metadata, redirects, forms, analytics, consent, accessibility and public URL behavior",
+        "server-runtime: inventory the actual API, identity, data, job, integration and hosting owners; the installed platform and its extensions own server-side behavior; inspect their actual configuration and owners."
+      ],
+      "lifecycle": {
+        "status": "Supported platform; status of a particular installation depends on its core, PHP, theme and plugin versions",
+        "date": "No end-of-life claim; inspect official release and support information for the installed versions at planning time",
+        "as_of": "2026-10-23",
+        "sources": [
+          "https://wordpress.org/about/features/",
+          "https://wordpress.org/documentation/article/updating-wordpress/"
+        ]
+      },
+      "version_check": [
+        "Record WordPress core version, PHP version, database/server details, multisite status and hosting provider/runtime.",
+        "Export the active and installed plugin/theme list with versions; identify premium, custom and must-use extensions and their owners.",
+        "Check current WordPress, PHP, plugin and theme compatibility/support information directly with their maintainers; no broad platform label establishes the support state of this site.",
+        "Check update/backup procedures and test recovery before changing or replacing the installation."
+      ],
+      "inventory": [
+        "Export database and files/media; map URL/permalink structure, redirects, canonical URLs, robots/sitemap and public page templates.",
+        "Inventory users, roles, capabilities, editorial review, scheduled publishing, revisions and account recovery.",
+        "For each plugin/theme/customization record purpose, data touched, hooks/APIs, owner, licensing, support and replacement decision.",
+        "Identify forms, search, comments, localization, analytics, SEO, caching, email, backups, cron and external integrations.",
+        "Record accessibility and content behavior checks; preserve content IDs/URLs or define redirects and migration mappings."
+      ],
+      "options": [
+        "Retain WordPress and update or replace specific themes/plugins when that continues to meet product requirements.",
+        "Refresh the presentation layer while WordPress remains the content/editorial owner; specify API, preview, authentication and cache boundaries.",
+        "Partially replace a bounded capability while preserving WordPress content and administrative workflow.",
+        "Fully replace WordPress only after assigning every retained publishing, identity, content, media, integration and operations responsibility to a named target or explicitly retiring it."
+      ],
+      "target_research": "Select a target from actual responsibilities: content model, editing workflow, permissions, integrations, media, URL/SEO behavior and hosting. A frontend framework alone does not supply WordPress publishing or plugin behavior. Do not infer PHP expertise or a Laravel fit from WordPress ownership.",
+      "caution": "WordPress core documentation cannot enumerate this site's plugin/theme behavior. A frontend-only rewrite can silently lose content editing, roles, search, forms, SEO, redirects or integrations. Require an installed system inventory and assign each capability kept, replaced or retired before migration design.",
+      "sources": [
+        {
+          "title": "WordPress Features",
+          "url": "https://wordpress.org/about/features/",
+          "claim": "WordPress describes publishing, user management, media, themes, plugins, custom content types and REST API capabilities; plugins can substantially extend core."
+        },
+        {
+          "title": "Updating WordPress",
+          "url": "https://wordpress.org/documentation/article/updating-wordpress/",
+          "claim": "Official update guidance describes backups, core updates and the fact that custom core-file modifications can be overwritten."
+        },
+        {
+          "title": "Manage Plugins",
+          "url": "https://wordpress.org/documentation/article/manage-plugins/",
+          "claim": "Official plugin guidance describes installed plugin management and recommends a current backup before updates."
+        }
+      ]
+    },
+    {
+      "id": "woocommerce",
+      "title": "WooCommerce",
+      "language": "PHP / JavaScript",
+      "group": "Rewrite sources",
+      "summary": "A WooCommerce store running within WordPress. WooCommerce remains a supported commerce system; this source entry covers commerce-specific responsibilities and refers to the shared WordPress source for CMS, roles, themes, plugins and hosting inventory.",
+      "kind": [
+        "web"
+      ],
+      "roles": [
+        "browser-ui",
+        "server-runtime",
+        "publishing",
+        "plugins",
+        "orders",
+        "payments",
+        "commerce"
+      ],
+      "ui": "Storefront product/category pages, cart and checkout plus WordPress/WooCommerce administration; the actual theme, blocks and extensions shape the customer and operator experience.",
+      "host": "A WordPress PHP/database deployment plus WooCommerce storage and operational integrations. Payment gateways, tax/shipping services, email, inventory, fulfillment and hosting can have independent owners; inspect their actual configuration.",
+      "responsibilities": [
+        "browser-ui: Storefront product/category pages, cart and checkout plus WordPress/WooCommerce administration; the actual theme, blocks and extensions shape the customer and operator experience.",
+        "Shared WordPress core, content, users/roles, theme/plugin/custom code and hosting responsibilities: see the WordPress source record at /rewrite/sources/wordpress/.",
+        "Products, variations, attributes, categories, stock, downloadable/virtual products, coupons and reviews",
+        "Cart, checkout, customer accounts, addresses, order lifecycle, refunds and order communications",
+        "Payment gateway configuration and event/webhook flows; never assume payment secrets or provider behavior are contained in the theme",
+        "Tax, shipping, subscriptions/memberships, inventory, fulfillment, fraud, analytics and other extension-specific behavior",
+        "WooCommerce version, data storage mode/tables, scheduled actions/cron, APIs and integrations",
+        "server-runtime: inventory the actual API, identity, data, job, integration and hosting owners; the installed platform and its extensions own server-side behavior; inspect their actual configuration and owners."
+      ],
+      "lifecycle": {
+        "status": "Supported platform; compatibility and support depend on installed WooCommerce, WordPress, PHP, theme, gateway and extension versions",
+        "date": "No end-of-life claim; check current official WooCommerce compatibility/update guidance for the installed versions",
+        "as_of": "2026-10-23",
+        "sources": [
+          "https://woocommerce.com/document/how-to-update-woocommerce/",
+          "https://woocommerce.com/document/installed-database-tables/"
+        ]
+      },
+      "version_check": [
+        "Record WooCommerce, WordPress, PHP and database versions and whether High-Performance Order Storage (HPOS) is enabled/compatible.",
+        "Export payment, shipping, tax, subscription, membership, inventory, checkout and fulfillment extensions with exact versions and account owners.",
+        "Check each extension and gateway's current compatibility and migration documentation; a core compatibility claim does not certify a custom store.",
+        "Stage updates and migration rehearsal with backups of both the database and wp-content files, including uploads, themes and extensions."
+      ],
+      "inventory": [
+        "Use the shared WordPress inventory for CMS content, users/roles, theme/plugin/custom code, hosting, media, URL and editorial responsibilities.",
+        "Map catalogue structure, SKUs, variations, stock ownership, pricing, promotions, downloads and product-specific metadata.",
+        "Map cart/checkout paths, payment methods, gateway callbacks/webhooks, tax rules, shipping zones/rates, coupons and fraud controls.",
+        "Record customer/order history, statuses, refunds, subscriptions, renewals, privacy/retention constraints, emails and fulfillment handoffs.",
+        "Identify order/product database storage and custom metadata, API consumers, scheduled actions, webhooks, reconciliation and rollback requirements.",
+        "Set a migration cutover strategy for concurrent order writes, stock updates, payment settlement, customer access and reconciliation; validate with real representative records."
+      ],
+      "options": [
+        "Keep WooCommerce as the commerce owner while replacing a storefront or integration layer through explicit supported APIs and boundaries.",
+        "Upgrade WooCommerce/WordPress or replace selected extensions after compatibility and staged workflow checks.",
+        "Partially replace catalog, checkout, fulfillment or integration capabilities only after identifying the new system of record and bidirectional synchronization rules.",
+        "Fully replace the store platform only when catalogue, accounts, orders, payments, tax/shipping, subscriptions, fulfillment, communications and operations each have a named destination or explicit retirement decision."
+      ],
+      "target_research": "First establish whether the scope is storefront, integration or the full commerce system. Investigate target capability against actual catalogue, customer, order, payment, tax, shipping, subscription and fulfillment needs. A custom frontend does not require replacing the commerce backend, and a generic web application framework is not itself a commerce implementation.",
+      "caution": "Do not treat product export as a complete store migration. Orders, customer data, extensions, live order writes, stock, subscriptions, gateway events and operational processes can need separate transfer and validation. This source record does not certify any target's compatibility with WooCommerce data or plugins.",
+      "sources": [
+        {
+          "title": "How to update WooCommerce",
+          "url": "https://woocommerce.com/document/how-to-update-woocommerce/",
+          "claim": "WooCommerce recommends a current backup and staging where possible, identifies both database and wp-content data, and calls out customer-critical workflow tests."
+        },
+        {
+          "title": "Installed Database Tables",
+          "url": "https://woocommerce.com/document/installed-database-tables/",
+          "claim": "WooCommerce documents core tables for orders, products, customers and related operational data."
+        },
+        {
+          "title": "Managing WooCommerce Data Stores",
+          "url": "https://developer.woocommerce.com/docs/best-practices/data-management/data-stores",
+          "claim": "Developer documentation describes CRUD data classes and data-store boundaries, including core post-based and custom-table storage."
+        },
+        {
+          "title": "Migrating products between sites",
+          "url": "https://woocommerce.com/document/migrating-products-between-sites/",
+          "claim": "Official guidance describes product data transfer options and limitations; product migration alone does not establish full store migration."
+        }
+      ]
+    }
+  ]
+}

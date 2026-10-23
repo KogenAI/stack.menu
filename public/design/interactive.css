@@ -161,11 +161,11 @@
   .text-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 3px; }
   .chooser-reminder { max-width: 680px; margin-top: 8px; color: var(--body); font-size: 14px; line-height: 21px; }
   .recommendation-constraints { text-align: left; }
-  .constraints-lede { color: var(--mute); font-size: 13px; line-height: 19px; }
+  .constraints-lede, .rewrite-source-note { color: var(--mute); font-size: 13px; line-height: 19px; }
   .constraints-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 12px; }
   .constraint-field { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
-  .constraint-field select { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid var(--hairline); border-radius: 6px; background: var(--elevated); color: var(--ink); font: inherit; font-size: 14px; line-height: 20px; }
-  .constraint-field select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .constraint-field select, #rewrite-other-source { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid var(--hairline); border-radius: 6px; background: var(--elevated); color: var(--ink); font: inherit; font-size: 14px; line-height: 20px; }
+  .constraint-field select:focus-visible, #rewrite-other-source:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
   .library-note { margin: 14px auto 0; text-align: center; color: var(--mute); font-size: 13px; line-height: 19px; }
   .recommendation-result .recommendation-sources, .recommendation-alternative .recommendation-sources { color: var(--mute); }
   @media (max-width: 639px) {

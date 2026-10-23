@@ -218,6 +218,17 @@ from minimal_site import prepare
 prepare(R, OUT, PAGES, records, AGENT_INTRO, CHOOSE, write, shell)
 from design_site import prepare as redesign
 redesign(R, OUT, PAGES, records, write, shell)
+import rewrite_sources
+rewrite_sources.load_sources(R, records)
+added_sources = rewrite_sources.prepare(R, write, shell)
+source_discovery = '\n\n## Additional rewrite sources\n\nSource coverage is separate from new-project target recommendations. Inspect installed versions and actual application responsibilities.\n\n' + '\n'.join('- [' + source['title'] + '](' + source['markdown_url'] + ')' for source in added_sources.values()) + '\n\n[Source index](/rewrite/sources.json)\n'
+write('rewrite/guide.md', (OUT/'rewrite/guide.md').read_text() + source_discovery)
+write('llms-full.txt', (OUT/'llms-full.txt').read_text() + source_discovery + '\n\n---\n\n' + '\n\n---\n\n'.join((OUT/source['markdown_url'].lstrip('/')).read_text() for source in added_sources.values()))
+for resource_name in ['catalogue.json','coverage.json']:
+ resource = json.loads((OUT/resource_name).read_text())
+ resource['rewrite_sources_url']='/rewrite/sources.json'
+ resource['rewrite_source_count']=len(added_sources)
+ write(resource_name,json.dumps(resource,ensure_ascii=False,indent=2)+'\n')
 shutil.copytree(R/'public',OUT,dirs_exist_ok=True)
 (R/'.generated/pages.json').write_text(json.dumps(PAGES,ensure_ascii=False))
 print(f'Prepared {len(records)} profiles and complete agent resources.')

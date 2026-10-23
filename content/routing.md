@@ -25,13 +25,15 @@ This local implementation shares the same handler with the prepared Cloudflare P
 The endpoint serves agent HTTP clients and same-origin use. Cross-origin browser POST/OPTIONS is not supported; those clients can use the static guides. Repeated GET fields are rejected; duplicate keys in a JSON object follow the JSON parser’s last-value behavior, so send each field once.
 
 
-## Task preferences
+## Task preferences and rewrite sources — schema 1.1
 
 The catalogue has nine task choices. Optional `ecosystem` values are `any`, `python`, `php`, `ruby`, `elixir`, `react` and `rust`; each task publishes the values it supports in `constraints`. `mobile_platform` is `shared`, `ios` or `android`. Read the task's `overrides` instead of assuming a language preference always changes the primary. Optional `alternative_ids` on a task or override select its applicable alternatives; the browser and endpoint use the same resolved list. Unreviewed preferences remain a question, not a verified fit. These fields affect choosing only; a build or explicit migration target remains authoritative.
 
 Older `python-api`, `react-fullstack`, `ios` and `android` use cases map through `recommendations.json.aliases` to a neutral task with the original preference. Conflicting explicit preferences must be resolved; they do not silently replace the old meaning. Human links use the canonical task and preference after resolving an alias.
 
+`existing_stack` accepts a guide ID, a source ID from [rewrite/sources.json](/rewrite/sources.json), or a bounded unlisted-system identifier. Optional `source_label` is a short display label, not an application transcript. An unknown source returns an inventory/research question; it never gets matched by language. `existing_source` returns the known source reference or explicit coverage gap. `target_stack` still accepts only the 16 full-guide profile IDs; source-only coverage does not imply target eligibility.
 
+The initial added sources are Create React App, AngularJS, Vue 2, WordPress and WooCommerce. Each source has HTML, complete Markdown and JSON linked by its record. WordPress and WooCommerce are not classified as obsolete. Scope their installed versions, plugins, publishing and commerce behavior. A source's documented responsibilities always prompt an actual inventory: what is kept, replaced or retired, who owns it, how interfaces connect and which checks/rollback apply. A completed form is not compatibility evidence. Same-profile work can be an upgrade, not an invented cross-stack replacement.
 
 Before building or rewriting, briefly consider whether an existing service or specialized tool already meets the need. This reminder does not create a required decision stage or override the user's instruction to build or rewrite.
 
