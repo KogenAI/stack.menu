@@ -141,9 +141,9 @@
   .opts { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 16px; border: 0; margin: 0; padding: 0; }
   .opt input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
   .opt span {
-    display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 17px; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 6px; min-height: 40px; height: auto; max-width: 100%; padding: 9px 17px; border-radius: 999px;
     background: var(--elevated); border: 1px solid var(--hairline);
-    font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); cursor: pointer;
+    font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); cursor: pointer; white-space: normal; overflow-wrap: anywhere; text-align: left;
     transition: background-color .15s, border-color .15s, color .15s;
   }
   .opt span:hover { background: var(--hairline-soft); border-color: var(--body); }
@@ -151,10 +151,11 @@
   .opt input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
 
   /* Clear selection: fixed-height slot under the options; the button only appears once something is picked */
-  .clear-slot { display: flex; justify-content: center; height: 40px; margin-top: 12px; }
-  .clear-btn { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 12px; border-radius: 999px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--body); cursor: pointer; transition: background-color .15s, color .15s; }
+  .clear-slot { display: flex; justify-content: center; min-height: 40px; height: auto; margin-top: 12px; }
+  .clear-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 12px; border-radius: 999px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--body); cursor: pointer; transition: background-color .15s, color .15s; }
   .clear-btn:hover { background: var(--hairline-soft); color: var(--ink); }
   .clear-btn[hidden] { display: none; }
+
 
   /* ---------- Stage: matching folders come forward to the centre; the rest wait in a row at the bottom ---------- */
   .rec-stage { position: relative; }

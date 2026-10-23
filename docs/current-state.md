@@ -90,9 +90,13 @@ Mobile component labels no longer inject SwiftUI or Compose resources into a cho
 
 Selecting a chooser task updates its result in place instead of triggering reveal scrolling.
 
+### Let long chooser labels wrap inside controls
+
+Chooser option and clear-selection controls grow with wrapped text, preserving readable labels and focus indicators on narrow screens.
+
 ## Outstanding final-review findings
 
-A later Claude Opus high review and focused reproduction found unresolved issues: inline links use an undefined styling class; long choice labels can wrap inside fixed-height controls; negotiated chooser Markdown concatenates labels; older `?kind=` chooser links lose their selection. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.
+A later Claude Opus high review and focused reproduction found unresolved issues: inline links use an undefined styling class; negotiated chooser Markdown concatenates labels; older `?kind=` chooser links lose their selection. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.
 
 ## Reader access limit
 
