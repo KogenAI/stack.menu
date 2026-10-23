@@ -20,7 +20,9 @@
     {
       "job": "Cross-platform UI and routing",
       "default": "React Native with the Expo SDK and the generated Expo Router baseline",
-      "alternatives": "Platform-specific route files or native modules for behavior that must differ by operating system; Flutter is a conditional alternative when a team accepts Dart and needs a custom rendered interface across more platforms, not a default substitute",
+      "alternatives": [
+        "Platform-specific route files or native modules for behavior that must differ by operating system; Flutter is a conditional alternative when a team accepts Dart and needs a custom rendered interface across more platforms, not a default substitute"
+      ],
       "reason": "One TypeScript project can share much of the UI and application logic across iOS and Android while using native UI components and platform APIs",
       "limits": "Shared source does not guarantee identical layout, accessibility, lifecycle or device behavior. Expo Router and the default template evolve with the selected SDK; preserve and verify the generated compatible versions.",
       "source_urls": [
@@ -33,7 +35,9 @@
     {
       "job": "Backend and API contract",
       "default": "A separately selected backend/API with versioned request and response contracts; use Fetch behind an injected client and validate untrusted responses at runtime",
-      "alternatives": "Generate a TypeScript client from an owned OpenAPI schema only when generation and versioning are established in the actual project",
+      "alternatives": [
+        "Generate a TypeScript client from an owned OpenAPI schema only when generation and versioning are established in the actual project"
+      ],
       "reason": "The native clients should share service contracts without moving data ownership, authorization or durable work into the installed app",
       "limits": "TypeScript types do not validate network data at runtime. The client is public and cannot keep provider credentials or backend secrets. Choose the backend separately from this mobile profile.",
       "source_urls": [
@@ -44,7 +48,9 @@
     {
       "job": "Remote state and local data",
       "default": "Keep server-owned data behind the API; add local persistence only for a stated cache or offline requirement",
-      "alternatives": "Expo SQLite for structured local data when query, retention and migration requirements justify it; a query cache only when remote loading and invalidation need it",
+      "alternatives": [
+        "Expo SQLite for structured local data when query, retention and migration requirements justify it; a query cache only when remote loading and invalidation need it"
+      ],
       "reason": "Separating remote authority from device storage makes offline behavior, retries and reconciliation explicit",
       "limits": "Local storage does not create synchronization, conflict resolution, cross-device truth or encryption by itself. Define offline reads and writes separately.",
       "source_urls": [
@@ -55,7 +61,9 @@
     {
       "job": "App credentials",
       "default": "expo-secure-store for small locally held session credentials when its platform behavior and backup policy fit",
-      "alternatives": "In-memory credentials when persistence is unnecessary; use platform security APIs through a reviewed library for a different storage requirement",
+      "alternatives": [
+        "In-memory credentials when persistence is unnecessary; use platform security APIs through a reviewed library for a different storage requirement"
+      ],
       "reason": "Sensitive user credentials need an operating-system-backed storage boundary rather than app preferences or source code",
       "limits": "SecureStore is not a backend secret vault or a general database. Define logout, expiry, revocation, device migration and backup behavior; server authorization remains authoritative.",
       "source_urls": [
@@ -66,7 +74,9 @@
     {
       "job": "Device capabilities and native modules",
       "default": "Use the Expo SDK or a React Native library that explicitly supports both target platforms and the selected SDK",
-      "alternatives": "A config plugin or local Expo module when an app-specific native extension is necessary",
+      "alternatives": [
+        "A config plugin or local Expo module when an app-specific native extension is necessary"
+      ],
       "reason": "Expo config and development builds can include native capabilities while retaining the JavaScript development workflow",
       "limits": "Expo Go contains a fixed set of native libraries. A module with native code that is absent from Expo Go needs a development build; native support, permissions and version compatibility must be checked per platform.",
       "source_urls": [
@@ -77,7 +87,9 @@
     {
       "job": "Build and dependency compatibility",
       "default": "Use the Expo CLI included with the project, `npx expo install` for compatible native package versions, the committed lockfile and `npx expo-doctor`",
-      "alternatives": "Keep generated native directories and use native IDE workflows only when the project adopts direct native changes or needs native debugging",
+      "alternatives": [
+        "Keep generated native directories and use native IDE workflows only when the project adopts direct native changes or needs native debugging"
+      ],
       "reason": "React Native packages must match the Expo SDK's native dependency set; the doctor command checks common project and version issues",
       "limits": "A clean doctor report is not a successful iOS or Android build, device test or release. Re-run native builds when native dependencies, app configuration or plugins change.",
       "source_urls": [
@@ -89,7 +101,9 @@
     {
       "job": "Native development and distribution",
       "default": "Development builds for real application work; build and verify iOS and Android separately. Use local Xcode/Android tooling or an explicitly chosen cloud build service.",
-      "alternatives": "Expo Go for initial experiments with only the native libraries it already includes; EAS Build is optional, not required by Expo itself",
+      "alternatives": [
+        "Expo Go for initial experiments with only the native libraries it already includes; EAS Build is optional, not required by Expo itself"
+      ],
       "reason": "Development builds include the project's actual native dependencies; EAS can perform cloud builds without a local native toolchain",
       "limits": "Local iOS builds require macOS and Xcode; local Android builds require Android Studio/SDK and a compatible Java toolchain. Cloud builds do not remove Apple/Google account, application identity, signing, credential custody, store policy, per-platform device testing or release ownership.",
       "source_urls": [
@@ -101,7 +115,9 @@
     {
       "job": "Behavior and platform verification",
       "default": "Unit-test domain/API behavior; exercise navigation, permissions, lifecycle, offline/reconnect and accessibility in development builds on both platforms",
-      "alternatives": "Use simulators/emulators for broad repeatable checks and representative physical devices for hardware, permission and release behavior",
+      "alternatives": [
+        "Use simulators/emulators for broad repeatable checks and representative physical devices for hardware, permission and release behavior"
+      ],
       "reason": "The shared JavaScript code still runs inside two operating-system-specific native applications",
       "limits": "A simulator/emulator or Expo Go check does not qualify device hardware, signing, native-module behavior or store distribution. Test against the minimum supported OS and current supported OS versions.",
       "source_urls": [

@@ -74,9 +74,13 @@ Almir authorized these local changes and their signed commits. Pushes remain on 
 
 The reviewed base `9aa317f` was pushed on 23 October. Its recorded deployment was queued at readback; this is source-publication evidence, not a later live-delivery check.
 
+### Store Expo alternatives as complete list items
+
+Expo alternatives are arrays of complete strings in the curated record. The generated lint/TypeScript starter failures remain a separate, unresolved qualification limit.
+
 ## Outstanding final-review findings
 
-A later Claude Opus high review and focused reproduction found unresolved issues: Expo requests still receive unrelated native-client guidance; chooser selection can scroll the recommendation and focused control off screen; inline links use an undefined styling class; long choice labels can wrap inside fixed-height controls; an unsupported source-component request can avoid clarification; negotiated chooser Markdown concatenates labels; older `?kind=` chooser links lose their selection; and Expo alternatives stored as strings render character by character in generated Markdown. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.
+A later Claude Opus high review and focused reproduction found unresolved issues: Expo requests still receive unrelated native-client guidance; chooser selection can scroll the recommendation and focused control off screen; inline links use an undefined styling class; long choice labels can wrap inside fixed-height controls; an unsupported source-component request can avoid clarification; negotiated chooser Markdown concatenates labels; older `?kind=` chooser links lose their selection. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.
 
 ## Reader access limit
 
