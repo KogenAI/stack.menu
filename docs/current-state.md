@@ -86,9 +86,13 @@ A requested component absent from the source now produces an explicit clarificat
 
 Mobile component labels no longer inject SwiftUI or Compose resources into a chosen Expo build. Client architecture and a shared backend remain separate questions.
 
+### Keep chooser selection from scrolling the page
+
+Selecting a chooser task updates its result in place instead of triggering reveal scrolling.
+
 ## Outstanding final-review findings
 
-A later Claude Opus high review and focused reproduction found unresolved issues: chooser selection can scroll the recommendation and focused control off screen; inline links use an undefined styling class; long choice labels can wrap inside fixed-height controls; negotiated chooser Markdown concatenates labels; older `?kind=` chooser links lose their selection. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.
+A later Claude Opus high review and focused reproduction found unresolved issues: inline links use an undefined styling class; long choice labels can wrap inside fixed-height controls; negotiated chooser Markdown concatenates labels; older `?kind=` chooser links lose their selection. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.
 
 ## Reader access limit
 

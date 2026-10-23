@@ -486,7 +486,6 @@
         clearSel.hidden = false;
         renderRecommendation(useCase, conditionalAlternatives);
         layout(true);
-        if (window.StackMenu) window.StackMenu.reveal(revealEl);
       }
     }
 
