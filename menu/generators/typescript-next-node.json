@@ -1,6 +1,6 @@
 {
   "profile_id": "typescript-next-node",
-  "reviewed_on": "2026-10-18",
+  "reviewed_on": "2026-10-23",
   "evidence_status": "documentation-reviewed; commands not executed",
   "starting_points": [
     {
@@ -8,7 +8,7 @@
       "when": "A new full-stack React/Next.js application; do not rerun over an existing application.",
       "steps": [
         "Select a supported Node LTS and the repository package manager. Inspect the current CLI help before generation; examples below use npm.",
-        "Run the official scaffolder in the parent directory. Review prompts for styling, compiler/cache behavior and instruction-file policy instead of accepting saved preferences blindly.",
+        "Run the official scaffolder in the parent directory. Review its current prompts for styling, Cache Components, agent instructions and optional feedback instead of accepting saved preferences blindly; use --reset-preferences if you need to clear saved choices.",
         "Record resolved generator/runtime/framework versions and chosen options in the root README; retain the lockfile."
       ],
       "commands": [
@@ -25,12 +25,14 @@
         {
           "run": "npx create-next-app@latest my-app --ts --eslint --app --src-dir --use-npm --disable-git",
           "cwd": "A local source-workspace parent outside synchronized storage; my-app must not already exist",
-          "purpose": "Generate the TypeScript App Router baseline without automatic Git initialization/initial commit."
+          "purpose": "Generate the TypeScript App Router baseline while leaving styling, cache, instruction and feedback preferences available for interactive selection."
         }
       ],
       "notes": [
         "Replace my-app with the intended unused project name. @latest is a scaffold-time lookup; record the resolved version and use locked dependencies afterward.",
-        "For a README-only instruction policy, add --no-agents-md and set agentRules: false in the generated Next configuration before next dev; verify support in the installed Next version. Do not create instruction files against repository policy.",
+        "The CLI's recommended defaults currently include TypeScript, ESLint, Tailwind CSS, App Router, Cache Components, AGENTS.md and agent feedback; customize these for the actual project. Cache Components are a framework behavior choice, not a required scaffold feature. Tailwind is the default styling option, but choose it only if it fits the product's styling approach.",
+        "The agent-instructions option is project-local. If the repository owner requires README-only guidance, pass --no-agents-md and, for Next versions supporting it, set agentRules: false in next.config before next dev so Next does not create/update its managed AGENTS.md block. Do not impose this repository-specific choice on all users or projects.",
+        "Agent feedback is optional and separate from agentRules. It prepares anonymized Next.js issue-report drafts for owner review; opening the review form does not send or publish them. Keep it off unless the project owner wants this review flow and understands its telemetry requirement.",
         "Do not handwrite package.json, tsconfig, framework config or ignore rules as a replacement for this scaffold."
       ]
     }
@@ -59,7 +61,7 @@
   ],
   "preserve": [
     "Generated ignore rules, package scripts, strict TypeScript configuration, Next configuration, application/layout conventions and lockfile; document intentional changes.",
-    "Generated README setup information, supplemented with project purpose/navigation; honor repository instruction ownership."
+    "Generated README setup information, supplemented with project purpose/navigation; honor repository instruction ownership and record the chosen local agent-rule/feedback behavior."
   ],
   "verification": [
     "Run generated development server and inspect a real route in a browser.",
@@ -67,6 +69,14 @@
     "Verify intended generated files and documented deviations; a successful scaffold does not prove authentication, authorization or database integration."
   ],
   "sources": [
+    {
+      "title": "Next.js managed agent rules and disabling generated instruction blocks",
+      "url": "https://nextjs.org/docs/app/api-reference/config/next-config-js/agentRules"
+    },
+    {
+      "title": "Next.js agent feedback draft/review flow and telemetry behavior",
+      "url": "https://nextjs.org/docs/app/api-reference/config/next-config-js/agentFeedback"
+    },
     {
       "title": "create-next-app CLI",
       "url": "https://nextjs.org/docs/app/api-reference/cli/create-next-app"
