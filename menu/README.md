@@ -18,3 +18,8 @@ Imported architecture/migration records retain their 11 October source date and 
 `updates.json` owns narrowly sourced current corrections over imported tool facts. `scripts/current_content.py` applies each correction only while its declared previous wording still matches, so a later reimport requires reconciliation. Each served record and guide keeps the correction date/evidence alongside its unchanged original review date.
 
 `recommendations.json` owns task-based editorial defaults, why/tradeoffs and conditional alternatives. The chooser, context router and generated agent selection workflow use that policy; it does not replace hard constraints or authorize a rewrite. Full guides remain available for explicitly chosen stacks and migration references.
+
+
+## Current recommendation and rewrite-source owners
+
+[`recommendations.json`](recommendations.json) owns task defaults, optional ecosystem/mobile constraints, conditional overrides and the older task-ID aliases. The shared resolver in [`lib/recommendation-policy.js`](../lib/recommendation-policy.js) applies that policy in the browser and optional endpoint. Guide coverage remains distinct from a recommendation for a particular task.

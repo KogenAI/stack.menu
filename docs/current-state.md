@@ -114,6 +114,10 @@ The chooser separates one primary recommendation, conditional alternatives and a
 
 A short existing-services/tools reminder is nonblocking. Stack Menu remains about choosing stacks for software work and planning rewrites, with explicit choices preserved.
 
+### Recommend stacks by task and explicit preferences
+
+Nine neutral task choices replace technology-shaped jobs. Human and optional agent routing share defaults, explicit preferences, legacy task aliases and applicable alternatives. An undecided mobile scope retains native candidates and asks a consequential question; explicit platform choices narrow the recommendation. Matching Python/Elixir/React defaults do not emit unsupported-preference warnings.
+
 ## Outstanding final-review findings
 
 A later Claude Opus high review and focused reproduction found unresolved issues: older `?kind=` chooser links lose their selection. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.

@@ -44,6 +44,7 @@ def prepare(root, out, pages, records, write, shell):
     write('design/interactive-data.js', 'window.StackInteractiveProfiles=' +
           json.dumps(canonical, ensure_ascii=False).replace('</', '<\\/') + ';\n')
     write('design/migration-fit.js', (root / 'lib/migration-fit.js').read_text())
+    write('design/recommendation-policy.js', (root / 'lib/recommendation-policy.js').read_text())
     recommendation_path = root / 'menu/recommendations.json'
     recommendations = json.loads(recommendation_path.read_text()) if recommendation_path.exists() else {'use_cases': []}
     server_use_cases = ''.join(

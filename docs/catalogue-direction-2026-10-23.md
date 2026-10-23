@@ -26,6 +26,43 @@ The earlier proposals for a service/platform decision engine, typed retain/servi
 
 A healthy omitted stack is not obsolete. WordPress and WooCommerce can be rewrite sources without being classified as legacy or becoming flagship new-project recommendations. No current guide needs deletion or a source-only label solely to reduce the visible number of recommendations.
 
+Prefer per-task conditions over a global ranked badge. SwiftUI can be the primary for an iOS-specific requirement while Expo fits a shared iOS/Android brief. Language, team knowledge, hosting, an existing backend and device requirements narrow the task. Do not infer PHP expertise merely from owning WordPress.
+
+## Task-based recommendations
+
+Proposed reader-facing tasks should describe the software being built: content websites, business applications, collaborative applications, APIs/services, integrations/automation, command-line tools and mobile applications. Exact labels and grouping remain to be designed; no fixed number of categories is approved.
+
+“Python API” becomes an API task narrowed by a real Python requirement. A React preference likewise narrows web-application guidance. Keep component choices when useful; do not pretend a language constraint is an independent business task.
+
+When context is sufficient, show a clear starting recommendation with its reason and trade-off. Show conditional alternatives only where their deciding requirement matters. Missing context should prompt a consequential stack-selection question, not a long platform-shopping interview. Preserve existing guide URLs and useful shared links.
+
+## Proposed disposition of the existing guides
+
+These are proposed editorial starting points. Framework documentation supports capabilities, not proof of universal superiority. Existing healthy choices remain supported.
+
+| Guide | Recommend when |
+| --- | --- |
+| Astro | A custom, mostly static content site is justified and the publishing workflow fits; combine with a CMS when editors need one. |
+| Rails + Hotwire | A custom integrated web product is justified and no existing team/ecosystem requirement distinguishes alternatives. This is an editorial default, not a measured winner. |
+| Django | Python expertise/libraries or Django's data/admin workflow materially benefit that product. |
+| Laravel + Livewire | PHP expertise, a Laravel estate or its integrated conventions materially benefit that product. A WordPress source alone is not sufficient. |
+| Phoenix + LiveView | Shared live interaction is central and its server-owned model fits. A realtime checkbox alone is insufficient. |
+| Next.js | React full-stack requirements, especially Next-specific features, justify it. Compare with Start when the requirements do not decide. |
+| React + Vite | A separately owned API and a deliberately assembled browser client justify it; routing/data needs are explicit. Static hosting alone does not rule out a framework. |
+| Go service | A separate service boundary is justified; otherwise prefer the existing product framework's API. |
+| FastAPI | A separate API benefits materially from Python libraries, SDKs or team context. |
+| Rust service | Rust dependencies, existing ownership or demonstrated resource/performance constraints justify its additional demands. |
+| Go CLI + TUI | A compiled, distributed CLI is needed; a TUI is conditional rather than compulsory. |
+| Rust CLI + TUI | Rust dependencies or resource-control requirements materially justify it; a TUI remains conditional. |
+| Python automation + AI | Custom integration/data logic is needed outside a better existing application or automation platform. AI is conditional. |
+| Expo + React Native | An installable/device-specific shared mobile application is justified and required native capabilities fit. |
+| Swift + SwiftUI | iOS-specific requirements or platform-first development justify a native client. |
+| Kotlin + Compose | Android-specific requirements or platform-first development justify a native client. |
+
+React's documentation recommends frameworks while explicitly supporting build-tool paths and explaining their assembly costs. Frameworks can also support static/client-only applications. Our recommendation must reflect both facts. [React application choices](https://react.dev/learn/creating-a-react-app), [build-tool trade-offs](https://react.dev/learn/build-a-react-app-from-scratch).
+
+TanStack Start is stable and supports full-stack React with typed routing and server functions. A missing local guide is not evidence that Next.js is better. First add an honest, scoped Next/Start comparison with deciding requirements, not eight equal-looking alternatives. A new full Start guide should meet the normal source, generator and baseline-check bar; distinguish documentation review from actual starter/deployment execution. Apply that evidence standard consistently, including the existing failed Expo baseline checks. Do not imply a representative starter trial certifies real applications. [Start overview](https://tanstack.com/start/latest/docs/framework/react/overview), [Next deployment options](https://nextjs.org/docs/app/getting-started/deploying).
+
 ## Commerce and specialized tools within this boundary
 
 Commerce remains relevant when choosing software architecture or scoping a rewrite. Identify whether the work is a storefront, an integration or an entire commerce application, and what already owns catalogue, orders, payment, tax/shipping rules, subscriptions and fulfillment. A custom storefront does not automatically require a custom commerce backend. [Shopify headless architecture](https://shopify.dev/docs/storefronts/headless).

@@ -8,6 +8,7 @@ for(const useCase of recommendations.use_cases){
  if(!profileIds.has(useCase.primary))throw new Error(`Recommendation ${useCase.id} references unknown primary profile ${useCase.primary}.`);
  if(!fields.use_case.includes(useCase.id))throw new Error(`Recommendation ${useCase.id} is missing from the route schema.`);
 }
+for(const useCase of recommendations.use_cases)for(const override of useCase.overrides||[])if(!profileIds.has(override.primary))throw new Error(`Unknown override profile ${override.primary}.`);
 for(const alternative of recommendations.alternatives){
  if(alternative.profile_id&&!profileIds.has(alternative.profile_id))throw new Error(`Recommendation alternative ${alternative.id} references unknown profile ${alternative.profile_id}.`);
  for(const useCaseId of alternative.use_cases)if(!useCaseIds.has(useCaseId))throw new Error(`Recommendation alternative ${alternative.id} references unknown use case ${useCaseId}.`);

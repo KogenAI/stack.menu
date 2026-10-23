@@ -291,6 +291,7 @@
     var revealEl = document.getElementById('reveal');
     var clearSel = document.getElementById('clear-sel');
     var current = null;
+    var resolver = null;
     if (!cells.length) {
       status.textContent = 'Stack guides are available in the library.';
       return;
@@ -343,7 +344,7 @@
       }).join(' · ');
     }
     function renderAlternatives(useCase, alternatives) {
-      var relevant = alternatives.filter(function (alternative) {
+      var relevant = (useCase.alternatives || alternatives).filter(function (alternative) {
         return alternative.profile_id !== useCase.primary && Array.isArray(alternative.use_cases) && alternative.use_cases.indexOf(useCase.id) !== -1;
       });
       if (!relevant.length) return '';
@@ -376,7 +377,9 @@
       var actions = '<div class="recommendation-actions"><a class="btn-primary" href="' + esc(href) + '" aria-label="Read ' + esc(title) + ' guide">Read guide <span aria-hidden="true">→</span></a>';
       actions += '<a class="recommendation-link" href="/library/">All stack guides <span aria-hidden="true">→</span></a></div>';
       var missing = profile ? '' : '<p class="recommendation-missing">The matching guide is not present in this catalogue build yet. Browse the library while it is added.</p>';
-      result.innerHTML = '<div class="recommendation-primary"><p class="eyebrow">Recommended starting point</p><h2><a class="text-link" href="' + esc(href) + '">' + esc(title) + '</a></h2>' +
+      var pending = useCase.pending_questions || [];
+      result.innerHTML = '<div class="recommendation-primary"><p class="eyebrow">' + (pending.length ? 'Possible starting point' : 'Recommended starting point') + '</p><h2><a class="text-link" href="' + esc(href) + '">' + esc(title) + '</a></h2>' +
+        pending.map(function (question) { return '<p class="recommendation-tradeoff">' + esc(question) + ' Choose a mobile platform above to narrow the recommendation.</p>'; }).join('') +
         '<p>' + esc(useCase.why || '') + '</p>' +
         (useCase.tradeoff ? '<p class="recommendation-tradeoff"><strong>Trade-off:</strong> ' + esc(useCase.tradeoff) + '</p>' : '') +
         missing + actions + (sourceLinks ? '<p class="recommendation-sources">Editorial sources: ' + sourceLinks + '</p>' : '') + '</div>' +
@@ -384,108 +387,93 @@
       result.hidden = false;
     }
 
-    // Keep the designer's single-choice radio behavior, populated from the shared editorial records.
     function start(contract) {
-      var useCases = Array.isArray(contract.use_cases) ? contract.use_cases : [];
-      var alternatives = Array.isArray(contract.alternatives) ? contract.alternatives : [];
-      if (!useCases.length) throw new Error('No recommendation use cases were published.');
-      var existing = [].slice.call(opts.querySelectorAll('input[name="use_case"]'));
-      if (existing.length !== useCases.length || existing.some(function (input, index) { return input.value !== useCases[index].id; })) {
-        opts.querySelectorAll('.opt').forEach(function (label) { label.remove(); });
-        useCases.forEach(function (useCase) {
-          var label = document.createElement('label');
-          label.className = 'opt';
-          var input = document.createElement('input');
-          input.type = 'radio'; input.name = 'use_case'; input.value = useCase.id;
-          var text = document.createElement('span'); text.textContent = useCase.label;
-          label.appendChild(input); label.appendChild(text); opts.appendChild(label);
-        });
-      }
+      var useCases = contract.use_cases;
+      var alternatives = contract.alternatives || [];
+      var ecosystem = document.getElementById('recommendation-ecosystem');
+      var mobile = document.getElementById('recommendation-mobile-platform');
+      var preferencePanel = document.getElementById('recommendation-constraints');
+      var selectedTask = null;
       var inputs = [].slice.call(opts.querySelectorAll('input[name="use_case"]'));
-      inputs.forEach(function (input) {
-        input.addEventListener('change', function () {
-          var useCase = useCases.filter(function (item) { return item.id === input.value; })[0];
-          if (useCase) choose(useCase, alternatives);
-        });
-      });
-      var defaultStatus = 'One editorial starting point per job, with its trade-off and conditions for alternatives.';
-      var query = new URLSearchParams(location.search);
-      var requestedUseCase = query.get('use_case');
-      var requestedStack = query.get('stack');
-      var initial = useCases.filter(function (item) { return item.id === requestedUseCase; })[0];
-      var invalidUseCase = !!requestedUseCase && !initial;
-      var linkedProfile = requestedStack && profiles[requestedStack];
-      var contextMessage = '';
-      // Older folder links use ?stack=<profile-id>. Resolve them to an editorial
-      // job without treating the linked stack as a user-selected recommendation.
-      if (!initial && query.get('stack')) {
-        initial = useCases.filter(function (item) { return item.primary === requestedStack; })[0];
-        if (!initial) {
-          var linkedAlternative = alternatives.filter(function (alternative) {
-            return alternative.profile_id === requestedStack && Array.isArray(alternative.use_cases) && alternative.use_cases.length;
-          })[0];
-          if (linkedAlternative) {
-            initial = useCases.filter(function (item) { return item.id === linkedAlternative.use_cases[0]; })[0];
-            if (initial && linkedProfile && requestedStack !== initial.primary) {
-              contextMessage = 'This older link opens ' + linkedProfile.title + ', a conditional alternative for ' + initial.label + '. The editorial starting point remains ' + ((profiles[initial.primary] && profiles[initial.primary].title) || initial.primary) + '.';
-            }
-          }
-        }
-      }
-      if (initial && requestedStack && linkedProfile) {
-        var matchingAlternative = alternatives.some(function (alternative) {
-          return alternative.profile_id === requestedStack && Array.isArray(alternative.use_cases) && alternative.use_cases.indexOf(initial.id) !== -1;
-        });
-        if (requestedStack !== initial.primary && matchingAlternative) {
-          contextMessage = 'This older link opens ' + linkedProfile.title + ', a conditional alternative for ' + initial.label + '. The editorial starting point remains ' + ((profiles[initial.primary] && profiles[initial.primary].title) || initial.primary) + '.';
-        } else if (requestedStack !== initial.primary) {
-          contextMessage = 'This link also names ' + linkedProfile.title + ', which is not a conditional alternative for ' + initial.label + '. Showing the reviewed recommendation for that job.';
-        } else if (requestedUseCase) {
-          contextMessage = 'This older stack link matches the reviewed starting point for ' + initial.label + '.';
-        }
-      }
-      if (initial) {
-        if (invalidUseCase) contextMessage = 'The requested job could not be matched. Showing the job related to this older stack link. ' + contextMessage;
-        setStatus(contextMessage || defaultStatus, contextMessage && linkedProfile ? linkedProfile : null);
-        if (requestedStack && !linkedProfile) {
-          query.delete('stack');
-          setStatus('This bookmark included a stack that is no longer in the catalogue. Showing the reviewed recommendation for ' + initial.label + '.', null);
-        }
-        query.set('use_case', initial.id);
-        writeQuery(query);
-      } else {
-        if (invalidUseCase) query.delete('use_case');
-        if (requestedStack && !linkedProfile) query.delete('stack');
-        writeQuery(query);
-        if (invalidUseCase && requestedStack && !linkedProfile) {
-          setStatus('This bookmark names a job and stack we cannot match. Choose a job or open the library.', null);
-        } else if (invalidUseCase && requestedStack && linkedProfile) {
-          setStatus('That job link is no longer available, and this stack has no related task recommendation. You can open its guide or choose a job.', linkedProfile);
-        } else if (invalidUseCase) {
-          setStatus('That job link is no longer available. Choose a job or open the library.', null);
-        } else if (requestedStack && !linkedProfile) {
-          setStatus('That stack link is no longer available. Choose a job or open the library.', null);
-        } else if (requestedStack && linkedProfile) {
-          setStatus('This stack guide is available, but it is not linked to a task recommendation. Choose a job or open its guide.', linkedProfile);
-        } else {
-          setStatus(defaultStatus, null);
-        }
-      }
-      if (initial) {
-        var radio = inputs.filter(function (input) { return input.value === initial.id; })[0];
-        if (radio) radio.checked = true;
-        choose(initial, alternatives, false);
-      }
+      var defaultStatus = 'Recommendations follow the task and your preferences. The library includes other guides for existing or deliberately chosen stacks.';
 
-      function choose(useCase, conditionalAlternatives, updateUrl) {
-        current = { id: useCase.id, title: useCase.label, primaryId: useCase.primary, ids: profiles[useCase.primary] ? [useCase.primary] : [] };
-        if (updateUrl !== false) {
-          updateQuery({ use_case: useCase.id, stack: null });
+      function preferences(task, values) {
+        var constraints = task.constraints || {};
+        preferencePanel.hidden = !Object.keys(constraints).length;
+        document.getElementById('recommendation-ecosystem-field').hidden = !constraints.ecosystem;
+        document.getElementById('recommendation-mobile-field').hidden = !constraints.mobile_platform;
+        var names = {any:'No preference',python:'Python',php:'PHP',ruby:'Ruby',elixir:'Elixir',react:'React',rust:'Rust'};
+        ecosystem.replaceChildren();
+        ['any'].concat(constraints.ecosystem || []).forEach(function (value) {
+          var option = document.createElement('option'); option.value = value; option.textContent = names[value] || value; ecosystem.appendChild(option);
+        });
+        ecosystem.value = values.ecosystem || 'any';
+        mobile.value = values.mobile_platform || '';
+      }
+      function choose(task, values, rewriteUrl) {
+        selectedTask = task;
+        preferences(task, values || {});
+        var selection = {use_case: task.id};
+        if (task.constraints && task.constraints.ecosystem && ecosystem.value !== 'any') selection.ecosystem = ecosystem.value;
+        if (task.constraints && task.constraints.mobile_platform && mobile.value) selection.mobile_platform = mobile.value;
+        var resolved = resolver(contract, selection);
+        var chosen = resolved.task;
+        current = {id: task.id, title: task.label, conditional: chosen.pending_questions.length > 0, primaryId: chosen.primary, ids: profiles[chosen.primary] ? [chosen.primary] : []};
+        if (rewriteUrl !== false) {
+          updateQuery({use_case: task.id, ecosystem: selection.ecosystem || null, mobile_platform: selection.mobile_platform || null, stack: null});
           setStatus(defaultStatus, null);
         }
         clearSel.hidden = false;
-        renderRecommendation(useCase, conditionalAlternatives);
+        renderRecommendation(chosen, alternatives);
         layout(true);
+        // Keep the chosen control in place; changing a radio must not move focus off screen.
+      }
+      inputs.forEach(function (input) {
+        input.addEventListener('change', function () {
+          var task = useCases.find(function (item) { return item.id === input.value; });
+          if (task) choose(task, {}, true);
+        });
+      });
+      [ecosystem, mobile].forEach(function (select) {
+        select.addEventListener('change', function () {
+          if (selectedTask) choose(selectedTask, {ecosystem: ecosystem.value, mobile_platform: mobile.value}, true);
+        });
+      });
+      var query = new URLSearchParams(location.search);
+      var requested = query.get('use_case');
+      var values = {ecosystem: query.get('ecosystem'), mobile_platform: query.get('mobile_platform')};
+      var alias = (contract.aliases || {})[requested];
+      if (alias) {
+        try {
+          var legacySelection = resolver(contract, {use_case:requested, ecosystem:values.ecosystem, mobile_platform:values.mobile_platform});
+          requested = legacySelection.task.id;
+          values = legacySelection.constraints;
+        } catch (error) { setStatus(error.message, null); return; }
+      }
+      var task = useCases.find(function (item) { return item.id === requested; });
+      var linkedProfile = profiles[query.get('stack')];
+      if (!task && linkedProfile) {
+        task = useCases.find(function (item) { return item.primary === linkedProfile.id; });
+        if (!task) task = useCases.find(function (item) {
+          var override = (item.overrides || []).find(function (row) { return row.primary === linkedProfile.id; });
+          if (override) { values = override.when; return true; }
+          return false;
+        });
+      }
+      if (task) {
+        var ignoredPreferences = [];
+        // Ignore invalid bookmark preferences visibly instead of rendering a stale choice.
+        Object.keys(values).forEach(function (key) {
+          if (values[key] && values[key] !== 'any' && !(task.constraints && task.constraints[key] || []).includes(values[key])) { ignoredPreferences.push(values[key]); values[key] = null; }
+        });
+        var radio = inputs.find(function (input) { return input.value === task.id; });
+        if (radio) radio.checked = true;
+        choose(task, values, true);
+        if (ignoredPreferences.length) setStatus('This task has no reviewed preference for ' + ignoredPreferences.join(', ') + '. Showing its starting point; verify that requirement before choosing.', null);
+        else if (alias) setStatus('This older link now opens the task with its original preference.', null);
+        else if (linkedProfile) setStatus('This link opens the task related to ' + linkedProfile.title + '. Your chosen stack remains available in its guide.', linkedProfile);
+      } else {
+        setStatus(requested ? 'That task is not in the catalogue. Choose a task or open a guide.' : defaultStatus, linkedProfile);
       }
     }
 
@@ -540,7 +528,7 @@
       msg.classList.toggle('is-hidden', !!current);
       matchLabel.style.top = '0px';
       matchLabel.classList.toggle('is-hidden', !current);
-      matchLabel.textContent = current ? 'Recommended for ' + current.title : '';
+      matchLabel.textContent = current ? (current.conditional ? 'Possible for ' : 'Recommended for ') + current.title : '';
       allLabel.style.top = rowLabelY + 'px';
       allLabel.textContent = current ? 'Other guides · recommendations depend on the task' : 'All ' + Object.keys(profiles).length + ' stack guides';
     }
@@ -549,17 +537,18 @@
       var selected = opts.querySelector('input[name="use_case"]:checked');
       if (selected) selected.checked = false;
       current = null; result.hidden = true;
-      updateQuery({ use_case: null, stack: null });
+      updateQuery({ use_case: null, stack: null, ecosystem: null, mobile_platform: null });
+      document.getElementById('recommendation-constraints').hidden = true;
       setStatus('Choose a job to see one reviewed starting point and when another stack may suit better.', null);
       clearSel.hidden = true;
       layout(true);
       var first = opts.querySelector('input[name="use_case"]'); if (first) first.focus();
     });
 
-    fetch('/recommendations.json').then(function (response) {
+    Promise.all([fetch('/recommendations.json').then(function (response) {
       if (!response.ok) throw new Error(response.status);
       return response.json();
-    }).then(start).catch(function () {
+    }), import('/design/recommendation-policy.js')]).then(function (results) { resolver = results[1].resolveRecommendation; start(results[0]); }).catch(function () {
       opts.disabled = true;
       setStatus('Recommendations are temporarily unavailable. Read the complete selection workflow or browse the library.', null);
     });
@@ -570,6 +559,7 @@
     window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(function () { layout(false); }, 80); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { layout(false); });
   })();
+
 
   (function () {
     if (!document.querySelector('main[data-interactive="rewrite"]')) return;

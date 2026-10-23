@@ -21,6 +21,23 @@
       <legend class="sr-only">What are you making?</legend>
       {{SERVER_USE_CASES}}
     </fieldset>
+    <section class="recommendation-constraints mx-auto mt-6 max-w-[680px]" id="recommendation-constraints" aria-label="Optional preferences" hidden>
+      <p class="constraints-lede">Optional preferences can narrow the stack recommendation.</p>
+      <div class="constraints-grid">
+        <div class="constraint-field" id="recommendation-ecosystem-field">
+          <label class="field-label" for="recommendation-ecosystem">Team or language preference</label>
+          <select id="recommendation-ecosystem" name="ecosystem">
+            <option value="any">No preference</option><option value="python">Python</option><option value="php">PHP</option><option value="ruby">Ruby</option><option value="elixir">Elixir</option><option value="react">React</option><option value="rust">Rust</option>
+          </select>
+        </div>
+        <div class="constraint-field" id="recommendation-mobile-field">
+          <label class="field-label" for="recommendation-mobile-platform">Mobile platform</label>
+          <select id="recommendation-mobile-platform" name="mobile-platform">
+            <option value="">Not decided yet</option><option value="shared">iOS and Android</option><option value="ios">iOS only</option><option value="android">Android only</option>
+          </select>
+        </div>
+      </div>
+    </section>
     <p id="recommendation-status" class="mt-4 text-center text-[14px] leading-5 text-body" role="status">Choose a job to see its recommendation. <a class="text-link" href="/library/">Browse every stack guide</a>.</p>
     <section id="recommendation-result" class="recommendation-result mx-auto mt-8 max-w-[960px]" aria-live="polite" hidden></section>
     <div class="clear-slot"><button type="button" class="clear-btn" id="clear-sel" hidden>Clear selection<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
