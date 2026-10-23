@@ -126,6 +126,20 @@ Older `?kind=` links resolve to a task and, for iOS/Android, the original platfo
 
 Create React App, AngularJS, Vue 2, WordPress and WooCommerce have HTML, Markdown and JSON source references plus offline discovery. They are source-only entries beside the 16 full-guide targets; supported WordPress/WooCommerce are not called obsolete. Scoped briefs preserve kept/replaced/retired responsibilities, owners, interfaces and checks. Unknown sources receive research guidance. Upgrade assessments need no unrelated target. Downloads read the current mode at click time. The AngularJS UpgradeModule citation, linked WordPress inventory and Rewrite navigation are corrected.
 
+### Allow maintenance within the current stack
+
+The browser permits identical source/target profile IDs and produces maintenance/upgrade guidance about actual versions and contracts. The router already supported same-profile questions; this change closes the human-flow gap.
+
+### Completed-candidate verification
+
+The rebuilt candidate passed the 27 selection cases, 336 documented-role pairs and 57 HTTP requests in the final review, with 1,371 internal references and no missing targets. The independent repair harness passed 63 assertion groups, 16 HTTP reads, all six ordinary/scoped download-mode combinations and 23 Python/JavaScript alternative-list comparisons. These are direct checks, not an application regression suite. Sol’s repair verification passed. Opus’s repair source review accepted the nine repairs, found a minor error-message regression that was corrected, and its final narrow source check passed. Opus did not execute the browser or runtime checks.
+
+Actual browser checks confirmed undecided/iOS mobile selection, applicable alternatives, matching-preference warnings, the linked WordPress inventory and Rewrite navigation. Safari saved a Rails-to-Django Markdown brief after changing staged transition to target architecture; its file content matched the new mode. A fresh Vue 2 assessment download retained its target-independent upgrade guidance. The new mobile question, selector and card were visually inspected at 390 pixels. Earlier 320-pixel and wide-view checks retain their stated scope; this repair pass did not repeat dark-theme or media checks. Maintainer-held evidence is in `stack.menu-review/2026-10-23/review-repairs/`, including exact saved downloads, executable checks, reviewer receipts and screenshots.
+
+All 15 local revisions built successfully and passed direct chosen-stack, task and migration routing checks. Their stored messages and valid signatures were read back; the final site sources match the reviewed candidate.
+
+The complete candidate is signed and committed locally. No changes have been pushed. Review and browser checks do not establish production delivery, application setup or migration execution.
+
 ## Reader access limit
 
 Python-urllib readers still receive Cloudflare HTTP 403 / error 1010; the cause remains unresolved. Maintainer-held surface and access records own the operational diagnostics.

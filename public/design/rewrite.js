@@ -279,7 +279,7 @@
           target: 'Evaluate ' + tgt.title + '’s own patterns and the dependencies it changes. Qualify changed guarantees and recovery before retiring the replaced responsibility.'
         }[state.mode];
         var mode = R.modes.filter(function (m) { return m.id === state.mode; })[0];
-        return 'Plan a ' + mode.title.toLowerCase() + ' from ' + src.title + ' to ' + tgt.title + '.\n\n' +
+        return (src.id === tgt.id ? 'Plan maintenance or an upgrade within ' + src.title + '. Inspect the installed version and the guide’s current ecosystem guidance; keep the current stack when it still fits.\n\n' : 'Plan a ' + mode.title.toLowerCase() + ' from ' + src.title + ' to ' + tgt.title + '.\n\n') +
           'Read ' + readingLinks(src, tgt, 'markdown_url') + ' first. Compare keeping the current stack before committing to a move. Inspect the actual application boundary, interfaces, dependencies, jobs and data owners before changing anything. ' + how + ' Report exact versions, checks run, results and unknowns.';
       }
 
@@ -361,7 +361,7 @@
 
       function render() {
         var src = currentSource(), tgt = targets[state.to];
-        var same = src && tgt && state.from === state.to, pair = src && tgt && !same;
+        var same = src && tgt && state.from === state.to, pair = src && tgt;
         var fit = assessMigration(src, tgt), crossRole = pair && fit.requires_clarification;
         if (crossRole && state.scope === 'redesign' && state.confirmed) state.mode = 'target';
         var ready = pair && (!crossRole || state.confirmed);
@@ -395,10 +395,6 @@
             '</div><p class="sr-status" id="copy-status" aria-live="polite"></p></div>';
         }
 
-        if (src && tgt && src.id === tgt.id) {
-          out.innerHTML = '<div class="guide-wrap"><div class="state"><h2>Pick two different stacks</h2><p>Choose a different target for a rewrite plan.</p></div></div>';
-          return;
-        }
         var html = '<div class="rw-band"><div class="guide-wrap rw-plan' + (ready ? '' : ' is-last') + '"><div>' + assessmentAction(src, tgt) + (crossRole ? scopeDetails(fit) : '') + (!crossRole || ready ? modesHtml(false) : '') + '</div>' + side + '</div></div>';
 
         if (ready) {
