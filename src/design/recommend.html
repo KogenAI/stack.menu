@@ -24,16 +24,17 @@
     <section id="recommendation-result" class="recommendation-result mx-auto mt-8 max-w-[960px]" aria-live="polite" hidden></section>
     <div class="clear-slot"><button type="button" class="clear-btn" id="clear-sel" hidden>Clear selection<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button></div>
 
-    <!-- Stage: all profile folders; matches move to the centre -->
-    <section class="rec-stage mt-8 md:mt-10" id="stage" aria-label="Recommended stacks">
+    <!-- Guide library remains distinct from task recommendations. -->
+    <section class="rec-stage mt-8 md:mt-10" id="stage" aria-label="All stack guides">
       <div class="rec-reveal" id="reveal" aria-hidden="true"></div>
       <div class="rec-msg" id="msg">
         <h2>Pick a job</h2>
         <p>Choose a job above to see one reviewed starting point and when another stack may suit better.</p>
       </div>
       <p class="rec-label eyebrow is-hidden" id="match-label" aria-live="polite"></p>
-      <p class="rec-label eyebrow" id="all-label">{{PROFILE_COUNT}} stack guides</p>
+      <p class="rec-label eyebrow" id="all-label">All stack guides</p>
       <div id="folders" data-stack-folders data-single-file></div>
     </section>
+    <p class="library-note">The guide library covers more stacks than the task recommendations.</p>
   </div>
 <noscript><div class="container pb-12"><p class="text-[14px] leading-5 text-body">Interactive recommendations need JavaScript. You can still open every stack guide below.</p>{{SERVER_LINKS}}</div></noscript></main>

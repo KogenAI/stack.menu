@@ -6,6 +6,7 @@ Tools and guidance for choosing an application stack, building with a known stac
 
 ## Start here
 
+- [Catalogue direction](docs/catalogue-direction-2026-10-23.md) — accepted scope and local implementation of task recommendations, guide presentation and rewrite sources; awaiting review.
 - [20 October redesign](docs/redesign-2026-10-20.md) — design provenance, local review and 21 October release evidence.
 - [Build and contribute](docs/website-workflow.md) — editable owners, local preview, direct checks and recovery.
 - [Implementation scope](docs/current-state.md) — supported behavior and evidence limits.

@@ -7,9 +7,9 @@
 .recommendation-result h3 { margin-top: 8px; font-size: 18px; line-height: 26px; font-weight: 600; color: var(--ink); }
 .recommendation-result p { margin-top: 8px; font-size: 14px; line-height: 21px; }
 .recommendation-result .recommendation-tradeoff { padding-left: 12px; border-left: 2px solid var(--hairline); }
-.recommendation-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 24px; margin-top: 20px; }
-.recommendation-actions .btn-primary { height: auto; min-height: 44px; gap: 12px; padding: 12px 20px; }
-.recommendation-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--ink); }
+.recommendation-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 20px; margin-top: 20px; }
+.recommendation-actions .btn-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; height: auto; gap: 12px; padding: 10px 18px; white-space: normal; text-align: center; }
+.recommendation-link { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding-block: 8px; font-size: 13px; line-height: 19px; font-weight: 500; color: var(--ink); }
 .recommendation-link:hover { text-decoration: underline; text-underline-offset: 4px; }
 .recommendation-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; border-radius: 4px; }
 .recommendation-sources { margin-top: 14px; font-size: 13px !important; }
@@ -19,7 +19,7 @@
 .recommendation-alternative { display: flex; flex-direction: column; padding: 20px; border: 1px solid var(--hairline); border-radius: 12px; background: var(--canvas); }
 .recommendation-alternative h3 { margin: 0; font-size: 15px; line-height: 22px; }
 .recommendation-footer { margin-top: auto; padding-top: 12px; }
-.recommendation-alternative .recommendation-actions { margin-top: 0; gap: 4px 16px; }
+.recommendation-alternative .recommendation-actions { align-items: flex-start; margin-top: 0; gap: 2px 12px; }
 .recommendation-alternative .recommendation-sources { margin-top: 8px; }
 .recommendation-result [hidden] { display: none; }
 .rec-unavailable { flex-basis: 100%; text-align: center; font-size: 14px; line-height: 20px; color: var(--body); }

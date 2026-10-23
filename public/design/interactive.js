@@ -344,10 +344,10 @@
     }
     function renderAlternatives(useCase, alternatives) {
       var relevant = alternatives.filter(function (alternative) {
-        return Array.isArray(alternative.use_cases) && alternative.use_cases.indexOf(useCase.id) !== -1;
+        return alternative.profile_id !== useCase.primary && Array.isArray(alternative.use_cases) && alternative.use_cases.indexOf(useCase.id) !== -1;
       });
       if (!relevant.length) return '';
-      return '<section class="recommendation-alternatives"><h2>Consider another stack when</h2><div class="recommendation-options">' + relevant.map(function (alternative) {
+      return '<details class="recommendation-alternatives"><summary>When another stack may fit</summary><div class="recommendation-options">' + relevant.map(function (alternative) {
         var id = alternative.profile_id;
         var profile = id && profiles[id];
         var title = (profile && profile.title) || alternative.label;
@@ -365,7 +365,7 @@
           (alternative.choose_when ? '<p><strong>Choose it when:</strong> ' + esc(alternative.choose_when) + '</p>' : '') +
           (alternative.caveat ? '<p><strong>Trade-off:</strong> ' + esc(alternative.caveat) + '</p>' : '') +
           '<div class="recommendation-footer">' + links + (sourceLinks ? '<p class="recommendation-sources">Sources: ' + sourceLinks + '</p>' : '') + '</div></article>';
-      }).join('') + '</div></section>';
+      }).join('') + '</div></details>';
     }
     function renderRecommendation(useCase, alternatives) {
       var id = useCase.primary;
@@ -542,7 +542,7 @@
       matchLabel.classList.toggle('is-hidden', !current);
       matchLabel.textContent = current ? 'Recommended for ' + current.title : '';
       allLabel.style.top = rowLabelY + 'px';
-      allLabel.textContent = current ? 'Other stack guides' : Object.keys(profiles).length + ' stack guides';
+      allLabel.textContent = current ? 'Other guides · recommendations depend on the task' : 'All ' + Object.keys(profiles).length + ' stack guides';
     }
 
     clearSel.addEventListener('click', function () {

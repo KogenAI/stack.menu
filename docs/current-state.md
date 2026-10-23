@@ -106,6 +106,10 @@ Generated page Markdown separates form labels and select options instead of conc
 
 The Rust CLI alternative makes asynchronous-runtime complexity conditional on the workload; ordinary synchronous CLIs do not require an async runtime.
 
+### Separate recommendations from the guide library
+
+The chooser separates one primary recommendation, conditional alternatives and all 16 reference guides. Cards use readable primary actions and shorter secondary links rather than treating every guide as a recommendation.
+
 ## Outstanding final-review findings
 
 A later Claude Opus high review and focused reproduction found unresolved issues: older `?kind=` chooser links lose their selection. These remain open. The unrelated hardcoded homepage guide count and obsolete logo class were removed in their owning changes.
