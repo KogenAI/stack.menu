@@ -14,6 +14,8 @@ commands:
       run: 'python3 -m py_compile scripts/*.py'
     - name: build
       run: 'npm run build'
+    - name: scenario-checks
+      run: 'npm run check'
   acceptance:
     run: 'NODE_PATH="$KOGEN_CUCUMBER" "$KOGEN_NODE" "$KOGEN_CUCUMBER/@cucumber/cucumber/bin/cucumber.js" --strict --require ''features/steps/*.js'' --format "message:$KOGEN_ACCEPTANCE_REPORT" "$KOGEN_ACCEPTANCE_FEATURES"'
     steps_dir: 'features/steps'
