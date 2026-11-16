@@ -1,0 +1,20 @@
+version: 1
+# Toolchain: Node 24.21.0 (.node-version) and python3; the build hosts
+# have both on PATH. Pushing to main deploys stack.menu through Cloudflare
+# Pages; the docs ask for direct checks, not a static-site regression
+# suite, so the checks are syntax, the content compilers and the build.
+commands:
+  setup:
+    - 'npm ci --no-audit --no-fund'
+  fix: []
+  checks:
+    - name: js-syntax
+      run: 'for f in functions/*.js lib/*.js public/*.js public/design/*.js scripts/*.mjs; do node --check "$f" || exit 1; done'
+    - name: py-compile
+      run: 'python3 -m py_compile scripts/*.py'
+    - name: build
+      run: 'npm run build'
+  acceptance:
+    run: 'NODE_PATH="$KOGEN_CUCUMBER" "$KOGEN_NODE" "$KOGEN_CUCUMBER/@cucumber/cucumber/bin/cucumber.js" --strict --require ''features/steps/*.js'' --format "message:$KOGEN_ACCEPTANCE_REPORT" "$KOGEN_ACCEPTANCE_FEATURES"'
+    steps_dir: 'features/steps'
+protect: []
