@@ -449,13 +449,15 @@
           ],
           "alternative_ids": [
             "expo-mobile",
-            "flutter-mobile"
+            "flutter-mobile",
+            "kotlin-multiplatform-mobile"
           ]
         }
       ],
       "alternative_ids": [
         "native-platform-clients",
-        "flutter-mobile"
+        "flutter-mobile",
+        "kotlin-multiplatform-mobile"
       ]
     }
   ],
@@ -788,6 +790,30 @@
         {
           "title": "Flutter multi-platform development",
           "url": "https://docs.flutter.dev/platform-integration"
+        }
+      ]
+    },
+    {
+      "id": "kotlin-multiplatform-mobile",
+      "label": "Kotlin Multiplatform shared logic",
+      "profile_id": null,
+      "use_cases": [
+        "cross-platform-mobile"
+      ],
+      "choose_when": "The team is Kotlin/Android-led (for example an Android-first team that expects an iOS client), or wants to share domain and data logic while keeping native SwiftUI and Jetpack Compose user interfaces, optionally adding Compose Multiplatform for shared UI.",
+      "caveat": "There is no curated Stack Menu profile; iOS builds still need Xcode and Apple platform ownership, and Compose Multiplatform on iOS is a further shared-UI decision. Qualify interop and libraries for each intended target. Stability is per target: Android and iOS are Stable, while web on Kotlin/Wasm, watchOS and tvOS are Beta. It does not replace an existing Expo or native project.",
+      "sources": [
+        {
+          "title": "Kotlin Multiplatform: stability of supported platforms",
+          "url": "https://kotlinlang.org/docs/multiplatform/supported-platforms.html"
+        },
+        {
+          "title": "What is Kotlin Multiplatform",
+          "url": "https://kotlinlang.org/docs/multiplatform/kmp-overview.html"
+        },
+        {
+          "title": "Compose Multiplatform",
+          "url": "https://kotlinlang.org/compose-multiplatform/"
         }
       ]
     },
