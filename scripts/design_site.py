@@ -12,7 +12,7 @@ def prepare(root,out,pages,records,write,shell):
         art=ART.get(key,'graphite')
         group=d['group']
         size=max(1,round((out/d['markdown_url'].lstrip('/')).stat().st_size/1024))
-        stacks.append(dict(id=key,label=d['title'],lang=d['language'],group=group,art=art,seed=i+3,blurb=d['summary'],files=[['rewrite stack','','/rewrite/?from='+key],['recommendation','','/choose/?stack='+key],['guide.md',f'MD · {size} KB',d['guide_url']]]))
+        stacks.append(dict(id=key,label=d['title'],lang=d['language'],group=group,art=art,seed=i+3,blurb=d['summary'],files=[['rewrite stack','','/rewrite/?from='+key],['related task','','/choose/?stack='+key],['guide.md',f'MD · {size} KB',d['guide_url']]]))
         search[key]=' '.join([d['title'],d['language'],d['shape'],d['summary'],json.dumps(d['tools'],ensure_ascii=False)])
     write('design/data.js','window.StackMenuData = '+json.dumps(dict(stacks=stacks,search=search),ensure_ascii=False).replace('<','\\u003c')+';\n')
     for route,name,title in [('index.html','home','Your agent’s guide to the right stack'),('agents/index.html','agents','For agents')]:
