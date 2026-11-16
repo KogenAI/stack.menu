@@ -143,3 +143,14 @@ The complete candidate is signed and committed locally. No changes have been pus
 ## Reader access limit
 
 Python-urllib readers still receive Cloudflare HTTP 403 / error 1010; the cause remains unresolved. Maintainer-held surface and access records own the operational diagnostics.
+
+## Offline scenario check — 16 November 2026
+
+`npm run check` runs `npm run build`, then `node --test` over `tests/scenarios/` (Node's built-in test runner and assertions only), then a Python 3.9+ standard-library compiler validation. It uses no network, browser, preview server, model call or added dependency, and it changes no product file under `lib/`, `functions/` or `menu/`. Eight scenarios encode existing behavior as named tests: (1) nine task primaries, ecosystem and platform overrides and legacy aliases; (2) an explicit stack is preserved for every profile; (3) hard constraints never replace the default and the UI preference filters only an explicit web component; (4) migration same-stack, role-mismatch, source-only and unlisted-source handling; (5) an existing Expo build with an iOS component stays Expo; (6) route handler statuses and GET parity with the router; (7) compiler rejection of invalid recommendation policies on temporary copies; (8) built `dist/` representations agree with their sources. It does not cover rendering, production delivery, the Python-urllib 403 or the Expo template's lint/TypeScript failures, which remain external limits.
+
+### Baseline record
+
+- Commit the baseline ran on: `524fa5cc98fd0e84cdba558e90c974bd2d27b3d1` (source unchanged by this item).
+- Versions used: Node v24.21.0, Python 3.9.6.
+- Pre-existing failures (recorded, not repaired; each is a strict expected failure that fails if it unexpectedly passes):
+  - Scenario 8, `dist/choose.md` omits the Go service alternative (`go-api`) for `api-service` with `ecosystem=python` or `ecosystem=rust`. Diagnostic: `choose.md has choose_when of go-api`. The router returns `go-api` as an applicable alternative for those overrides, but the compiler renders alternatives only for a task's default primary and for overrides with their own `alternative_ids`, so the guide does not carry its `choose_when` text.

@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "python3 scripts/build-menu.py && node scripts/build-schema.mjs && tailwindcss -c tailwind.config.mjs -i src/tailwind.css -o .generated/tailwind.css --minify && astro build && python3 scripts/build-agent-content.py && python3 scripts/finalize.py",
+    "check": "npm run build && node --test --test-reporter=spec 'tests/scenarios/*.test.js' && python3 -I tests/scenarios/compiler_validation.py positive .",
     "preview": "node scripts/preview.mjs",
     "export:share": "node scripts/export-share.mjs"
   },
