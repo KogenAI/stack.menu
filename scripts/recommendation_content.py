@@ -181,8 +181,9 @@ def markdown(policy: dict) -> str:
             lines += [f"When {condition}, use `{override['primary']}`: {override['why']}",
                       'Tradeoff: ' + override['tradeoff'],
                       'Sources: ' + '; '.join(f"[{s['title']}]({s['url']})" for s in override['sources']), '']
-            if 'alternative_ids' in override:
-                lines += ['Alternatives for this platform choice:', *_alternative_markdown(_alternatives(policy, {**use_case, **override})), '']
+            override_alternatives = _alternatives(policy, {**use_case, **override})
+            if 'alternative_ids' in override or override_alternatives:
+                lines += ['Alternatives for this platform choice:', *_alternative_markdown(override_alternatives), '']
         if aliases_by_task.get(use_case['id']):
             rendered = []
             for alias, mapping in aliases_by_task[use_case['id']]:

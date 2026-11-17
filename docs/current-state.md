@@ -152,5 +152,4 @@ Python-urllib readers still receive Cloudflare HTTP 403 / error 1010; the cause 
 
 - Commit the baseline ran on: `524fa5cc98fd0e84cdba558e90c974bd2d27b3d1` (source unchanged by this item).
 - Versions used: Node v24.21.0, Python 3.9.6.
-- Pre-existing failures (recorded, not repaired; each is a strict expected failure that fails if it unexpectedly passes):
-  - Scenario 8, `dist/choose.md` omits the Go service alternative (`go-api`) for `api-service` with `ecosystem=python` or `ecosystem=rust`. Diagnostic: `choose.md has choose_when of go-api`. The router returns `go-api` as an applicable alternative for those overrides, but the compiler renders alternatives only for a task's default primary and for overrides with their own `alternative_ids`, so the guide does not carry its `choose_when` text.
+- Repaired failure: `dist/choose.md` omitted the Go service alternative (`go-api`) for `api-service` with `ecosystem=python` or `ecosystem=rust`, although the router returned it. The compiler now renders, under every override, the alternatives the shared resolver returns, so the guide carries them. Scenario 8 of `npm run check` guards this by walking every task default and override from the policy and requiring each guide section to carry exactly the resolver's applicable alternatives. No pre-existing failure remains open.

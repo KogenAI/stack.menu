@@ -5,15 +5,6 @@ import path from 'node:path';
 import {resolveRecommendation} from '../../lib/recommendation-policy.js';
 import {root, readJson, readText} from './helpers.js';
 
-// Pre-existing divergence recorded in docs/current-state.md: dist/choose.md renders alternatives only
-// for a task's default primary and for overrides with their own alternative_ids, so the Go service
-// alternative that the router returns for these ecosystem overrides is absent from the guide.
-const KNOWN_MISSING_ALTERNATIVES = [
-  {input: {use_case: 'api-service', ecosystem: 'python'}, alternative: 'go-api'},
-  {input: {use_case: 'api-service', ecosystem: 'rust'}, alternative: 'go-api'}
-];
-const isKnown = (input, id) => KNOWN_MISSING_ALTERNATIVES.some(k => k.alternative === id && JSON.stringify(k.input) === JSON.stringify(input));
-
 const exists = url => fs.existsSync(path.join(root, 'dist', url.replace(/^\//, '').replace(/\/$/, '/index.html')));
 
 test('scenario 8: dist representations agree with their sources', () => {
@@ -22,17 +13,55 @@ test('scenario 8: dist representations agree with their sources', () => {
   assert.deepEqual(JSON.parse(readText('dist/recommendations.json')), policy);
 
   const choose = readText('dist/choose.md');
-  const inputs = [];
+  const lines = choose.split('\n');
+  const render = alternatives => alternatives.flatMap(a => [
+    `- ${a.label}${a.profile_id ? ` \`${a.profile_id}\`` : ''}: ${a.choose_when} Tradeoff: ${a.caveat}`,
+    '  Sources: ' + a.sources.map(s => `[${s.title}](${s.url})`).join('; ')
+  ]);
+  // Lines of the block that follows a heading line, up to the next blank line.
+  const blockAfter = (start) => {
+    const block = [];
+    for (let i = start + 1; i < lines.length && lines[i] !== ''; i++) block.push(lines[i]);
+    return block;
+  };
+  const taskStart = id => lines.findIndex(l => l.endsWith(`(\`${id}\`)`) && l.startsWith('### '));
+  const sectionEnd = start => {
+    const next = lines.findIndex((l, i) => i > start && l.startsWith('### '));
+    return next === -1 ? lines.length : next;
+  };
   for (const task of policy.use_cases) {
-    inputs.push({use_case: task.id});
-    for (const override of task.overrides || [])
-      inputs.push({use_case: task.id, ...override.when});
-  }
-  for (const input of inputs) {
-    const {task} = resolveRecommendation(policy, input);
-    assert.ok(choose.includes(`\`${task.primary}\``), `choose.md names primary ${task.primary} for ${JSON.stringify(input)}`);
-    for (const alternative of task.alternatives.filter(a => !isKnown(input, a.id)))
-      assert.ok(choose.includes(alternative.choose_when), `choose.md has choose_when of ${alternative.id}`);
+    const start = taskStart(task.id);
+    assert.ok(start >= 0, `choose.md has a section for ${task.id}`);
+    const end = sectionEnd(start);
+    const section = lines.slice(start, end);
+    const rel = (re) => section.findIndex(l => re.test(l));
+
+    const base = resolveRecommendation(policy, {use_case: task.id}).task;
+    assert.ok(choose.includes(`\`${base.primary}\``), `choose.md names primary ${base.primary} for ${task.id}`);
+    const defaultHeading = section.findIndex(l => /^(Other scoped alternatives|Alternatives for shared or undecided mobile scope):$/.test(l));
+    assert.deepEqual(defaultHeading === -1 ? [] : blockAfter(start + defaultHeading), render(base.alternatives),
+      `${task.id} default alternatives equal the resolver's`);
+
+    for (const override of task.overrides || []) {
+      const input = {use_case: task.id, ...override.when};
+      const {task: selected} = resolveRecommendation(policy, input);
+      const condition = Object.entries(override.when).map(([k, v]) => `\`${k}=${v}\``).join(', ');
+      const at = section.findIndex(l => l.startsWith(`When ${condition}, use \`${override.primary}\`:`));
+      assert.ok(at >= 0, `${task.id} section carries the override ${condition}`);
+      // The override's own block ends at the next override, aliases, sources or default alternatives.
+      let stop = section.length;
+      for (let i = at + 3; i < section.length; i++)
+        if (/^(When `|Aliases: |Sources: |Other scoped alternatives:|Alternatives for shared or undecided)/.test(section[i])) { stop = i; break; }
+      const own = section.slice(at, stop);
+      const heading = own.findIndex(l => l === 'Alternatives for this platform choice:');
+      if (override.alternative_ids || selected.alternatives.length) {
+        assert.notEqual(heading, -1, `${JSON.stringify(input)} renders the alternatives heading`);
+        assert.deepEqual(blockAfter(start + at + heading), render(selected.alternatives),
+          `${JSON.stringify(input)} alternatives equal the resolver's`);
+      } else {
+        assert.equal(heading, -1, `${JSON.stringify(input)} has no applicable alternatives and no heading`);
+      }
+    }
   }
 
   for (const name of ['recommendation-policy.js', 'migration-fit.js'])
@@ -46,18 +75,4 @@ test('scenario 8: dist representations agree with their sources', () => {
   for (const entry of [...profiles, ...sources])
     for (const key of ['guide_url', 'markdown_url', 'json_url'])
       assert.ok(entry[key] && exists(entry[key]), `${entry.id} ${key} ${entry[key]} exists under dist/`);
-});
-
-// Strict expected failure: passes only while the recorded divergence still exists, and fails
-// when choose.md starts carrying these alternatives so the expectation is removed deliberately.
-test('scenario 8: expected failure (pre-existing) go-api alternative missing from choose.md for python and rust api-service', () => {
-  const policy = readJson('menu/recommendations.json');
-  const choose = readText('dist/choose.md');
-  for (const {input, alternative} of KNOWN_MISSING_ALTERNATIVES) {
-    const {task} = resolveRecommendation(policy, input);
-    const found = task.alternatives.find(a => a.id === alternative);
-    assert.ok(found, `${alternative} is still an applicable alternative for ${JSON.stringify(input)}`);
-    assert.equal(choose.includes(found.choose_when), false,
-      `${alternative} now appears in choose.md for ${JSON.stringify(input)}: remove this expected failure and its baseline record`);
-  }
 });
