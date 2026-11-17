@@ -6,7 +6,7 @@ import json
 ECOSYSTEMS = {'any', 'python', 'php', 'ruby', 'elixir', 'react', 'rust'}
 MOBILE_PLATFORMS = {'shared', 'ios', 'android'}
 CONDITION_VALUES = {'ecosystem': ECOSYSTEMS - {'any'}, 'mobile_platform': MOBILE_PLATFORMS}
-COMPONENTS = {'web', 'api', 'cli', 'automation', 'ios', 'android'}
+COMPONENTS = {'web', 'api', 'cli', 'automation', 'ios', 'android', 'desktop'}
 
 
 def _sources(value, context):
@@ -27,10 +27,16 @@ def _alternative_ids(item, alternatives, task_id):
         raise ValueError(f'{task_id} needs distinct alternative IDs belonging to that task')
 
 
+def _uncurated(task):
+    return task.get('curated') is False
+
+
 def _alternatives(policy, task):
     ids = task.get('alternative_ids')
+    # An uncurated lead is an alternative record, so it is excluded by alternative id as well as by profile id.
     return [item for item in policy['alternatives'] if task['id'] in item['use_cases']
-            and (ids is None or item['id'] in ids) and item.get('profile_id') != task['primary']]
+            and (ids is None or item['id'] in ids) and item.get('profile_id') != task['primary']
+            and not (_uncurated(task) and item['id'] == task['primary'])]
 
 
 def _alternative_markdown(items):
@@ -65,7 +71,17 @@ def load_policy(root: Path) -> dict:
         roles = item.get('required_roles')
         if not isinstance(roles, list) or not roles or any(role not in COMPONENTS for role in roles):
             raise ValueError(f'Recommendation use case {cid} needs valid required_roles')
-        if item.get('primary') not in profiles:
+        if 'curated' in item and item['curated'] is not False:
+            raise ValueError(f'Recommendation use case {cid} curated may only be false')
+        if _uncurated(item):
+            lead = alternatives.get(item.get('primary'))
+            if lead is None or lead.get('profile_id') is not None or cid not in (lead.get('use_cases') or []):
+                raise ValueError(f'Uncurated recommendation use case {cid} needs a primary null-profile alternative that belongs to it')
+            if not isinstance(item.get('question'), str) or not item['question'].strip():
+                raise ValueError(f'Uncurated recommendation use case {cid} needs a question')
+            if item.get('overrides') or item.get('constraints'):
+                raise ValueError(f'Uncurated recommendation use case {cid} cannot have constraints or overrides')
+        elif item.get('primary') not in profiles:
             raise ValueError(f'Recommendation use case {cid} needs a known primary profile ID')
         if not isinstance(item.get('why'), str) or not item['why'].strip() or not isinstance(item.get('tradeoff'), str) or not item['tradeoff'].strip():
             raise ValueError(f'Recommendation use case {cid} needs why and tradeoff')
@@ -141,9 +157,18 @@ def markdown(policy: dict) -> str:
         'Choose the matching software task, then apply explicit ecosystem and platform constraints. A constraint selects the corresponding conditional primary; it does not create a separate task.', ''
     ]
     for use_case in policy['use_cases']:
-        lines += [f"### {use_case['label']} (`{use_case['id']}`)", '',
-                  f"Primary profile: `{use_case['primary']}`.", '', use_case['why'], '',
-                  'Tradeoff: ' + use_case['tradeoff'], '']
+        if _uncurated(use_case):
+            lead = next(item for item in policy['alternatives'] if item['id'] == use_case['primary'])
+            lines += [f"### {use_case['label']} (`{use_case['id']}`)", '',
+                      f"Uncurated starting lead: {lead['label']} (`{use_case['primary']}`). No curated Stack Menu profile covers this task; the lead is a research lead and no other profile is substituted.", '',
+                      f"Choose it when: {lead['choose_when']}", '', f"Tradeoff: {lead['caveat']}", '',
+                      'Lead sources: ' + '; '.join(f"[{s['title']}]({s['url']})" for s in lead['sources']), '',
+                      use_case['why'], '', 'Tradeoff: ' + use_case['tradeoff'], '',
+                      'Question: ' + use_case['question'], '']
+        else:
+            lines += [f"### {use_case['label']} (`{use_case['id']}`)", '',
+                      f"Primary profile: `{use_case['primary']}`.", '', use_case['why'], '',
+                      'Tradeoff: ' + use_case['tradeoff'], '']
         if use_case['id'] == 'cross-platform-mobile':
             lines += ['If the mobile platform is omitted, this primary is provisional. Ask whether the client is shared or platform-specific; do not exclude suitable single-platform clients until that is known.', '']
         for dimension, values in use_case.get('constraints', {}).items():

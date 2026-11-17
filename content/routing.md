@@ -27,7 +27,7 @@ The endpoint serves agent HTTP clients and same-origin use. Cross-origin browser
 
 ## Task preferences and rewrite sources — schema 1.1
 
-The catalogue has nine task choices. Optional `ecosystem` values are `any`, `python`, `php`, `ruby`, `elixir`, `react` and `rust`; each task publishes the values it supports in `constraints`. `mobile_platform` is `shared`, `ios` or `android`. Read the task's `overrides` instead of assuming a language preference always changes the primary. Optional `alternative_ids` on a task or override select its applicable alternatives; the browser and endpoint use the same resolved list. Unreviewed preferences remain a question, not a verified fit. These fields affect choosing only; a build or explicit migration target remains authoritative.
+The catalogue has ten task choices. Optional `ecosystem` values are `any`, `python`, `php`, `ruby`, `elixir`, `react` and `rust`; each task publishes the values it supports in `constraints`. `mobile_platform` is `shared`, `ios` or `android`. Read the task's `overrides` instead of assuming a language preference always changes the primary. Optional `alternative_ids` on a task or override select its applicable alternatives; the browser and endpoint use the same resolved list. Unreviewed preferences remain a question, not a verified fit. These fields affect choosing only; a build or explicit migration target remains authoritative.
 
 Older `python-api`, `react-fullstack`, `ios` and `android` use cases map through `recommendations.json.aliases` to a neutral task with the original preference. Conflicting explicit preferences must be resolved; they do not silently replace the old meaning. Human links use the canonical task and preference after resolving an alias.
 
@@ -37,4 +37,8 @@ The initial added sources are Create React App, AngularJS, Vue 2, WordPress and 
 
 Before building or rewriting, briefly consider whether an existing service or specialized tool already meets the need. This reminder does not create a required decision stage or override the user's instruction to build or rewrite.
 
-An explicit API, CLI, automation, iOS or Android component can identify its task when `use_case` is omitted. Ambiguous web requirements still need a task; supplied preferences remain visible as unresolved context instead of being discarded.
+An explicit API, CLI, automation, iOS, Android or desktop component can identify its task when `use_case` is omitted. Ambiguous web requirements still need a task; supplied preferences remain visible as unresolved context instead of being discarded.
+
+## Desktop applications
+
+`component:desktop` (or `use_case:desktop-app`, label "Desktop application") is the one uncurated task. Its task record carries `curated:false` and a `question`; its `primary` is the stable ID of an uncurated alternative (`tauri-2-desktop`), never a profile or generator. The route returns `recommendation.primary` as `{id, title, feasible:null, conditional:false, curated:false}` with the lead's label as `title`, empty `candidates` (no profile documents a desktop role, and no web, CLI or mobile profile is substituted), a coverage-gap nudge and the task `question` in `questions`. Its alternatives carry `profile_id:null` and `feasible:null`. A `goal:build` request with an unlisted desktop `existing_stack` keeps the chosen stack and the research path for unlisted sources.

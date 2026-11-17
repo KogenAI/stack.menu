@@ -368,7 +368,26 @@
           '<div class="recommendation-footer">' + links + (sourceLinks ? '<p class="recommendation-sources">Sources: ' + sourceLinks + '</p>' : '') + '</div></article>';
       }).join('') + '</div></details>';
     }
+    function renderUncuratedRecommendation(useCase, alternatives) {
+      var lead = alternatives.find(function (alternative) { return alternative.id === useCase.primary; }) || {};
+      var seen = {};
+      var sourceLinks = sourcesHtml((lead.sources || []).concat(useCase.sources || []).filter(function (source) {
+        if (!source || seen[source.url]) return false;
+        seen[source.url] = true;
+        return true;
+      }));
+      result.innerHTML = '<div class="recommendation-primary"><p class="eyebrow">Uncurated starting lead</p><h2>' + esc(lead.label || useCase.primary) + '</h2>' +
+        (lead.choose_when ? '<p><strong>Choose it when:</strong> ' + esc(lead.choose_when) + '</p>' : '') +
+        (lead.caveat ? '<p class="recommendation-tradeoff"><strong>Caveat:</strong> ' + esc(lead.caveat) + '</p>' : '') +
+        '<p>' + esc(useCase.why || '') + '</p>' +
+        (useCase.tradeoff ? '<p class="recommendation-tradeoff"><strong>Trade-off:</strong> ' + esc(useCase.tradeoff) + '</p>' : '') +
+        (useCase.question ? '<p class="recommendation-tradeoff"><strong>Question:</strong> ' + esc(useCase.question) + '</p>' : '') +
+        (sourceLinks ? '<p class="recommendation-sources">Editorial sources: ' + sourceLinks + '</p>' : '') + '</div>' +
+        renderAlternatives(useCase, alternatives);
+      result.hidden = false;
+    }
     function renderRecommendation(useCase, alternatives) {
+      if (useCase.curated === false) return renderUncuratedRecommendation(useCase, alternatives);
       var id = useCase.primary;
       var profile = id && profiles[id];
       var title = (profile && profile.title) || id || 'Recommended stack';
@@ -418,7 +437,7 @@
         if (task.constraints && task.constraints.mobile_platform && mobile.value) selection.mobile_platform = mobile.value;
         var resolved = resolver(contract, selection);
         var chosen = resolved.task;
-        current = {id: task.id, title: task.label, conditional: chosen.pending_questions.length > 0, primaryId: chosen.primary, ids: profiles[chosen.primary] ? [chosen.primary] : []};
+        current = {id: task.id, title: task.label, conditional: chosen.pending_questions.length > 0, uncurated: chosen.curated === false, primaryId: chosen.primary, ids: profiles[chosen.primary] ? [chosen.primary] : []};
         if (rewriteUrl !== false) {
           updateQuery({use_case: task.id, ecosystem: selection.ecosystem || null, mobile_platform: selection.mobile_platform || null, stack: null, kind: null});
           setStatus(defaultStatus, null);
@@ -450,7 +469,7 @@
           values = legacySelection.constraints;
         } catch (error) { setStatus(error.message, null); return; }
       }
-      var legacyKinds = {web:'web-product', api:'api-service', cli:'cli', automation:'automation', ios:'cross-platform-mobile', android:'cross-platform-mobile'};
+      var legacyKinds = {web:'web-product', api:'api-service', cli:'cli', automation:'automation', ios:'cross-platform-mobile', android:'cross-platform-mobile', desktop:'desktop-app'};
       if (!requested && legacyKinds[query.get('kind')]) {
         requested = legacyKinds[query.get('kind')];
         if (['ios','android'].includes(query.get('kind'))) values.mobile_platform = query.get('kind');
@@ -533,7 +552,7 @@
       msg.classList.toggle('is-hidden', !!current);
       matchLabel.style.top = '0px';
       matchLabel.classList.toggle('is-hidden', !current);
-      matchLabel.textContent = current ? (current.conditional ? 'Possible for ' : 'Recommended for ') + current.title : '';
+      matchLabel.textContent = current ? (current.uncurated ? 'Research lead for ' : current.conditional ? 'Possible for ' : 'Recommended for ') + current.title : '';
       allLabel.style.top = rowLabelY + 'px';
       allLabel.textContent = current ? 'Other guides · recommendations depend on the task' : 'All ' + Object.keys(profiles).length + ' stack guides';
     }

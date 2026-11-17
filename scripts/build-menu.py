@@ -106,7 +106,7 @@ COMMON=[
 ]
 REQUIREMENTS=[
 ('existing_stack','Existing project','Repository, chosen stack and conventions; whether a new stack is actually requested.'),
-('deliverables','Target surfaces','Browser, API, command line, automation, iOS, Android; a product may combine several.'),
+('deliverables','Target surfaces','Browser, API, command line, automation, iOS, Android, Desktop; a product may combine several.'),
 ('native_ui','Native platform UI','Native controls and platform integration versus browser UI.'),
 ('offline','Offline behavior','Read-only cache, offline edits, synchronization and conflict policy.'),
 ('integrations','Required integrations','Vendor SDKs, data/AI libraries, payments and platform APIs.'),

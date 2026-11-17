@@ -5,7 +5,10 @@ const profileIds=new Set(index.profiles.map(profile=>profile.id));
 const useCaseIds=new Set(recommendations.use_cases.map(useCase=>useCase.id));
 if(useCaseIds.size!==recommendations.use_cases.length)throw new Error('Recommendation use-case IDs must be unique.');
 for(const useCase of recommendations.use_cases){
- if(!profileIds.has(useCase.primary))throw new Error(`Recommendation ${useCase.id} references unknown primary profile ${useCase.primary}.`);
+ if(useCase.curated===false){
+  const lead=recommendations.alternatives.find(alternative=>alternative.id===useCase.primary);
+  if(!lead||lead.profile_id!==null||!lead.use_cases.includes(useCase.id))throw new Error(`Uncurated recommendation ${useCase.id} needs a null-profile primary alternative that belongs to it.`);
+ }else if(!profileIds.has(useCase.primary))throw new Error(`Recommendation ${useCase.id} references unknown primary profile ${useCase.primary}.`);
  if(!fields.use_case.includes(useCase.id))throw new Error(`Recommendation ${useCase.id} is missing from the route schema.`);
 }
 for(const useCase of recommendations.use_cases)for(const override of useCase.overrides||[])if(!profileIds.has(override.primary))throw new Error(`Unknown override profile ${override.primary}.`);

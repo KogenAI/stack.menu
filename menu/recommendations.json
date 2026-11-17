@@ -459,6 +459,29 @@
         "flutter-mobile",
         "kotlin-multiplatform-mobile"
       ]
+    },
+    {
+      "id": "desktop-app",
+      "label": "Desktop application",
+      "component": "desktop",
+      "required_roles": [
+        "desktop"
+      ],
+      "curated": false,
+      "primary": "tauri-2-desktop",
+      "why": "No Stack Menu profile covers desktop applications, so this is an uncurated research lead rather than a guide-backed recommendation. Tauri 2 is a reasonable first lead when the interface is built with web technologies, per-OS system-webview differences are acceptable, no requirement contradicts that, and native commands can be owned in Rust.",
+      "tradeoff": "This is not universal Tauri superiority. Native rendering, accessibility or platform-integration requirements override the webview default, and the alternatives below fit other teams and constraints. Qualify every target OS; no starter was executed. Under goal:build a desktop stack the user has already chosen is preserved, not replaced by this lead.",
+      "question": "Is a web-technology UI with per-OS system-webview differences acceptable, or is native rendering, accessibility or platform integration required, and which OS targets (Windows, macOS, Linux) apply?",
+      "sources": [
+        {
+          "title": "Tauri 2: What is Tauri?",
+          "url": "https://v2.tauri.app/start/"
+        },
+        {
+          "title": "Tauri 2: webview versions",
+          "url": "https://v2.tauri.app/reference/webview-versions/"
+        }
+      ]
     }
   ],
   "alternatives": [
@@ -854,6 +877,114 @@
         {
           "title": "React Native: Get started with a framework",
           "url": "https://reactnative.dev/docs/getting-started-with-a-framework"
+        }
+      ]
+    },
+    {
+      "id": "tauri-2-desktop",
+      "label": "Tauri 2",
+      "profile_id": null,
+      "use_cases": [
+        "desktop-app"
+      ],
+      "choose_when": "The interface is built with web technologies, the team accepts that each OS supplies its own system webview, no requirement contradicts that, and native commands can be written in Rust.",
+      "caveat": "There is no curated Stack Menu profile; this is a research lead. Use the stable 2.x line (3.0 is alpha as of 16 November 2026), expect rendering and web-feature differences across the OS system webviews, and qualify each target OS. Rust owns native commands, so the team must be able to maintain that code.",
+      "sources": [
+        {
+          "title": "Tauri 2: What is Tauri?",
+          "url": "https://v2.tauri.app/start/"
+        },
+        {
+          "title": "Tauri 2: webview versions",
+          "url": "https://v2.tauri.app/reference/webview-versions/"
+        },
+        {
+          "title": "Tauri 2: calling Rust from the frontend",
+          "url": "https://v2.tauri.app/develop/calling-rust/"
+        }
+      ]
+    },
+    {
+      "id": "electron-desktop",
+      "label": "Electron",
+      "profile_id": null,
+      "use_cases": [
+        "desktop-app"
+      ],
+      "choose_when": "A consistent bundled Chromium across operating systems, in-process Node.js APIs or the Electron ecosystem matter more to the team than bundle size.",
+      "caveat": "There is no curated Stack Menu profile. Electron ships a new major roughly every 8 weeks and supports only the latest three majors, so the project takes on a recurring upgrade obligation. Bundles are larger because Chromium and Node.js are included.",
+      "sources": [
+        {
+          "title": "Electron: release timeline",
+          "url": "https://www.electronjs.org/docs/latest/tutorial/electron-timelines"
+        },
+        {
+          "title": "Electron: process model",
+          "url": "https://www.electronjs.org/docs/latest/tutorial/process-model"
+        }
+      ]
+    },
+    {
+      "id": "compose-multiplatform-desktop",
+      "label": "Compose Multiplatform for desktop",
+      "profile_id": null,
+      "use_cases": [
+        "desktop-app"
+      ],
+      "choose_when": "The team works in Kotlin on the JVM, or wants to share UI and logic with Android and Kotlin Multiplatform; Compose Multiplatform for desktop is Stable.",
+      "caveat": "There is no curated Stack Menu profile. The application runs on the JVM and packaging, native integration and platform look need qualification on each target OS. Stability is per target, so check the supported-platforms page for any other target.",
+      "sources": [
+        {
+          "title": "Kotlin Multiplatform: stability of supported platforms",
+          "url": "https://kotlinlang.org/docs/multiplatform/supported-platforms.html"
+        },
+        {
+          "title": "Compose Multiplatform",
+          "url": "https://www.jetbrains.com/compose-multiplatform/"
+        }
+      ]
+    },
+    {
+      "id": "gpui-desktop",
+      "label": "GPUI (Rust)",
+      "profile_id": null,
+      "use_cases": [
+        "desktop-app"
+      ],
+      "choose_when": "The team writes Rust, wants a GPU-rendered non-webview UI and accepts a pre-1.0 framework with breaking changes between revisions. This is a conditional lead.",
+      "caveat": "There is no curated Stack Menu profile. GPUI is pre-1.0 and breaks; the crates.io release lags upstream and platform statements differ from upstream main. Pin an exact revision and qualify every target OS yourself, rather than relying on a platform claim.",
+      "sources": [
+        {
+          "title": "GPUI",
+          "url": "https://www.gpui.rs/"
+        },
+        {
+          "title": "GPUI source (Zed repository)",
+          "url": "https://github.com/zed-industries/zed/tree/main/crates/gpui"
+        },
+        {
+          "title": "gpui on crates.io",
+          "url": "https://crates.io/crates/gpui"
+        }
+      ]
+    },
+    {
+      "id": "native-single-os-desktop",
+      "label": "Platform-native single-OS desktop client",
+      "profile_id": null,
+      "use_cases": [
+        "desktop-app"
+      ],
+      "choose_when": "The product targets one operating system and needs its native controls, accessibility or platform integration, for example SwiftUI or AppKit on macOS.",
+      "caveat": "There is no curated Stack Menu profile and each additional OS needs a separately owned client. Windows-native and .NET desktop development is an explicit coverage gap, not a recommendation; research it for the actual project.",
+      "sources": [
+        {
+          "title": "Apple SwiftUI documentation",
+          "url": "https://developer.apple.com/documentation/swiftui"
+        },
+        {
+          "title": "Apple AppKit documentation",
+          "url": "https://developer.apple.com/documentation/appkit"
         }
       ]
     }
