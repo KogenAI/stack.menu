@@ -14,6 +14,21 @@
   .demo-summary summary { width: fit-content; margin-inline: auto; cursor: pointer; }
   .demo-summary p { max-width: 46rem; margin: 12px auto 0; }
 
+  /* ---------- Disclosed sponsor card: stacked on phones, one row from 640px ---------- */
+  .sponsor-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; width: 100%; max-width: 960px; min-width: 0; margin: 0 auto 48px; padding: 20px; box-sizing: border-box; border: 1px solid var(--hairline); border-radius: 12px; text-align: left; }
+  .sponsor-card__mark { width: 48px; height: 48px; border-radius: 10px; }
+  .sponsor-card__body { min-width: 0; }
+  .sponsor-card__label { margin: 0; color: var(--mute); font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+  .sponsor-card__title { margin: 4px 0 0; color: var(--ink); font-size: 20px; line-height: 28px; font-weight: 600; }
+  .sponsor-card__text { margin: 6px 0 0; color: var(--body); font-size: 14px; line-height: 22px; overflow-wrap: anywhere; }
+  .sponsor-card__links { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin: 0; }
+  .sponsor-card__primary { font-weight: 600; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  .sponsor-card__secondary { color: var(--body); text-decoration: underline; text-underline-offset: 3px; }
+  @media (min-width: 640px) {
+    .sponsor-card { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 20px; padding: 20px 24px; }
+    .sponsor-card__links { flex-direction: column; align-items: flex-start; gap: 8px; }
+  }
+
   /* ---------- Hero: equal-width buttons and the llms.txt link field ---------- */
   @media (min-width: 640px) { .hero-btn { width: 244px; } }
   .hero-field {
