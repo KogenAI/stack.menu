@@ -20,7 +20,8 @@ Start at the checkout root with Node 24 (minimum 22.12), npm 9.6.5+ and Python 3
 | Complete guide presentation | [`scripts/design_guides.py`](../scripts/design_guides.py), [`public/design/guide.css`](../public/design/guide.css) and [`guide.js`](../public/design/guide.js) |
 | Shared layout, metadata and responsive styles | [`src/layouts/Menu.astro`](../src/layouts/Menu.astro), [`src/styles.css`](../src/styles.css) |
 | Icons, share artwork and licensed fonts | [`branding/README.md`](../branding/README.md) |
-| Recorded demonstration | [`src/design/home.html`](../src/design/home.html), [`public/design/home.css`](../public/design/home.css), [`home.js`](../public/design/home.js) and publication derivatives in [`public/media/`](../public/media/) |
+| Homepage demo and sponsor placement | [`src/design/home.html`](../src/design/home.html), [`public/design/home.css`](../public/design/home.css), [`home.js`](../public/design/home.js) and publication derivatives in [`public/media/`](../public/media/). The homepage links a content-hashed copy of `home.css` so an existing browser cache can’t supply the previous release’s stylesheet to new HTML. |
+| Bruno sponsor profile | [`src/design/sponsor-bruno.html`](../src/design/sponsor-bruno.html); agent disclosure remains in [`content/agent-entry.md`](../content/agent-entry.md) |
 
 Contact facts must match the product's maintained public routes and [Optimum Tech's published identity](https://optimum.ba/). The [Elixir Menu contact page](https://elixir.menu/contact/) supplies the existing tool-correction structure. Keep each mailbox's purpose explicit, use visible email addresses, and label the mailing address accurately. Update the contact snapshot first; the HTML, JSON export, structured metadata and generated Markdown share it. A mailto link is not delivery evidence.
 

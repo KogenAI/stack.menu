@@ -1,5 +1,5 @@
 """Oghogho's presentation over Stack Menu's maintained content records."""
-import html,json,re
+import hashlib,html,json,re
 
 # Artwork selection is visual identity; profile facts remain in menu/.
 ART = dict(zip(['elixir-phoenix-liveview','typescript-next-node','typescript-react-vite-browser','rails-hotwire-postgresql','laravel-livewire-postgresql','python-django','go-service','rust-service','python-fastapi','go-cli','rust-cli','python-scripts-workers','swift-swiftui-ios','kotlin-compose-android'], ['dusk','graphite','vite','ruby','livewire','verdant','gocyan','copper','teal','terminal','ember','python','swift','kotlin']))
@@ -15,6 +15,10 @@ def prepare(root,out,pages,records,write,shell):
         stacks.append(dict(id=key,label=d['title'],lang=d['language'],group=group,art=art,seed=i+3,blurb=d['summary'],files=[['rewrite stack','','/rewrite/?from='+key],['related task','','/choose/?stack='+key],['guide.md',f'MD · {size} KB',d['guide_url']]]))
         search[key]=' '.join([d['title'],d['language'],d['shape'],d['summary'],json.dumps(d['tools'],ensure_ascii=False)])
     write('design/data.js','window.StackMenuData = '+json.dumps(dict(stacks=stacks,search=search),ensure_ascii=False).replace('<','\\u003c')+';\n')
+    home_css=(root/'public/design/home.css').read_text()
+    home_css_version=hashlib.sha256(home_css.encode('utf-8')).hexdigest()[:12]
+    home_stylesheet=f'design/home.{home_css_version}.css'
+    write(home_stylesheet,home_css)
     for route,name,title in [('index.html','home','Your agent’s guide to the right stack'),('agents/index.html','agents','For agents')]:
         body=(root/'src/design'/f'{name}.html').read_text()
         if name=='home':
@@ -29,9 +33,12 @@ def prepare(root,out,pages,records,write,shell):
         body=body.replace('{{PROFILE_COUNT}}',str(len(records)))
         props=shell(title,body,page=name)
         props['description']=('Stack guides for you and your coding agent. Choose the right stack, build with it or plan a rewrite.' if name=='home' else 'Give your agent direct access to Stack Menu: task-based recommendations, complete Markdown and JSON guides, generators and rewrite contracts.')
-        props['styles']=['/design/'+name+'.css']
+        props['styles']=['/'+home_stylesheet if name=='home' else '/design/'+name+'.css']
         props['scripts']=['/design/'+name+'.js']
         write(route,props)
+    bruno=shell('Bruno sponsor profile',(root/'src/design/sponsor-bruno.html').read_text(),page='sponsor')
+    bruno['description']='Bruno is a Stack Menu sponsor. See how its API client works with requests stored in Git.'
+    write('sponsors/bruno/index.html',bruno)
     from design_interactive import prepare as interactive
     interactive(root,out,pages,records,write,shell)
     from design_guides import prepare as guides

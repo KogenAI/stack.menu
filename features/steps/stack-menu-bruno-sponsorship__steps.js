@@ -1,5 +1,6 @@
 import {createRequire} from 'node:module';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -90,13 +91,20 @@ Then(P + 'the homepage has one Sponsored card for Bruno after the full demo and 
   assert.ok(card.open > figureEnd, `${P}the card is not after the full hero demo figure (video, caption and demo summary)`);
   const agents = html.indexOf('Bring the coding agent you already use');
   assert.ok(agents > card.open, `${P}the card is not before the "Bring the coding agent you already use" section`);
-  assert.match(text(card.html), /\bSponsored\b/, `${P}the card does not say Sponsored`);
+  const sponsorSection = html.lastIndexOf('<section', card.open);
+  const label = attr(html.slice(sponsorSection, html.indexOf('>', sponsorSection)), 'aria-labelledby');
+  const labelTag = label && html.indexOf(`id="${label}"`, sponsorSection);
+  assert.ok(labelTag > sponsorSection && labelTag < card.open, `${P}the card has no visible group disclosure`);
+  assert.match(text(html.slice(labelTag, card.open)), /\bSponsored\b/, `${P}the group does not say Sponsored`);
   assert.match(text(card.html), /Bruno/, `${P}the card does not name Bruno`);
-  assert.match(card.html, /<img\b[^>]*\balt="[^"]+"/, `${P}the card has no Bruno mark image with non-empty alt text`);
+  assert.match(card.html, /<img\b[^>]*\balt="[^"]*"/, `${P}the card has no Bruno mark image with an alt attribute`);
   const src = /<img\b[^>]*\bsrc="([^"]+)"/.exec(card.html);
   assert.ok(src && src[1].startsWith('/'), `${P}the card mark must be a first-party root-relative image`);
   const asset = path.join(builtCopy(), 'dist', src[1].split('?')[0]);
   assert.ok(fs.existsSync(asset) && fs.statSync(asset).size > 0, `${P}mark ${src[1]} is missing from dist`);
+  const markDigest = createHash('sha256').update(fs.readFileSync(asset)).digest('hex');
+  assert.equal(markDigest, '08f9f3af6b9608d8c9619e883395209e2ba437cdc2ec344020b5723b835fcf82',
+    `${P}the homepage does not use the reviewed Bruno mark`);
 });
 
 Then(P + 'the card primary link goes to the plain Bruno product link and the secondary link opens the sponsor profile', function () {
@@ -112,7 +120,12 @@ Then(P + 'the card primary link goes to the plain Bruno product link and the sec
 });
 
 Then(P + 'the card styles stack for a phone width and stay contained at desktop width', function () {
-  const css = walk(path.join(builtCopy(), 'dist')).filter(f => f.endsWith('.css')).map(f => fs.readFileSync(f, 'utf8')).join('\n');
+  const stylesheet = [...read(HOME).matchAll(/<link\b[^>]*>/g)]
+    .map(([tag]) => attr(tag, 'href')).find(href => /^\/design\/home\.[a-f0-9]{12}\.css$/.test(href));
+  assert.ok(stylesheet, `${P}the homepage does not link its versioned stylesheet`);
+  const css = read(`dist${stylesheet}`);
+  const digest = createHash('sha256').update(css).digest('hex').slice(0, 12);
+  assert.equal(stylesheet, `/design/home.${digest}.css`, `${P}the stylesheet URL does not match the CSS bytes`);
   const rules = css.match(/[^{}]*sponsor[^{}]*\{[^}]*\}/g) || [];
   assert.ok(rules.length > 0, `${P}no built CSS rule mentions the sponsor card`);
   assert.match(rules.join('\n'), /max-width\s*:|width\s*:\s*100%|min-width\s*:\s*0|grid-template-columns|flex-wrap/, `${P}the sponsor card has no containment rule (max-width, width:100%, min-width:0, grid or flex-wrap)`);
@@ -127,6 +140,8 @@ Then(P + 'the card styles stack for a phone width and stay contained at desktop 
 Then(P + 'the sponsor profile page names Bruno as a Stack Menu sponsor and keeps selection requirements-based', function () {
   const html = read(PROFILE);
   assert.match(html, /<h1\b[^>]*>[^<]*Bruno/, `${P}profile h1 does not name Bruno`);
+  const markSrc = /<img\b[^>]*\bsrc="(\/design\/bruno-mark\.png)"/.exec(html);
+  assert.ok(markSrc, `${P}the profile does not use the same reviewed mark as the homepage`);
   const t = text(html);
   assert.match(t, /Stack Menu sponsor/i, `${P}profile does not say Bruno is a Stack Menu sponsor`);
   assert.match(t, /optional/i, `${P}profile does not say the mention is optional`);
@@ -154,9 +169,7 @@ Then(P + 'the agent entry, llms.txt and the full bundle carry the optional spons
     assert.match(g, /after (the )?stack (selection|is (selected|chosen))|once (the )?stack (is )?(selected|chosen)/i, `${P}${file}: guidance does not place the mention after stack selection`);
     assert.match(g, /optional/i, `${P}${file}: guidance does not call the mention optional`);
     assert.match(g, /Stack Menu sponsor/i, `${P}${file}: guidance does not require saying Bruno is a Stack Menu sponsor`);
-    assert.match(g, /API testing/i, `${P}${file}: guidance lacks the API testing need`);
-    assert.match(g, /shared HTTP request/i, `${P}${file}: guidance lacks the shared HTTP request need`);
-    assert.match(g, /existing tool/i, `${P}${file}: guidance lacks the no existing tool condition`);
+    assert.match(g, /testing and sharing HTTP requests/i, `${P}${file}: guidance lacks the API testing and sharing use case`);
     assert.match(g, /conflicting requirement/i, `${P}${file}: guidance lacks the no conflicting requirement condition`);
     assert.match(g, /sponsors\/bruno/, `${P}${file}: guidance does not link the sponsor profile`);
   }
