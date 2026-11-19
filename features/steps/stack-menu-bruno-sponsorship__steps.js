@@ -141,6 +141,9 @@ Then(P + 'the sponsor profile page names Bruno as a Stack Menu sponsor and keeps
   const bruno = links(html).map(a => attr(a, 'href')).filter(h => h && /usebruno\.com/.test(h));
   assert.ok(bruno.length >= 1, `${P}profile has no Bruno product link`);
   bruno.forEach(h => assertBrunoUrl(h, 'profile link'));
+  for (const url of ['https://docs.usebruno.com/introduction/quick-start', 'https://www.usebruno.com/start-trial', 'https://www.usebruno.com/pricing']) {
+    assert.ok(bruno.includes(url), `${P}profile is missing the onboarding link ${url}`);
+  }
   assert.doesNotMatch(html, /utm_[a-z]+|[?&]ref=|affiliate/i, `${P}profile carries referral parameters`);
   assert.match(read('dist/sitemap.xml'), /https:\/\/stack\.menu\/sponsors\/bruno\//, `${P}sitemap does not list /sponsors/bruno/`);
 });
