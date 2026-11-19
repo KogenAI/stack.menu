@@ -43,6 +43,10 @@ On failure, retain the diagnostic, repair the failed prerequisite, rebuild and r
 
 ## Agent-access baseline
 
+For changes to agent guidance, run `npm run check:agent` from the checkout with Claude Code authenticated. It builds, serves a temporary loopback preview and runs two fresh Sonnet sessions at low effort. The relevant API case with Postman must link to Bruno and describe it as optional and sponsored. The manual tracking case must omit Bruno. Both sessions must read the served entry. To include this model check in the usual checks, run `STACK_MENU_CHECK_AGENT=1 npm run check`. If the CLI errors, verify local authentication and rerun. If a reply fails, read the printed reply and repair the affected guidance before rerunning.
+
+Kogen's required `scenario-checks` command enables the model check. The build worker needs Claude Code on its path and an authenticated provider session with Sonnet access. For a new sponsor, add its two prompts, official link and served guide to [the smoke check](../scripts/check-agent-recommendations.py).
+
 Serve essential answers in initial HTML with ordinary links and a canonical sitemap. Preserve real statuses, legitimate public crawler access and direct text resources. Markdown must come from the same content owner, with correct MIME and format-specific cache behavior. Only advertise resources that exist. Reference sites need no invented MCP, payment or login capability. Scanner observations supplement direct access and content checks; neither proves indexing, ranking or successful application setup.
 
 Implementation references: [Pages Functions routing](https://developers.cloudflare.com/pages/functions/routing/), [Functions API](https://developers.cloudflare.com/pages/functions/api-reference/), [Pages headers](https://developers.cloudflare.com/pages/configuration/headers/), [Google search guidance](https://developers.google.com/search/docs/fundamentals/seo-starter-guide).

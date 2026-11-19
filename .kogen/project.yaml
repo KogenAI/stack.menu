@@ -1,8 +1,6 @@
 version: 1
-# Toolchain: Node 24.21.0 (.node-version) and python3; the build hosts
-# have both on PATH. Pushing to main deploys stack.menu through Cloudflare
-# Pages; the docs ask for direct checks, not a static-site regression
-# suite, so the checks are syntax, the content compilers and the build.
+# Toolchain: Node 24.21.0 (.node-version), python3 and authenticated
+# Claude Code on PATH. Pushing main deploys through Cloudflare Pages.
 commands:
   setup:
     - 'npm ci --no-audit --no-fund'
@@ -15,7 +13,7 @@ commands:
     - name: build
       run: 'npm run build'
     - name: scenario-checks
-      run: 'npm run check'
+      run: 'STACK_MENU_CHECK_AGENT=1 npm run check'
   acceptance:
     run: 'NODE_PATH="$KOGEN_CUCUMBER" "$KOGEN_NODE" "$KOGEN_CUCUMBER/@cucumber/cucumber/bin/cucumber.js" --strict --require ''features/steps/*.js'' --format "message:$KOGEN_ACCEPTANCE_REPORT" "$KOGEN_ACCEPTANCE_FEATURES"'
     steps_dir: 'features/steps'

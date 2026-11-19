@@ -162,11 +162,12 @@ Then(P + 'the agent entry, llms.txt and the full bundle carry the optional spons
   assert.ok(read('dist/llms-full.txt').includes(tool.trim()), `${P}the offline bundle is missing the API tools section`);
 });
 
-Then(P + 'the guidance omits the mention for unrelated tasks, chosen tooling, ad-free requests and declines', function () {
+Then(P + 'the guidance omits the mention for unrelated tasks, required tooling, ad-free requests and declines', function () {
   for (const file of [...ENTRY_FILES, API_TOOLS]) {
     const g = read(file);
     assert.match(g, /only being considered for later|might add an API later/i, `${P}${file}: guidance does not exclude future API work`);
     assert.match(g, /already chosen API client/i, `${P}${file}: guidance does not preserve chosen tooling`);
+    assert.match(g, /requires that client|rules out switching/i, `${P}${file}: guidance does not protect required tooling`);
     assert.match(g, /ad-free/i, `${P}${file}: guidance does not omit for ad-free requests`);
     assert.match(g, /declin/i, `${P}${file}: guidance does not omit after a decline`);
   }
