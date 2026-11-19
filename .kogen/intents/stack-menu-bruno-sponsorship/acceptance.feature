@@ -19,7 +19,7 @@ Feature: Bruno sponsorship in Stack Menu
   Scenario: The agent entry, llms.txt and full bundle carry optional sponsored discovery guidance
     Then stack-menu-bruno-sponsorship: the agent entry, llms.txt and the full bundle carry the optional sponsored discovery guidance
     And stack-menu-bruno-sponsorship: the guidance omits the mention for unrelated tasks, chosen tooling, ad-free requests and declines
-    And stack-menu-bruno-sponsorship: the guidance keeps the plain product link pending a verified referral arrangement
+    And stack-menu-bruno-sponsorship: the guidance uses direct Bruno links and leads with the free setup
 
   Scenario: Relevant API stack selection stays requirements-based
     When stack-menu-bruno-sponsorship: I request the route for an API service with no chosen tooling

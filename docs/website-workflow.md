@@ -9,6 +9,7 @@ Start at the checkout root with Node 24 (minimum 22.12), npm 9.6.5+ and Python 3
 | Change | Editable source |
 | --- | --- |
 | Agent instructions and reference discovery | [`content/agent-entry.md`](../content/agent-entry.md) |
+| API integration and optional tool disclosure | [`content/api-tools.md`](../content/api-tools.md), served at `/agents/api-tools.md` when the entry points there. The full bundle includes a copy for offline use. |
 | Context fields and selection behavior | [`content/routing.md`](../content/routing.md), [`lib/router.js`](../lib/router.js), shared [`lib/migration-fit.js`](../lib/migration-fit.js) |
 | Generator workflow and per-profile recipes | [`content/generation-policy.json`](../content/generation-policy.json), [`menu/generators/`](../menu/generators/), rendered by [`scripts/generator_content.py`](../scripts/generator_content.py) |
 | Task defaults, preferences and aliases | [`menu/recommendations.json`](../menu/recommendations.json), [`lib/recommendation-policy.js`](../lib/recommendation-policy.js), [`scripts/recommendation_content.py`](../scripts/recommendation_content.py) |
@@ -21,7 +22,7 @@ Start at the checkout root with Node 24 (minimum 22.12), npm 9.6.5+ and Python 3
 | Shared layout, metadata and responsive styles | [`src/layouts/Menu.astro`](../src/layouts/Menu.astro), [`src/styles.css`](../src/styles.css) |
 | Icons, share artwork and licensed fonts | [`branding/README.md`](../branding/README.md) |
 | Homepage demo and sponsor placement | [`src/design/home.html`](../src/design/home.html), [`public/design/home.css`](../public/design/home.css), [`home.js`](../public/design/home.js) and publication derivatives in [`public/media/`](../public/media/). The homepage links a content-hashed copy of `home.css` so an existing browser cache can’t supply the previous release’s stylesheet to new HTML. |
-| Bruno sponsor profile | [`src/design/sponsor-bruno.html`](../src/design/sponsor-bruno.html); agent disclosure remains in [`content/agent-entry.md`](../content/agent-entry.md) |
+| Bruno sponsor profile | [`src/design/sponsor-bruno.html`](../src/design/sponsor-bruno.html) |
 
 Contact facts must match the product's maintained public routes and [Optimum Tech's published identity](https://optimum.ba/). The [Elixir Menu contact page](https://elixir.menu/contact/) supplies the existing tool-correction structure. Keep each mailbox's purpose explicit, use visible email addresses, and label the mailing address accurately. Update the contact snapshot first; the HTML, JSON export, structured metadata and generated Markdown share it. A mailto link is not delivery evidence.
 

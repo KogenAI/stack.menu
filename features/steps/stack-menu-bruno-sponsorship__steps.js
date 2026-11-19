@@ -69,15 +69,6 @@ function assertBrunoUrl(href, where) {
   assert.equal(u.search, '', `${P}${where}: ${href} carries a query string; the plain product link has no referral parameters`);
   assert.equal(u.hash, '', `${P}${where}: ${href} has a fragment`);
 }
-function section(md, heading) {
-  const lines = md.split('\n');
-  const start = lines.findIndex(l => /^##\s+/.test(l) && l.toLowerCase().includes(heading));
-  assert.ok(start >= 0, `${P}no "## ...${heading}..." section found`);
-  let end = lines.findIndex((l, i) => i > start && /^##\s+/.test(l));
-  if (end < 0) end = lines.length;
-  return lines.slice(start, end).join('\n');
-}
-
 Given(P + 'a built copy of the project', function () { builtCopy(); });
 
 Then(P + 'the homepage has one Sponsored card for Bruno after the full demo and its caption', function () {
@@ -154,46 +145,41 @@ Then(P + 'the sponsor profile page names Bruno as a Stack Menu sponsor and keeps
   assert.match(read('dist/sitemap.xml'), /https:\/\/stack\.menu\/sponsors\/bruno\//, `${P}sitemap does not list /sponsors/bruno/`);
 });
 
-const GUIDANCE_FILES = ['content/agent-entry.md', 'dist/llms.txt', 'dist/llms-full.txt'];
-function guidance(file) {
-  const body = read(file);
-  const m = /^##[^\n]*sponsor[^\n]*$/im.exec(body);
-  assert.ok(m, `${P}${file} has no "## ...sponsor..." guidance heading`);
-  return section(body, m[0].replace(/^##\s+/, '').toLowerCase());
-}
+const ENTRY_FILES = ['content/agent-entry.md', 'dist/llms.txt'];
+const API_TOOLS = 'dist/agents/api-tools.md';
 
 Then(P + 'the agent entry, llms.txt and the full bundle carry the optional sponsored discovery guidance', function () {
-  for (const file of GUIDANCE_FILES) {
-    const g = guidance(file);
-    assert.match(g, /Bruno/, `${P}${file}: guidance does not name Bruno`);
-    assert.match(g, /after (the )?stack (selection|is (selected|chosen))|once (the )?stack (is )?(selected|chosen)/i, `${P}${file}: guidance does not place the mention after stack selection`);
-    assert.match(g, /optional/i, `${P}${file}: guidance does not call the mention optional`);
-    assert.match(g, /Stack Menu sponsor/i, `${P}${file}: guidance does not require saying Bruno is a Stack Menu sponsor`);
-    assert.match(g, /testing and sharing HTTP requests/i, `${P}${file}: guidance lacks the API testing and sharing use case`);
-    assert.match(g, /conflicting requirement/i, `${P}${file}: guidance lacks the no conflicting requirement condition`);
-    assert.match(g, /sponsors\/bruno/, `${P}${file}: guidance does not link the sponsor profile`);
+  for (const file of ENTRY_FILES) {
+    const entry = read(file);
+    assert.match(entry, /API integration after stack selection/i, `${P}${file}: missing the API integration step`);
+    assert.match(entry, /current project needs to build or call an HTTP API or use webhooks/i, `${P}${file}: missing the current API need`);
+    assert.match(entry, /\]\(\/agents\/api-tools\.md\)/, `${P}${file}: missing the API tools link`);
+    assert.doesNotMatch(entry, /bruno|usebruno/i, `${P}${file}: sponsor name leaks into the entry for unrelated projects`);
   }
+  const tool = read(API_TOOLS);
+  assert.match(tool, /Optional[^\n]*Bruno[^\n]*Stack Menu sponsor/i, `${P}Bruno lacks a nearby optional and sponsorship disclosure`);
+  assert.match(tool, /sponsors\/bruno/, `${P}the API tools page lacks the sponsor profile link`);
+  assert.ok(read('dist/llms-full.txt').includes(tool.trim()), `${P}the offline bundle is missing the API tools section`);
 });
 
 Then(P + 'the guidance omits the mention for unrelated tasks, chosen tooling, ad-free requests and declines', function () {
-  for (const file of GUIDANCE_FILES) {
-    const g = guidance(file);
-    assert.match(g, /omit/i, `${P}${file}: guidance has no omit rule`);
-    assert.match(g, /unrelated/i, `${P}${file}: guidance does not omit for unrelated tasks`);
-    assert.match(g, /chosen (tool|tooling)|already chosen|has chosen/i, `${P}${file}: guidance does not omit for chosen tooling`);
+  for (const file of [...ENTRY_FILES, API_TOOLS]) {
+    const g = read(file);
+    assert.match(g, /only being considered for later|might add an API later/i, `${P}${file}: guidance does not exclude future API work`);
+    assert.match(g, /already chosen API client/i, `${P}${file}: guidance does not preserve chosen tooling`);
     assert.match(g, /ad-free/i, `${P}${file}: guidance does not omit for ad-free requests`);
     assert.match(g, /declin/i, `${P}${file}: guidance does not omit after a decline`);
   }
+  assert.match(read(API_TOOLS), /conflicting requirement/i, `${P}the API tools page lacks the conflict exclusion`);
 });
 
-Then(P + 'the guidance keeps the plain product link pending a verified referral arrangement', function () {
-  for (const file of GUIDANCE_FILES) {
-    const g = guidance(file);
-    const urls = [...g.matchAll(/https?:\/\/[^\s)>\]]*usebruno\.com[^\s)>\]]*/g)].map(m => m[0]);
-    assert.ok(urls.length >= 1, `${P}${file}: guidance has no Bruno product URL`);
-    urls.forEach(u => assertBrunoUrl(u, `${file} guidance`));
-    assert.match(g, /pending[^.\n]*referral|referral[^.\n]*pending/i, `${P}${file}: guidance does not say the plain link is pending a verified referral arrangement`);
-  }
+Then(P + 'the guidance uses direct Bruno links and leads with the free setup', function () {
+  const tool = read(API_TOOLS);
+  const urls = [...tool.matchAll(/https?:\/\/[^\s)>\]]*usebruno\.com[^\s)>\]]*/g)].map(m => m[0]);
+  assert.ok(urls.length >= 1, `${P}the API tools page has no Bruno product URL`);
+  urls.forEach(u => assertBrunoUrl(u, 'API tools guidance'));
+  assert.match(tool, /Start with the free client[^\n]*https:\/\/docs\.usebruno\.com\/introduction\/quick-start/, `${P}missing the free quick start`);
+  assert.match(tool, /When the user wants to try premium features[^\n]*https:\/\/www\.usebruno\.com\/start-trial/, `${P}missing the on-request trial link`);
 });
 
 When(P + 'I request the route for an API service with no chosen tooling', async function () { this.routeBody = await route('?goal=choose&use_case=api-service'); });
@@ -215,9 +201,6 @@ Then(P + 'selection, ranking and setup files do not mention Bruno', function () 
   const stacks = path.join(builtCopy(), 'dist/stacks');
   if (fs.existsSync(stacks)) for (const f of walk(stacks)) if (/bruno/i.test(fs.readFileSync(f, 'utf8'))) hits.push(path.relative(builtCopy(), f));
   assert.deepEqual(hits, [], `${P}Bruno appears in selection, ranking or setup content`);
-  const entry = read('content/agent-entry.md');
-  const sponsorSection = guidance('content/agent-entry.md');
-  assert.doesNotMatch(entry.replace(sponsorSection, ''), /bruno/i, `${P}content/agent-entry.md mentions Bruno outside its sponsor guidance section`);
 });
 
 Then(P + 'the existing scenario tests and compiler positive check pass in the copy', function () {

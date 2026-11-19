@@ -4,6 +4,7 @@ E=lambda s:html.escape(str(s),quote=True)
 def paragraphs(xs):return ''.join('<li>'+E(x)+'</li>' for x in xs)
 def prepare(root,out,pages,records,intro,choose,write,shell):
  entry=(root/'content/agent-entry.md').read_text()
+ api_tools=(root/'content/api-tools.md').read_text()
  # This lean Markdown renderer is only for the authored entry (no arbitrary input).
  def md(s):
   s=E(s)
@@ -55,7 +56,8 @@ def prepare(root,out,pages,records,intro,choose,write,shell):
  page('Privacy','<h1>Privacy.</h1><p>This notice covers the public website at stack.menu. Linked products and services have their own privacy notices.</p><h2>Reading and context routing</h2><p>You can read the guides without an account. The context router accepts structured requirement fields and returns guidance without saving them in an application database. Send only the fields it needs; omit private conversations, source code and credentials.</p><p>Your chosen agent has its own data handling. Use POST for context rather than putting sensitive information in a URL.</p><h2>Hosting and analytics</h2><p>Cloudflare Pages serves this website. Delivery and security providers receive the network information needed to respond to web requests. Read the <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare privacy policy</a> for its processing practices.</p><p>The public HTML pages use Plausible for aggregate pageview analytics. Local and preview hostnames, missing pages and the context router do not load its tracker. Requirement fields, page query parameters and fragments are not sent to analytics. Read the <a href="https://plausible.io/data-policy">Plausible data policy</a> for its measurement and storage practices.</p><h2>Email</h2><p>Contact links open your email client. If you email us, your message and the contact details you provide are handled through the email service used for that conversation. Please do not send passwords, access tokens or unnecessary sensitive information.</p><p>For a question or correction to this notice, email <a href="mailto:'+E(consulting['email'])+'">'+E(consulting['email'])+'</a>.</p><p class="muted">Site configuration reviewed 13 October 2026.</p>','privacy/index.html')
  page('Page not found','<h1>That guide isn’t here.</h1><p><a href="/">Return home</a> or <a href="/agents/guide.md">read the agent entry</a>.</p>','404.html')
  write('llms.txt',entry+'\n## Profile directory\n\n'+'\n'.join('- ['+d['title']+']('+d['markdown_url']+'): '+d['summary']+' JSON: '+d['json_url'] for d in records.values())+'\n\n[Stack coverage and use cases](/coverage.json)\n')
- bundle=(out/'llms-full.txt').read_text();write('llms-full.txt',entry+'\n\n---\n\n'+bundle)
+ write('agents/api-tools.md',api_tools)
+ bundle=(out/'llms-full.txt').read_text();write('llms-full.txt',entry+'\n\n---\n\n'+bundle+'\n\n---\n\n'+api_tools)
  # Runtime filtering uses the exact compact index also served to readers.
  (root/'lib/selection-index.json').write_text((out/'selection-index.json').read_text())
  for f in (root/'content').glob('*.json'):write(f.name,f.read_text())
