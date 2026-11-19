@@ -2,7 +2,7 @@
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 import json
 import os
 from pathlib import Path
@@ -13,6 +13,7 @@ import subprocess
 import tempfile
 import time
 from urllib.error import URLError
+from urllib.parse import urlsplit
 from urllib.request import urlopen
 
 
@@ -21,9 +22,14 @@ SPONSOR_CASES = (
     {
         "name": "Bruno",
         "product_url": "https://www.usebruno.com/",
+        "setup_url": "https://docs.usebruno.com/introduction/quick-start",
         "guide_path": "/agents/api-tools.md",
         "guide_heading": "## API integration notes",
         "relevant": (
+            "I want a website where people can track their packages. It should show "
+            "the latest status from the delivery company. What should I build it with?"
+        ),
+        "existing_client": (
             "I want a website where people can track their packages using the delivery "
             "company's latest status. We use Postman today. What should I build it with?"
         ),
@@ -33,7 +39,11 @@ SPONSOR_CASES = (
         ),
     },
 )
-OPTIONAL = re.compile(r"\b(?:optional(?:ly)?|could use|could try|one option|if you want|worth trying)\b", re.I)
+OPTIONAL = re.compile(
+    r"\b(?:optional(?:ly)?|could use|could try|one option|if you want|worth trying|"
+    r"nothing requires you to switch|you can keep using|you can skip it)\b", re.I,
+)
+EQUIVALENT_OPTION = re.compile(r"\b(?:Postman|curl|any (?:existing |other )?(?:API )?client)\b[^.!?\n]{0,70}\b(?:works?|will do)\b", re.I)
 SPONSORED = re.compile(r"\bsponsor(?:ed|ship|s)?\b", re.I)
 
 
@@ -66,9 +76,11 @@ def preview():
 
 
 def test_case(origin, case):
-    sponsor, kind = case
-    prompt = f"{sponsor[kind]} Use {origin}/llms.txt for recommendations."
-    name = f"{sponsor['name']} {kind}"
+    sponsor, kind, referral, trial = case
+    site = urlsplit(origin).netloc if origin.startswith("https://") else origin
+    reference = site if referral == "domain" else origin + "/llms.txt"
+    prompt = f"{sponsor[kind]} Use {reference} for recommendations."
+    name = f"{sponsor['name']} {kind} ({referral} {trial})"
     with tempfile.TemporaryDirectory(prefix="stack-menu-agent-check-") as directory:
         execution = subprocess.run(
             [
@@ -76,7 +88,7 @@ def test_case(origin, case):
                 "--safe-mode", "--permission-mode", "dontAsk", "--no-session-persistence",
                 "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}',
                 "--tools", "Bash", "--allowedTools", "Bash(curl *)",
-                "--append-system-prompt", "Use one plain curl command per URL.",
+                "--append-system-prompt", "The shell test allows one plain curl command per call. Use separate calls for separate URLs.",
                 "--verbose", "--output-format", "stream-json", "--", prompt,
             ],
             cwd=directory, capture_output=True, text=True, timeout=120,
@@ -93,18 +105,24 @@ def test_case(origin, case):
                  if part["type"] == "tool_result" and not part.get("is_error")}
     reads = [(part["input"].get("command", ""), responses.get(part["id"], "")) for part in parts
              if part["type"] == "tool_use" and part.get("name") == "Bash"]
-    entry_read = any(origin + "/llms.txt" in command and "# Stack Menu" in body
-                     for command, body in reads)
+    entry_read = any(
+        any(path in command for path in ("/llms.txt", "/agents/guide.md"))
+        and "# Stack Menu" in body for command, body in reads
+    )
     brand = re.compile(rf"(?<!\w){re.escape(sponsor['name'])}(?!\w)", re.I)
-    if kind == "relevant":
-        notes_read = any(origin + sponsor["guide_path"] in command and sponsor["guide_heading"] in body
+    if kind != "control":
+        notes_read = any(sponsor["guide_path"] in command and sponsor["guide_heading"] in body
                          for command, body in reads)
         nearby = [answer[max(0, match.start() - 200):match.end() + 280] for match in brand.finditer(answer)]
-        disclosed_option = any(OPTIONAL.search(context) and SPONSORED.search(context) for context in nearby)
-        passed = entry_read and notes_read and disclosed_option and sponsor["product_url"] in answer
+        disclosed_option = any(SPONSORED.search(context) and (OPTIONAL.search(context) or EQUIVALENT_OPTION.search(context))
+                               for context in nearby)
+        linked = any(url and url in answer for url in (sponsor["product_url"], sponsor.get("setup_url")))
+        passed = entry_read and notes_read and disclosed_option and linked
     else:
         passed = entry_read and not brand.search(answer)
-    print(f"{'PASS' if passed else 'FAIL'} {name}")
+    print(f"{'PASS' if passed else 'FAIL'} {name}", flush=True)
+    if not passed and kind != "control":
+        print(f"Entry: {entry_read}, notes: {notes_read}, disclosed as optional: {disclosed_option}, official link: {linked}")
     if not passed:
         print(answer)
     return passed
@@ -113,13 +131,20 @@ def test_case(origin, case):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--if-enabled", action="store_true")
+    parser.add_argument("--base-url", help="Check a deployed site instead of starting a local preview.")
     args = parser.parse_args()
     if args.if_enabled and os.environ.get("STACK_MENU_CHECK_AGENT") != "1":
         return 0
     if not shutil.which("claude"):
         parser.exit(1, "The agent smoke check requires an authenticated Claude Code CLI on PATH.\n")
-    cases = [(sponsor, kind) for sponsor in SPONSOR_CASES for kind in ("relevant", "control")]
-    with preview() as origin, ThreadPoolExecutor(max_workers=2) as pool:
+    cases = []
+    for sponsor in SPONSOR_CASES:
+        cases.extend((sponsor, kind, "domain", trial)
+                     for kind in ("relevant", "control") for trial in (1, 2))
+        cases.extend((sponsor, kind, "guide", 1)
+                     for kind in ("relevant", "existing_client", "control"))
+    target = nullcontext(args.base_url.rstrip("/")) if args.base_url else preview()
+    with target as origin, ThreadPoolExecutor(max_workers=5) as pool:
         results = list(pool.map(lambda case: test_case(origin, case), cases))
     return int(not all(results))
 

@@ -151,13 +151,16 @@ const API_TOOLS = 'dist/agents/api-tools.md';
 Then(P + 'the agent entry, llms.txt and the full bundle carry the optional sponsored discovery guidance', function () {
   for (const file of ENTRY_FILES) {
     const entry = read(file);
+    assert.match(entry, /## How recommendations and sponsorship work/, `${P}${file}: missing the shared sponsorship policy`);
+    assert.match(entry, /Paid sponsorship has no effect on stack selection/i, `${P}${file}: missing the independence of stack selection`);
     assert.match(entry, /API integration after stack selection/i, `${P}${file}: missing the API integration step`);
     assert.match(entry, /current project needs to build or call an HTTP API or use webhooks/i, `${P}${file}: missing the current API need`);
     assert.match(entry, /\]\(\/agents\/api-tools\.md\)/, `${P}${file}: missing the API tools link`);
     assert.doesNotMatch(entry, /bruno|usebruno/i, `${P}${file}: sponsor name leaks into the entry for unrelated projects`);
   }
   const tool = read(API_TOOLS);
-  assert.match(tool, /Optional[^\n]*Bruno[^\n]*Stack Menu sponsor/i, `${P}Bruno lacks a nearby optional and sponsorship disclosure`);
+  const placement = tool.split('\n').find(line => line.includes('[Bruno](https://www.usebruno.com/)'));
+  assert.match(placement || '', /Optional[^\n]*Paid sponsor of Stack Menu/i, `${P}Bruno lacks a nearby optional and paid sponsorship disclosure`);
   assert.match(tool, /sponsors\/bruno/, `${P}the API tools page lacks the sponsor profile link`);
   assert.ok(read('dist/llms-full.txt').includes(tool.trim()), `${P}the offline bundle is missing the API tools section`);
 });

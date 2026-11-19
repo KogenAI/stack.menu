@@ -8,7 +8,7 @@ Start at the checkout root with Node 24 (minimum 22.12), npm 9.6.5+ and Python 3
 
 | Change | Editable source |
 | --- | --- |
-| Agent instructions and reference discovery | [`content/agent-entry.md`](../content/agent-entry.md) |
+| Agent instructions, reference discovery and shared sponsorship policy | [`content/agent-entry.md`](../content/agent-entry.md) |
 | API integration and optional tool disclosure | [`content/api-tools.md`](../content/api-tools.md), served at `/agents/api-tools.md` when the entry points there. The full bundle includes a copy for offline use. |
 | Context fields and selection behavior | [`content/routing.md`](../content/routing.md), [`lib/router.js`](../lib/router.js), shared [`lib/migration-fit.js`](../lib/migration-fit.js) |
 | Generator workflow and per-profile recipes | [`content/generation-policy.json`](../content/generation-policy.json), [`menu/generators/`](../menu/generators/), rendered by [`scripts/generator_content.py`](../scripts/generator_content.py) |
@@ -43,9 +43,11 @@ On failure, retain the diagnostic, repair the failed prerequisite, rebuild and r
 
 ## Agent-access baseline
 
-For changes to agent guidance, run `npm run check:agent` from the checkout with Claude Code authenticated. It builds, serves a temporary loopback preview and runs two fresh Sonnet sessions at low effort. The relevant API case with Postman must link to Bruno and describe it as optional and sponsored. The manual tracking case must omit Bruno. Both sessions must read the served entry. To include this model check in the usual checks, run `STACK_MENU_CHECK_AGENT=1 npm run check`. If the CLI errors, verify local authentication and rerun. If a reply fails, read the printed reply and repair the affected guidance before rerunning.
+For changes to agent guidance, run `npm run check:agent` from the checkout with Claude Code authenticated. It builds and tests a temporary loopback preview in fresh Sonnet sessions at low effort. It repeats the carrier and manual-tracking prompts using the site address and also tests direct guide references, including the Postman case. Relevant replies must link to Bruno and disclose it as an optional sponsor. Manual-tracking replies must omit Bruno. After release, `python3 scripts/check-agent-recommendations.py --base-url https://stack.menu` checks the same behaviors on the public site, including the literal “Use stack.menu” wording. To include the local model check in the usual checks, run `STACK_MENU_CHECK_AGENT=1 npm run check`. If a check fails, inspect the reply or the CLI error before rerunning. A successful run establishes the results for those sessions.
 
-Kogen's required `scenario-checks` command enables the model check. The build worker needs Claude Code on its path and an authenticated provider session with Sonnet access. For a new sponsor, add its two prompts, official link and served guide to [the smoke check](../scripts/check-agent-recommendations.py).
+Kogen's required `scenario-checks` command enables the model check. The build worker needs Claude Code on its path and an authenticated provider session with Sonnet access.
+
+For a new sponsor, add its placement and profile to the [surface map](../branding/README.md). Put the task fit, official link, paid disclosure and free-first onboarding in the relevant task guide. Use the shared policy in [the agent entry](../content/agent-entry.md). Add matching and control prompts, the official link and the served guide to [the smoke check](../scripts/check-agent-recommendations.py). Exercise the onboarding follow-up from the recommendation before release.
 
 Serve essential answers in initial HTML with ordinary links and a canonical sitemap. Preserve real statuses, legitimate public crawler access and direct text resources. Markdown must come from the same content owner, with correct MIME and format-specific cache behavior. Only advertise resources that exist. Reference sites need no invented MCP, payment or login capability. Scanner observations supplement direct access and content checks; neither proves indexing, ranking or successful application setup.
 
