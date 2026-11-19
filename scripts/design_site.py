@@ -39,6 +39,9 @@ def prepare(root,out,pages,records,write,shell):
     bruno=shell('Bruno sponsor profile',(root/'src/design/sponsor-bruno.html').read_text(),page='sponsor')
     bruno['description']='Bruno is a Stack Menu sponsor. See how its API client works with requests stored in Git.'
     write('sponsors/bruno/index.html',bruno)
+    sponsors=shell('Sponsor Stack Menu',(root/'src/design/sponsors.html').read_text(),page='sponsor')
+    sponsors['description']='What sponsorship includes and how Stack Menu keeps recommendations independent.'
+    write('sponsors/index.html',sponsors)
     from design_interactive import prepare as interactive
     interactive(root,out,pages,records,write,shell)
     from design_guides import prepare as guides
